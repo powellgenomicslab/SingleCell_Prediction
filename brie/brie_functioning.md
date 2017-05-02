@@ -5,7 +5,7 @@ author: Jose Alquicira Hernandez
 
 # Introduction
 
-**BRIE** is a Bayesian method to estimate isoform proportions from RNA-seq data. Currently, BRIE could take sequence features to automatically learn informative prior of exon inclusion ratio in exon-skippiing events
+[**BRIE**](https://brie-rna.sourceforge.io/index.html) is a Bayesian method to estimate isoform proportions from RNA-seq data. Currently, BRIE could take sequence features to automatically learn informative prior of exon inclusion ratio in exon-skippiing events
 
 
 # Get splicing events
