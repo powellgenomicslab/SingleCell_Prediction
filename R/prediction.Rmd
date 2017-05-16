@@ -1,0 +1,281 @@
+---
+title: "prediction"
+author: "Jose Alquicira Hernandez"
+date: "11 May 2017"
+output: html_document
+---
+
+```{r load_libraries}
+library('glmnet')
+library('foreach')
+library('doParallel')
+library('dplyr')
+```
+
+
+```{r command_line_args, eval=FALSE}
+argv <- commandArgs(TRUE)
+c_selectID <- argv[1]
+dayID <- argv[2]
+```
+
+
+```{r set_variables}
+# Set variables
+# cluster.ID <- 1
+# day.ID <- 2
+```
+
+
+
+```{r setwd}
+# setwd('/Users/j.alquicira/Documents/powell_lab/projects/cell_prediction')
+```
+
+
+# Read data
+
+- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
+- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
+
+
+```{r read_data}
+# expression.data <- readRDS('ori_dat_sample.RDS')
+# cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
+
+expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
+cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
+```
+
+```{r show_unique_clusters}
+cat("Clusters:\n")
+cat(sort(unique(cell.clusters)))
+cat("\n")
+```
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```
+
+
+```{r get_cluster_ids}
+n.clusters <- length(unique(cell.clusters))
+```
+
+
+```{r define_clusters}
+## `cluster_select` contains indexes of all cluster tags that are equal to the cluster to be evaluated
+cluster.select <- which(cell.clusters == as.numeric(cluster.ID))
+
+## `cluster_compare` contains indexes of remaining cluster tags to be compared
+cluster.compare <- which(cell.clusters != as.numeric(cluster.ID))
+```
+
+
+```{r cell-cluster_classification}
+## cell.ids.cluster is a dataframe with two columns:
+### 1. Cell id
+### 2. Assigned cluster
+cell.ids.cluster <- cbind(colnames(expression.data), cell.clusters)
+```
+
+
+```{r read_DEdata}
+# Read differentially expressed data
+DE.genes <- read.table(paste0('DEseq_Cluster', cluster.ID, '_vs_OtherClusters_Day', day.ID,'.txt_filtered_pAdjusted_sorted.txt'), header = TRUE)
+# DE.genes <- readRDS('DE_result_sample.RDS')
+
+# Gets gene names from `DE_result` and gets indexes of differential expressed genes in `expression.data` 
+DE.gene.names <- gsub("_.*", '',  DE.genes$id)
+DE.gene.idx <- which(rownames(expression.data) %in% DE.gene.names)
+```
+
+
+
+# Run regularization method
+
+```{r init_params}
+# Assign values to variables
+clusterID.select <- '1'
+clusterID.comp <- '2'
+features <- DE.gene.idx
+```
+
+
+# `BuildPredictor` function
+
+## Parameters
+
+- `clusterID.select`: ID of cluster of interest
+- `cluster.select`: Indexes of cells from cluster of interest
+- `clusterID.comp`: ID of cluster to be compared
+- `cluster.compare`: Indexes of cells from cluster of interest
+- `features`: Indexes for features to be included in the model (list of genes of interes, differentially expressed genes)
+- `expression.data`: Gene expression matrix
+  + Rows: genes
+  + Columns: cells
+
+## Output
+
+
+```{r define_BuildPredictor_function}
+
+BuildPredictor <- function(clusterID.select, cluster.select, clusterID.comp, cluster.compare, features, expression.data){
+  
+  # Random sampling for training data --------------------------------------
+  # Take random sample of cells corresponding to cluster of interest
+  cluster.select.indx <- sample(cluster.select, 
+                                size = round(length(cluster.select)/2), 
+                                replace = FALSE)
+  # Take random sample of cells corresponding to cluster to be compared
+  cluster.compare.indx <- sample(cluster.compare, 
+                                 size = round(length(cluster.compare)/2), 
+                                 replace = FALSE)
+  
+  # Build predictor matrix -------------------------------------------------
+  # Prepare predictor matrix containing both clutering classes
+  predictor <- expression.data[features, c(cluster.select.indx, cluster.compare.indx)]
+  
+  # Generate categorical response ------------------------------------------
+  # Set all values to cluster of interest
+  response <- rep(clusterID.select, ncol(predictor))
+  cluster.compare.names <- colnames(expression.data[,cluster.compare])
+  sub.clustercompare.indx <- which(colnames(predictor) %in% cluster.compare.names)
+  
+  # Replace values for cluster.compare
+  response[sub.clustercompare.indx] <- rep(clusterID.comp, length(sub.clustercompare.indx))
+
+  # tranpose prediction matrix
+  predictor <- t(predictor)
+  
+  # Random sampling for testing data ---------------------------------------
+  # Prepare validation test. keep all cells except for those used in the training set
+  cluster.select.indx.val <- sample(cluster.select[-cluster.select.indx])
+  cluster.compare.indx.val <- sample(cluster.compare[-cluster.compare.indx])
+  predictor.val <- expression.data[features, c(cluster.select.indx.val , cluster.compare.indx.val)]
+  predictor.val <- t(predictor.val)
+  
+  # Return results ---------------------------------------------------------
+  return(list(predictor.test = predictor, predictor.training = predictor.val, response = response))
+}
+```
+
+
+```{r}
+data.train.test <- BuildPredictor(clusterID.select = cluster.ID, 
+               cluster.select = cluster.select, 
+               clusterID.comp = 2, 
+               cluster.compare = cluster.compare, 
+               features = DE.gene.idx, 
+               expression.data = expression.data)
+
+data.train.test$predictor.training
+```
+
+
+
+# `FitRegModel` function
+
+## Parameters
+
+- `predictor`: gene expression matrix used as predictor
+- `response`: vector of categorical values
+- `clusterID.select`: ID of cluster of interest
+- `cluster.select`: Indexes of cells from cluster of interest
+- `clusterID.comp`: ID of cluster to be compared
+- `cluster.compare`: Indexes of cells from cluster of interest
+
+```{r}
+# Initialize variables
+predictor <- data.train.test$predictor.test
+response <- data.train.test$response
+
+
+# Fit model
+fit <- glmnet(x = training$predictor, 
+              y = training$response, 
+              family = "binomial", 
+              alpha = 0.5)
+
+
+
+
+
+# Fitting with cross validation
+cvfit = cv.glmnet(t(genes_S1), y_cat, family = "binomial", type.measure = "class", alpha = 0.5)
+predict_clusters<-predict(cvfit, newx = predictor_S2,  type = "class", s = cvfit$lambda.min)
+#to extract coefficient Beta for a gene for an optimized lambda value 
+cvfit_out <-as.matrix(coef(cvfit, s = cvfit$lambda.min))
+cvfit_out <-as.data.frame(cvfit_out)
+#find number of genes with coefficient different to 0
+cvfit_out$name <-row.names(cvfit_out)
+sub_cvfit_out <-cvfit_out[cvfit_out$`1` != 0,]
+
+#Extracting deviance explained 
+t_DE <- as.matrix(print(cvfit$glmnet.fit))
+dat_DE <-as.data.frame(t_DE)
+colnames(dat_DE) <-c('Dfd', 'Deviance', 'lambda')
+#to get the coordinate for lambda that produces minimum error 
+dat_DE_Lambda_idx <- which(round(dat_DE$lambda,digit=3) == round(cvfit$lambda.min,digits=3))
+dat_DE <-dat_DE[1:dat_DE_Lambda_idx[1],]
+require(dplyr)
+dat_DE %>% group_by(Dfd) %>% summarise(Deviance = max(Deviance)) -> dat_DE_fm_DE
+dat_DE_fm_DE <-as.data.frame(dat_DE_fm_DE)
+dat_DE_fm_DE$DEgenes <-paste0('DEgenes_C',c_selectID,'_day_', dayID)
+remaining <-c('remaining', 1, 'DEgenes')
+dat_DE_fm_DE <-rbind(dat_DE_fm_DE, remaining)
+#to return the output as 5 lists
+return(list(predict_clusters, predictor_S2, sub_cvfit_out, dat_DE_fm_DE, cvfit))
+```
+
+
+
+```{r}
+FitRegModel <- function(cluster_select,c_selectID='1', 
+                        cluster_compare, 
+                        c_compareID='2',
+                        cluster_select_indx_S1,
+                        cluster_compare_indx_S1,
+                        M_or_DE_idx){
+  
+  
+
+
+  #fit the elastic net model
+  fit <-glmnet(predictor_S1, y_cat,family="binomial", alpha = 0.5)
+  
+  #Prepare validation test; keep all cells except for those used in the training set
+  cluster_select_indx_S2 <- sample(cluster_select[-cluster_select_indx_S1])
+  cluster_compare_indx_S2 <- sample(cluster_compare[-cluster_compare_indx_S1])
+  genes_S2 <-expression.data[M_or_DE_idx, c(cluster_select_indx_S2 , cluster_compare_indx_S2)]
+  predictor_S2 <-t(genes_S2)
+  
+  #fitting with cross validation
+  cvfit = cv.glmnet(t(genes_S1), y_cat, family = "binomial", type.measure = "class", alpha = 0.5)
+  predict_clusters<-predict(cvfit, newx = predictor_S2,  type = "class", s = cvfit$lambda.min)
+  #to extract coefficient Beta for a gene for an optimized lambda value 
+  cvfit_out <-as.matrix(coef(cvfit, s = cvfit$lambda.min))
+  cvfit_out <-as.data.frame(cvfit_out)
+  #find number of genes with coefficient different to 0
+  cvfit_out$name <-row.names(cvfit_out)
+  sub_cvfit_out <-cvfit_out[cvfit_out$`1` != 0,]
+  
+  #Extracting deviance explained 
+  t_DE <- as.matrix(print(cvfit$glmnet.fit))
+  dat_DE <-as.data.frame(t_DE)
+  colnames(dat_DE) <-c('Dfd', 'Deviance', 'lambda')
+  #to get the coordinate for lambda that produces minimum error 
+  dat_DE_Lambda_idx <- which(round(dat_DE$lambda,digit=3) == round(cvfit$lambda.min,digits=3))
+  dat_DE <-dat_DE[1:dat_DE_Lambda_idx[1],]
+  require(dplyr)
+  dat_DE %>% group_by(Dfd) %>% summarise(Deviance = max(Deviance)) -> dat_DE_fm_DE
+  dat_DE_fm_DE <-as.data.frame(dat_DE_fm_DE)
+  dat_DE_fm_DE$DEgenes <-paste0('DEgenes_C',c_selectID,'_day_', dayID)
+  remaining <-c('remaining', 1, 'DEgenes')
+  dat_DE_fm_DE <-rbind(dat_DE_fm_DE, remaining)
+  #to return the output as 5 lists
+  return(list(predict_clusters, predictor_S2, sub_cvfit_out, dat_DE_fm_DE, cvfit))
+}
+
+```
+
