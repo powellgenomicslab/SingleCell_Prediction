@@ -159,7 +159,7 @@ BuildPredictor <- function(clusterID.select, cluster.select, clusterID.comp, clu
   cluster.select.indx.val <- sample(cluster.select[-cluster.select.indx])
   cluster.compare.indx.val <- sample(cluster.compare[-cluster.compare.indx])
   test <- expression.data[features, c(cluster.select.indx.val , cluster.compare.indx.val)]
-  test <- t(predictor.test)
+  test <- t(test)
   
   # Return results ---------------------------------------------------------
   return(list(training = predictor, test = test, response = response))
@@ -194,77 +194,70 @@ str(data.train.test)
 ```{r}
 # Initialize variables
 test <- data.train.test$test
-predictor.training <- data.train.test$training
+training <- data.train.test$training
 response <- data.train.test$response
-
-# Fit model
-fit <- glmnet(x = predictor.training, 
-              y = response, 
-              family = "binomial", 
-              alpha = 0.5)
-
-
-# Fitting with cross validation
-cvfit <- cv.glmnet(x = predictor.training, 
-                   y =response, 
-                   family = "binomial", 
-                   type.measure = "class", 
-                   alpha = 0.5)
-
-# Extract Beta coefficients using an optimized lambda value 
-cvfit.out <- as.data.frame(as.matrix(coef(cvfit, s = cvfit$lambda.min)))
-
-#find genes with coefficient different to 0
-cvfit.out$name <- row.names(cvfit.out)
-sub.cvfit.out <- cvfit.out[cvfit.out$`1` != 0,]
-
-# Extract explained deviance
-cvfit.dev <- as.data.frame(as.matrix(print(cvfit$glmnet.fit)))
-names(cvfit.dev) <- c('df', 'deviance', 'lambda')
-
-# Get the coordinate for lambda that produces minimum error 
-cvfit.dev.lambda.idx <- which(round(cvfit.dev$lambda,digit = 3) == round(cvfit$lambda.min,digits = 3))
-cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx[1],]
-
-
-
-
-# Get max deviance for each degree of freedom level
-require(dplyr)
-
-cvfit.dev %>% 
-  group_by(df) %>% 
-  summarise(deviance = max(deviance)) %>% 
-  as.data.frame() -> cvfit.dev.max
-
-
-cvfit.dev.max$DEgenes <- paste0('DEgenes_C', cluster.ID, '_day_', day.ID)
-remaining <- c('remaining', 1, 'DEgenes')
-cvfit.dev.max <- rbind(cvfit.dev.max, remaining)
-
-
-# Predict clusters ysing cvfit and testing dataset
-predict.clusters <- predict(cvfit, 
-                            newx = test, 
-                            type = "class",
-                            s = cvfit$lambda.min)
-
-
-# Return output
-return(list(prediction = predict.clusters, sub.cvfit.out = sub.cvfit.out, cvfit.dev.max = cvfit.dev.max, cvfit = cvfit))
 ```
 
 
 
 ```{r}
-FitRegModel <- function(cluster_select,c_selectID='1', 
-                        cluster_compare, 
-                        c_compareID='2',
-                        cluster_select_indx_S1,
-                        cluster_compare_indx_S1,
-                        M_or_DE_idx){
+FitRegModel <- function(test, training, response, ...){
+  
+  # Fit model
+  fit <- glmnet(x = training, 
+                y = response, 
+                ...)
+  
+  # Fitting with cross validation
+  cvfit <- cv.glmnet(x = training, 
+                     y = response, 
+                     type.measure = "class", ...)
+  
+  # Extract Beta coefficients using an optimized lambda value 
+  cvfit.out <- as.data.frame(as.matrix(coef(cvfit, s = cvfit$lambda.min)))
+  
+  #find genes with coefficient different to 0
+  cvfit.out$name <- row.names(cvfit.out)
+  sub.cvfit.out <- cvfit.out[cvfit.out$`1` != 0,]
+  
+  # Extract explained deviance
+  temp <- capture.output(cvfit.dev <- as.data.frame(as.matrix(print(cvfit$glmnet.fit))))
+  names(cvfit.dev) <- c('df', 'deviance', 'lambda')
+  
+  # Get the coordinate for lambda that produces minimum error 
+  cvfit.dev.lambda.idx <- which(round(cvfit.dev$lambda,digit = 3) == round(cvfit$lambda.min,digits = 3))
+  cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx[1],]
+  
+  
+  # Get max deviance for each degree of freedom level
+  require(dplyr)
+  
+  cvfit.dev %>% 
+    group_by(df) %>% 
+    summarise(deviance = max(deviance)) %>% 
+    as.data.frame() -> cvfit.dev.max
+  
+  
+  cvfit.dev.max$DEgenes <- paste0('DEgenes_C', cluster.ID, '_day_', day.ID)
+  remaining <- c('remaining', 1, 'DEgenes')
+  cvfit.dev.max <- rbind(cvfit.dev.max, remaining)
+  
+  
+  # Predict clusters ysing cvfit and testing dataset
+  predict.clusters <- predict(cvfit, 
+                              newx = test, 
+                              type = "class",
+                              s = cvfit$lambda.min)
+  
+  # Return output
+  return(list(prediction = predict.clusters, sub.cvfit.out = sub.cvfit.out, cvfit.dev.max = cvfit.dev.max, cvfit = cvfit))
   
 }
-
 ```
+
+
+```{r}
+x <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
+```
+
 
