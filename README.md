@@ -1,2 +1,7 @@
-# Isoform_Identification_scRNA-seq
-This repo is for identifying RNA isoforms at a single cell level across different cell types 
+# Single cell prediction
+
+This repo is for predicting cells using gene expression features
+
+# Authors
+
+- Jose Alquicira Hernandez
