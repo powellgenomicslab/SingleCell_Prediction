@@ -237,44 +237,23 @@ comb <- function(x, ...) {
 ```
 
 ```{r setup_cluster}
-n_cores <- 5
+n_cores <- 2
 cl <- makeCluster(n_cores) 
 registerDoParallel(cl)
 ```
 
 
 ```{r define_iterations}
-n <- 10
+n <- 3
 iter <- seq_len(n)  
 ```
 
 
 
-```{r}
-#for DE genes
-results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list()), .packages = "glmnet") %dopar% {
-  
-  # Random sampling for training and testing datasets ----------------------
-  data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
-                                    cluster.select = cluster.select, 
-                                    clusterID.comp = 2, 
-                                    cluster.compare = cluster.compare, 
-                                    features = DE.gene.idx, 
-                                    expression.data = expression.data)
-  
-  # Initialize variables
-  test <- data.train.test$test
-  training <- data.train.test$training
-  response <- data.train.test$response
-  
-  
-  # Set the character values (one of the two classes) for the response variable
-  cluster.compareID <- seq_len(length(unique(cell.ids.cluster)))
-  cluster.compareID <- paste0(cluster.compareID[-which(cluster.compareID == cluster.ID)], collapse = "")
-  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
-  prediction <- predict.marker$prediction
-  
-  
+```{r define_ExtractResults_function}
+
+ExtractResults <- function(training, prediction, cell.ids.cluster){
+
   # Compare to original clutering classes to check for accuracy ------------
   predict.index <- which(cell.ids.cluster[,1] %in% row.names(training))
   
@@ -296,14 +275,55 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   # Return results ---------------------------------------------------------
   return(list(list.acc.inacc = list.acc.inacc, list.sig.genes = predict.marker$sub.cvfit.out, list.deviance = predict.marker$cvfit.dev.max, list.cvFit = predict.marker$cvfit)) 
 }
+
 ```
+
+
+
+
+```{r run_predictions}
+#for DE genes
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list()), .packages = "glmnet") %dopar% {
+  
+  # Random sampling for training and testing datasets ----------------------
+  data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
+                                    cluster.select = cluster.select, 
+                                    clusterID.comp = 2, 
+                                    cluster.compare = cluster.compare, 
+                                    features = DE.gene.idx, 
+                                    expression.data = expression.data)
+  
+  # Initialize variables
+  test <- data.train.test$test
+  training <- data.train.test$training
+  response <- data.train.test$response
+  
+  # Run lasso
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
+  prediction <- predict.marker$prediction
+  lasso <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+  
+  # Run elastic-net
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
+  prediction <- predict.marker$prediction
+  elastic.net <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+
+  return(list(lasso = lasso, elastic.net = elastic.net))
+}
+```
+
+
+```{r sets_listnames}
+names(results) <- c('lasso', 'elastic.net')
+```
+
 
 ```{r stop_cluster}
 stopCluster(cl)
 ```
 
 ```{r save_results}
-saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
+# saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
 ```
 
 
