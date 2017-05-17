@@ -33,12 +33,6 @@ day.ID <- 2
 ```
 
 
-
-```{r setwd}
-# setwd('/Users/j.alquicira/Documents/powell_lab/projects/cell_prediction')
-```
-
-
 # Read data
 
 - `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
@@ -48,7 +42,6 @@ day.ID <- 2
 ```{r read_data}
 expression.data <- readRDS('ori_dat_sample.RDS')
 cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
-
 # expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
 # cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
 ```
@@ -167,19 +160,6 @@ BuildTrainTest <- function(clusterID.select, cluster.select, clusterID.comp, clu
 ```
 
 
-```{r}
-data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
-               cluster.select = cluster.select, 
-               clusterID.comp = 2, 
-               cluster.compare = cluster.compare, 
-               features = DE.gene.idx, 
-               expression.data = expression.data)
-
-str(data.train.test)
-```
-
-
-
 # `FitRegModel` function
 
 ## Parameters
@@ -190,13 +170,6 @@ str(data.train.test)
 - `cluster.select`: Indexes of cells from cluster of interest
 - `clusterID.comp`: ID of cluster to be compared
 - `cluster.compare`: Indexes of cells from cluster of interest
-
-```{r}
-# Initialize variables
-test <- data.train.test$test
-training <- data.train.test$training
-response <- data.train.test$response
-```
 
 
 
@@ -256,85 +229,81 @@ FitRegModel <- function(test, training, response, ...){
 ```
 
 
-```{r}
-lasso <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
-ridge <- FitRegModel(test, training, response, family = "binomial", alpha = 0)
-elastic.net <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
-```
-
-
-```{r}
-# Set the character values (one of the two classes) for the response variable
-cluster.compareID <- seq_len(length(unique(cell.ids.cluster)))
-cluster.compareID <- paste0(cluster.compareID[-which(cluster.compareID == cluster.ID)], collapse = "")
-predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
-prediction <- predict.marker$prediction
-
-# Compare to original clutering classes to check for accuracy
-predict.index <- which(cell.ids.cluster[,1] %in% row.names(training))
-
-original.cluster <- cell.ids.cluster[predict.index,]
-original.cluster <- original.cluster[order(original.cluster[,2], decreasing = TRUE),]
-original.cluster <- as.data.frame(original.cluster)
-predict.clusters <- as.data.frame(prediction)
-predict.clusters$cellnames <- row.names(predict.clusters)
-compare <- merge(original.cluster, predict.clusters, by.x = 'V1', by.y = 'cellnames')
-
-# Change cluster IDs here
-cluster.select.predict <- subset(compare, (as.numeric(compare$cell.clusters) == cluster.ID &  compare$`1`==cluster.ID) | (compare$cell.clusters != cluster.ID &  compare$`1`!=cluster.ID))
-
-accurate <- nrow(cluster.select.predict)
-inaccurate <- nrow(compare) - nrow(cluster.select.predict)
-list.acc.inacc <- list(accurate, inaccurate)
-#Return the list for the combine function during the parallelisation process
-return(list(list.acc.inacc = list.acc.inacc, list.sig.genes = predict.marker$sub.cvfit.out, list.deviance = predict.marker$cvfit.dev.max, list.cvFit = predict.marker$cvfit)) 
-
-```
-
-
-
-
-```{r}
+```{r define_output_function}
 comb <- function(x, ...) {
   lapply(seq_along(x),
     function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
 }
+```
 
+```{r setup_cluster}
 n_cores <- 5
-cl <- makeCluster(n_cores) # create a cluster
-registerDoParallel(cl) # register the cluster
+cl <- makeCluster(n_cores) 
+registerDoParallel(cl)
+```
 
+
+```{r define_iterations}
+n <- 10
+iter <- seq_len(n)  
+```
+
+
+
+```{r}
 #for DE genes
-All_List <- foreach (i = 1:100,.combine=comb,.multicombine=TRUE,.init=list(list(), list(), list(), list()),.packages = "glmnet") %dopar% {
-#set the character values (one of the two classes) for the response variable  
-              c_compareID = 1:length(unique(my.clusters))
-              c_compareID <- paste0(c_compareID[-which(c_compareID==c_selectID)], collapse="")
-              predict_marker<- FitRegModel(cluster_select,c_selectID=c_selectID, cluster_compare, c_compareID, M_or_DE_idx=DE_idx)
-              predictor_S2_name <-predict_marker[[2]]
-              predict_label <-predict_marker[[1]]
-              #from here compare to original clusering classes to check for accuracy
-              predict_index <-which(cellNames_cluster[,1] %in% row.names(predictor_S2_name))
-              original_cluster <- cellNames_cluster[predict_index,]
-              original_cluster <-original_cluster[order(original_cluster[,2], decreasing = T),]
-              original_cluster <-as.data.frame(original_cluster)
-              predict_clusters <-as.data.frame(predict_label)
-              predict_clusters$cellnames <-row.names(predict_clusters)
-              compare <-merge(original_cluster, predict_clusters, by.x='V1', by.y='cellnames')
-              #change cluster IDs here
-              cluster_select_predict <- subset(compare, (as.numeric(compare$my.clusters) == c_selectID &  compare$`1`==c_selectID) | (compare$my.clusters!=c_selectID &  compare$`1`!=c_selectID))
-              accurate <-dim(cluster_select_predict)[1]
-              inaccurate <-dim(compare)[1] - dim(cluster_select_predict)[1]
-              list_acc_inacc <-list(accurate, inaccurate)
-	      #Return the list for the combine function during the parallelisation process
-	      return(list(list_acc_inacc=list_acc_inacc, list_SigGenes=predict_marker[[3]],list_Deviance=predict_marker[[4]],list_cvFit=predict_marker[[5]])) 
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list()), .packages = "glmnet") %dopar% {
+  
+  # Random sampling for training and testing datasets ----------------------
+  data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
+                                    cluster.select = cluster.select, 
+                                    clusterID.comp = 2, 
+                                    cluster.compare = cluster.compare, 
+                                    features = DE.gene.idx, 
+                                    expression.data = expression.data)
+  
+  # Initialize variables
+  test <- data.train.test$test
+  training <- data.train.test$training
+  response <- data.train.test$response
+  
+  
+  # Set the character values (one of the two classes) for the response variable
+  cluster.compareID <- seq_len(length(unique(cell.ids.cluster)))
+  cluster.compareID <- paste0(cluster.compareID[-which(cluster.compareID == cluster.ID)], collapse = "")
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
+  prediction <- predict.marker$prediction
+  
+  
+  # Compare to original clutering classes to check for accuracy ------------
+  predict.index <- which(cell.ids.cluster[,1] %in% row.names(training))
+  
+  original.cluster <- cell.ids.cluster[predict.index,]
+  original.cluster <- original.cluster[order(original.cluster[,2], decreasing = TRUE),]
+  original.cluster <- as.data.frame(original.cluster)
+  predict.clusters <- as.data.frame(prediction)
+  predict.clusters$cellnames <- row.names(predict.clusters)
+  compare <- merge(original.cluster, predict.clusters, by.x = 'V1', by.y = 'cellnames')
+  
+  # Change cluster IDs here
+  cluster.select.predict <- subset(compare, (as.numeric(compare$cell.clusters) == cluster.ID &  compare$`1`==cluster.ID) | (compare$cell.clusters != cluster.ID &  compare$`1`!=cluster.ID))
+  
+  # Get accuracy
+  accurate <- nrow(cluster.select.predict)
+  inaccurate <- nrow(compare) - nrow(cluster.select.predict)
+  list.acc.inacc <- list(accurate, inaccurate)
+  
+  # Return results ---------------------------------------------------------
+  return(list(list.acc.inacc = list.acc.inacc, list.sig.genes = predict.marker$sub.cvfit.out, list.deviance = predict.marker$cvfit.dev.max, list.cvFit = predict.marker$cvfit)) 
 }
+```
 
-saveRDS(All_List, file=paste0('All_List_c', c_selectID, 'vs_Remaining_Day',dayID,'_Testing.RDS'))
-cat('Done Boostrap DEgenes')
-
-
+```{r stop_cluster}
 stopCluster(cl)
+```
 
+```{r save_results}
+saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
 ```
 
 
