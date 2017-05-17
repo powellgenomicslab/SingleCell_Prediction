@@ -20,16 +20,16 @@ library('dplyr')
 
 
 ```{r command_line_args, eval=FALSE}
-argv <- commandArgs(TRUE)
-cluster.ID <- argv[1]
-day.ID <- argv[2]
+# argv <- commandArgs(TRUE)
+# cluster.ID <- argv[1]
+# day.ID <- argv[2]
 ```
 
 
 ```{r set_variables}
 # Set variables
-# cluster.ID <- 1
-# day.ID <- 2
+cluster.ID <- 1
+day.ID <- 2
 ```
 
 
@@ -46,11 +46,11 @@ day.ID <- argv[2]
 
 
 ```{r read_data}
-# expression.data <- readRDS('ori_dat_sample.RDS')
-# cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
+expression.data <- readRDS('ori_dat_sample.RDS')
+cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
 
-expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
-cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
+# expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
+# cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
 ```
 
 ```{r show_unique_clusters}
@@ -88,8 +88,8 @@ cell.ids.cluster <- cbind(colnames(expression.data), cell.clusters)
 
 ```{r read_DEdata}
 # Read differentially expressed data
-DE.genes <- read.table(paste0('DEseq_Cluster', cluster.ID, '_vs_OtherClusters_Day', day.ID,'.txt_filtered_pAdjusted_sorted.txt'), header = TRUE)
-# DE.genes <- readRDS('DE_result_sample.RDS')
+# DE.genes <- read.table(paste0('DEseq_Cluster', cluster.ID, '_vs_OtherClusters_Day', day.ID,'.txt_filtered_pAdjusted_sorted.txt'), header = TRUE)
+DE.genes <- readRDS('DE_result_sample.RDS')
 
 # Gets gene names from `DE_result` and gets indexes of differential expressed genes in `expression.data` 
 DE.gene.names <- gsub("_.*", '',  DE.genes$id)
@@ -261,6 +261,37 @@ lasso <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
 ridge <- FitRegModel(test, training, response, family = "binomial", alpha = 0)
 elastic.net <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
 ```
+
+
+```{r}
+# Set the character values (one of the two classes) for the response variable
+cluster.compareID <- seq_len(length(unique(cell.ids.cluster)))
+cluster.compareID <- paste0(cluster.compareID[-which(cluster.compareID == cluster.ID)], collapse = "")
+predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
+prediction <- predict.marker$prediction
+
+# Compare to original clutering classes to check for accuracy
+predict.index <- which(cell.ids.cluster[,1] %in% row.names(training))
+
+original.cluster <- cell.ids.cluster[predict.index,]
+original.cluster <- original.cluster[order(original.cluster[,2], decreasing = TRUE),]
+original.cluster <- as.data.frame(original.cluster)
+predict.clusters <- as.data.frame(prediction)
+predict.clusters$cellnames <- row.names(predict.clusters)
+compare <- merge(original.cluster, predict.clusters, by.x = 'V1', by.y = 'cellnames')
+
+# Change cluster IDs here
+cluster.select.predict <- subset(compare, (as.numeric(compare$cell.clusters) == cluster.ID &  compare$`1`==cluster.ID) | (compare$cell.clusters != cluster.ID &  compare$`1`!=cluster.ID))
+
+accurate <- nrow(cluster.select.predict)
+inaccurate <- nrow(compare) - nrow(cluster.select.predict)
+list.acc.inacc <- list(accurate, inaccurate)
+#Return the list for the combine function during the parallelisation process
+return(list(list.acc.inacc = list.acc.inacc, list.sig.genes = predict.marker$sub.cvfit.out, list.deviance = predict.marker$cvfit.dev.max, list.cvFit = predict.marker$cvfit)) 
+
+```
+
+
 
 
 ```{r}
