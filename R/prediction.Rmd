@@ -6,8 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
-require("knitr")
-opts_knit$set(root.dir = "/Users/j.alquicira/Documents/powell_lab/projects/cell_prediction")
+# require("knitr")
+# opts_knit$set(root.dir = "/Users/j.alquicira/Documents/powell_lab/projects/cell_prediction")
 ```
 
 
@@ -19,17 +19,17 @@ library('dplyr')
 ```
 
 
-```{r command_line_args, eval=FALSE}
-# argv <- commandArgs(TRUE)
-# cluster.ID <- argv[1]
-# day.ID <- argv[2]
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+cluster.ID <- argv[1]
+day.ID <- argv[2]
 ```
 
 
 ```{r set_variables}
 # Set variables
-cluster.ID <- 1
-day.ID <- 2
+# cluster.ID <- 1
+# day.ID <- 2
 ```
 
 
@@ -40,10 +40,10 @@ day.ID <- 2
 
 
 ```{r read_data}
-expression.data <- readRDS('ori_dat_sample.RDS')
-cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
-# expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
-# cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
+# expression.data <- readRDS('ori_dat_sample.RDS')
+# cell.clusters <- readRDS('my.clusters_0.45_Day2.RDS')
+expression.data <- readRDS(paste0("Exprs_DCVLnorm_unlog_minus1_pos_Day", day.ID, ".RDS"))
+cell.clusters <- readRDS(paste0("my.clusters_0.45_Day",day.ID, ".RDS"))
 ```
 
 ```{r show_unique_clusters}
@@ -81,8 +81,8 @@ cell.ids.cluster <- cbind(colnames(expression.data), cell.clusters)
 
 ```{r read_DEdata}
 # Read differentially expressed data
-# DE.genes <- read.table(paste0('DEseq_Cluster', cluster.ID, '_vs_OtherClusters_Day', day.ID,'.txt_filtered_pAdjusted_sorted.txt'), header = TRUE)
-DE.genes <- readRDS('DE_result_sample.RDS')
+DE.genes <- read.table(paste0('DEseq_Cluster', cluster.ID, '_vs_OtherClusters_Day', day.ID,'.txt_filtered_pAdjusted_sorted.txt'), header = TRUE)
+# DE.genes <- readRDS('DE_result_sample.RDS')
 
 # Gets gene names from `DE_result` and gets indexes of differential expressed genes in `expression.data` 
 DE.gene.names <- gsub("_.*", '',  DE.genes$id)
@@ -95,7 +95,7 @@ DE.gene.idx <- which(rownames(expression.data) %in% DE.gene.names)
 
 ```{r init_params}
 # Assign values to variables
-clusterID.select <- '1'
+clusterID.select <- cluster.ID
 clusterID.comp <- '2'
 features <- DE.gene.idx
 ```
@@ -237,14 +237,14 @@ comb <- function(x, ...) {
 ```
 
 ```{r setup_cluster}
-n_cores <- 2
+n_cores <- 8
 cl <- makeCluster(n_cores) 
 registerDoParallel(cl)
 ```
 
 
 ```{r define_iterations}
-n <- 3
+n <- 50
 iter <- seq_len(n)  
 ```
 
@@ -283,7 +283,8 @@ ExtractResults <- function(training, prediction, cell.ids.cluster){
 
 ```{r run_predictions}
 #for DE genes
-results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list()), .packages = "glmnet") %dopar% {
+i <- 1
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list()), .packages = "glmnet") %dopar% {
   
   # Random sampling for training and testing datasets ----------------------
   data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
@@ -298,23 +299,48 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   training <- data.train.test$training
   response <- data.train.test$response
   
-  # Run lasso
+  cat("\n##############################################################\n")
+  cat('Iteration:', i, "\n")
+  cat('test    :', dim(test), "\n")
+  cat('training:', dim(training), "\n")
+  cat('response:', length(response),  "\n")
+  cat("##############################################################\n")
+  
+  
+ # Run lasso
   predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
   prediction <- predict.marker$prediction
   lasso <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+
+  # Run elastic-net (alpha = 0.9)
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.9)
+  prediction <- predict.marker$prediction
+  elastic.net.0.9 <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
   
-  # Run elastic-net
+  # Run elastic-net (alpha = 0.5)
   predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.5)
   prediction <- predict.marker$prediction
-  elastic.net <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+  elastic.net.0.5 <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
 
-  return(list(lasso = lasso, elastic.net = elastic.net))
+  # Run elastic-net (alpha = 0.1)
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0.1)
+  prediction <- predict.marker$prediction
+  elastic.net.0.1 <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+
+  # Run ridge
+  predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 0)
+  prediction <- predict.marker$prediction
+  ridge <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+  
+  i <- i  + 1
+  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge))
+
 }
 ```
 
 
 ```{r sets_listnames}
-names(results) <- c('lasso', 'elastic.net')
+names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge')
 ```
 
 
@@ -323,7 +349,7 @@ stopCluster(cl)
 ```
 
 ```{r save_results}
-# saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
+saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
 ```
 
 
