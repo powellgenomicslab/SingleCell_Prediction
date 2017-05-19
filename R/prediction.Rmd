@@ -15,7 +15,7 @@ output: html_document
 library('glmnet')
 library('foreach')
 library('doParallel')
-library('dplyr')
+require('dplyr')
 ```
 
 
@@ -123,9 +123,21 @@ BuildTrainTest <- function(clusterID.select, cluster.select, clusterID.comp, clu
   
   # Random sampling for training data --------------------------------------
   # Take random sample of cells corresponding to cluster of interest
+  
+  # Set seed manually
+  seed <- sample(1:2^15, 1)
+  cat(sprintf("Seed for cluster select: %s\n", seed))
+  set.seed(seed)
+
   cluster.select.indx <- sample(cluster.select, 
                                 size = round(length(cluster.select)/2), 
                                 replace = FALSE)
+  # Set seed manually
+  seed <- sample(1:2^15, 1)
+  cat(sprintf("Seed for cluster compare: %s\n", seed))
+  set.seed(seed)
+  
+  
   # Take random sample of cells corresponding to cluster to be compared
   cluster.compare.indx <- sample(cluster.compare, 
                                  size = round(length(cluster.compare)/2), 
@@ -203,7 +215,7 @@ FitRegModel <- function(test, training, response, ...){
   
   
   # Get max deviance for each degree of freedom level
-  require(dplyr)
+  suppressMessages(require(dplyr))
   
   cvfit.dev %>% 
     group_by(df) %>% 
@@ -234,18 +246,6 @@ comb <- function(x, ...) {
   lapply(seq_along(x),
     function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
 }
-```
-
-```{r setup_cluster}
-n_cores <- 8
-cl <- makeCluster(n_cores) 
-registerDoParallel(cl)
-```
-
-
-```{r define_iterations}
-n <- 50
-iter <- seq_len(n)  
 ```
 
 
@@ -279,13 +279,27 @@ ExtractResults <- function(training, prediction, cell.ids.cluster){
 ```
 
 
+```{r setup_cluster}
+n_cores <- 2
+cl <- makeCluster(n_cores, outfile = '') 
+registerDoParallel(cl)
+```
+
+
+```{r define_iterations}
+n <- 10
+iter <- seq_len(n)  
+```
+
 
 
 ```{r run_predictions}
 #for DE genes
 i <- 1
 results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list()), .packages = "glmnet") %dopar% {
-  
+  cat("\n##############################################################\n")
+  cat('Iteration:', i, "\n")
+  cat('----------', "\n")
   # Random sampling for training and testing datasets ----------------------
   data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
                                     cluster.select = cluster.select, 
@@ -299,8 +313,7 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   training <- data.train.test$training
   response <- data.train.test$response
   
-  cat("\n##############################################################\n")
-  cat('Iteration:', i, "\n")
+  cat('----------', "\n")
   cat('test    :', dim(test), "\n")
   cat('training:', dim(training), "\n")
   cat('response:', length(response),  "\n")
