@@ -317,6 +317,16 @@ round(cvfit$lambda.min,digits = 3)
 [1] 0.111
 ```
 
+**See commit** [c31d926](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/c31d926e3a61ab85e82b7c95eefccc22baaf0b91)
+
 From previous results, we can see that **0.112 ~ 0.111**. `0.112` is the closest value to `cvfit.dev$lambda`.
 
-**See commit** [c31d926](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/c31d926e3a61ab85e82b7c95eefccc22baaf0b91)
+
+The following algorithm in [stat.ethz.ch](https://stat.ethz.ch/pipermail/r-help/2012-February/302827.html) was implemented to find the nearest lambda value to `cvfit.dev$lambda.min` in vector `cvfit.dev$lambda`:
+
+```R
+cvfit.dev.lambda.idx <- which.min(abs(cvfit.dev$lambda -cvfit$lambda.min))
+cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx,]
+```
+
+See commit [da91950](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/da91950303a123398375794aba44341739efbc95)
