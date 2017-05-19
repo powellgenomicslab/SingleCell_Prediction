@@ -184,7 +184,6 @@ BuildTrainTest <- function(clusterID.select, cluster.select, clusterID.comp, clu
 - `cluster.compare`: Indexes of cells from cluster of interest
 
 
-
 ```{r}
 FitRegModel <- function(test, training, response, ...){
   
@@ -210,9 +209,8 @@ FitRegModel <- function(test, training, response, ...){
   names(cvfit.dev) <- c('df', 'deviance', 'lambda')
   
   # Get the coordinate for lambda that produces minimum error 
-  cvfit.dev.lambda.idx <- which(round(cvfit.dev$lambda,digit = 3) == round(cvfit$lambda.min,digits = 3))
-  cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx[1],]
-  
+  cvfit.dev.lambda.idx <- which.min(abs(cvfit.dev$lambda -cvfit$lambda.min))
+  cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx,]
   
   # Get max deviance for each degree of freedom level
   suppressMessages(require(dplyr))
@@ -280,14 +278,14 @@ ExtractResults <- function(training, prediction, cell.ids.cluster){
 
 
 ```{r setup_cluster}
-n_cores <- 2
+n_cores <- 8
 cl <- makeCluster(n_cores, outfile = '') 
 registerDoParallel(cl)
 ```
 
 
 ```{r define_iterations}
-n <- 10
+n <- 100
 iter <- seq_len(n)  
 ```
 
@@ -313,10 +311,10 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   training <- data.train.test$training
   response <- data.train.test$response
   
-  cat('----------', "\n")
-  cat('test    :', dim(test), "\n")
-  cat('training:', dim(training), "\n")
-  cat('response:', length(response),  "\n")
+  # cat('----------', "\n")
+  # cat('test    :', dim(test), "\n")
+  # cat('training:', dim(training), "\n")
+  # cat('response:', length(response),  "\n")
   cat("##############################################################\n")
   
   
@@ -362,7 +360,7 @@ stopCluster(cl)
 ```
 
 ```{r save_results}
-saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_Testing.RDS'))
+saveRDS(results, file = paste0('All_List_c', cluster.ID, 'vs_Remaining_Day',day.ID,'_n', n, '-' ,'iterations.RDS'))
 ```
 
 
