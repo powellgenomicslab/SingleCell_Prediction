@@ -356,6 +356,43 @@ If the number of genes is considered to decide which model is better, a weighted
 
 See commit [4ae9b50](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/4ae9b505a8d5eec34391d0c1cccdb9f2601a3529)
 
+Results may be found on delta in the results directory
+
+```
+results/2017-05-19_CardioDiffAnalysis/prediction_cardiodiff_day2
+```
 ## TODO
 
 - Run 100 replicates using the IPSC single cell data
+
+
+# 22/05/2017
+
+## Description
+
+hiPSC data was copied from @Quan's directory to `/shares/common/users/j.alquicira/SingleCell_Prediction/data/2017-05-22_HiPSC` on Delta.
+
+```
+cp /shares/common/groups/Group-Powell/shares-data/powell/quan/Expression_data_HiPSC_5day0Samples.RDS .
+```
+
+Differential gene expression was provided by @Quan via [Slack](https://files.slack.com/files-pri/T0F3BL6HX-F5E1FVDCL/download/significant_degenes_hipsc_day0.tar.gz)
+
+
+## Results
+
+Accuracy across models are similar. These results agree with the estimations reported in [previous analysis](http://biorxiv.org/content/early/2017/03/22/119255). Only 99 genes were used as features.
+
+
+
+![](project_notebook_img/model_comparison_hipsc_22-05-2017.png)
+
+The number of genes included in all models (except ridge) is not variable across models as well.
+
+![](project_notebook_img/number_genes_model_hipsc_22-05-2017.png)
+
+
+## TODO
+
+- Run analysis comparing cluster 4 versus others
+- Analyse pathways and identified co-regulation (in order to add variable interaction in models)
