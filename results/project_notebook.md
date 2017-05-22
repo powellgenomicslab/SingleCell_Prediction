@@ -354,3 +354,8 @@ If the number of genes is considered to decide which model is better, a weighted
 
 ![](project_notebook_img/model_comparison_weighted_accuracy_19-05-2017.png)
 
+See commit [4ae9b50](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/4ae9b505a8d5eec34391d0c1cccdb9f2601a3529)
+
+## TODO
+
+- Run 100 replicates using the IPSC single cell data
