@@ -1,0 +1,11 @@
+total 551M
+-rw-r--r-- 1 j.alquicira Group-Powell 367M May 19 16:12 All_List_c1vs_Remaining_Day2_n100-iterations.RDS
+-rw-r--r-- 1 j.alquicira Group-Powell 184M May 18 13:21 All_List_c1vs_Remaining_Day2_Testing.RDS
+lrwxrwxrwx 1 j.alquicira Group-Powell  109 May 22 12:23 DEseq_Cluster1_vs_OtherClusters_Day2.txt_filtered_pAdjusted_sorted.txt -> ../../../data/2017-05-14_CardiDiffData/DEseq_Cluster1_vs_OtherClusters_Day2.txt_filtered_pAdjusted_sorted.txt
+-rw-r--r-- 1 j.alquicira Group-Powell    0 May 22 12:24 DirectoryFiles_Delta.txt
+lrwxrwxrwx 1 j.alquicira Group-Powell   79 May 22 12:23 Exprs_DCVLnorm_unlog_minus1_pos_Day2.RDS -> ../../../data/2017-05-14_CardiDiffData/Exprs_DCVLnorm_unlog_minus1_pos_Day2.RDS
+lrwxrwxrwx 1 j.alquicira Group-Powell   64 May 22 12:23 my.clusters_0.45_Day2.RDS -> ../../../data/2017-05-14_CardiDiffData/my.clusters_0.45_Day2.RDS
+-rw------- 1 j.alquicira Group-Powell 1.7K May 19 16:12 prediction.e632790
+-rw------- 1 j.alquicira Group-Powell  22K May 19 16:06 prediction.o632790
+-rw-r--r-- 1 j.alquicira Group-Powell  12K May 19 14:54 prediction.R
+-rw-r--r-- 1 j.alquicira Group-Powell  211 May 18 12:41 run_prediction.pbs
