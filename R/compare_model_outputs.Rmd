@@ -33,12 +33,8 @@ library(ggthemes)
 
 
 ```{r read_data}
-# Read cluster labels
-clusters.path <- file.path('..', 'data', '05-05-2017_quan_data', 'my.clusters_0.45_Day2.RDS')
-my.clusters <- readRDS(clusters.path)
-
 # Read prediction results
-results.path <- file.path('..','results','18-05-2017_test_prediction','All_List_c1vs_Remaining_Day2_Testing.RDS')
+results.path <- file.path('..','results','output_lasso_elastic-net_ridge_may19','All_List_c1vs_Remaining_Day2_n100-iterations.RDS')
 results <- readRDS(results.path)
 ```
 
@@ -72,11 +68,11 @@ ridge.acc <- GetModelAcc(model = results$ridge)
 
 
 ```{r bind_datasets}
-lasso.elastic <- rbind(lasso.acc, elastic.net.0.5.acc, elastic.net.0.1.acc, elastic.net.0.9.acc, ridge.acc)
+models <- rbind(lasso.acc, elastic.net.0.5.acc, elastic.net.0.1.acc, elastic.net.0.9.acc, ridge.acc)
 
-n.bootstrap <- 50
+n.bootstrap <- 100
 
-lasso.elastic$model <- c(rep("lasso", n.bootstrap), 
+models$model <- c(rep("lasso", n.bootstrap), 
                          rep("elastic net: 0.5", n.bootstrap), 
                          rep("elastic net: 0.1", n.bootstrap), 
                          rep("elastic net: 0.9", n.bootstrap), 
@@ -88,10 +84,10 @@ lasso.elastic$model <- c(rep("lasso", n.bootstrap),
 
 
 ```{r plot_data, comment=FALSE}
-ggplot(lasso.elastic, aes(x = model, y = accurate/(accurate + inaccurate), fill = model)) +
+ggplot(models, aes(x = model, y = accurate/(accurate + inaccurate), fill = model)) +
   geom_boxplot() +
   geom_point(position = position_jitter(width = 0.2)) +
-  ggtitle("Accuracy comparison between Elastic net, Lasso and Ridge", subtitle = "50 bootstrap replicates were performed") +
+  ggtitle("Accuracy comparison between Elastic net, Lasso and Ridge", subtitle = paste(n.bootstrap, "bootstrap replicates were performed")) +
   xlab("Model") +
   ylab("Accuracy") +
   theme_minimal() +
@@ -99,9 +95,9 @@ ggplot(lasso.elastic, aes(x = model, y = accurate/(accurate + inaccurate), fill 
 ```
 
 ```{r plot_density}
-ggplot(lasso.elastic, aes(x = accurate/(accurate + inaccurate), fill = model)) +
+ggplot(models, aes(x = accurate/(accurate + inaccurate), fill = model)) +
   geom_density(alpha = 0.5) + 
-  ggtitle("Accuracy comparison between Elastic net, Lasso and Ridge", subtitle = "50 bootstrap replicates were performed") +
+  ggtitle("Accuracy comparison between Elastic net, Lasso and Ridge", subtitle = paste(n.bootstrap, "bootstrap replicates were performed")) +
   ylab("Density") +
   xlab("Accuracy") +
   theme_minimal() +
@@ -133,7 +129,7 @@ models.ngenes <- data.frame(elastic.net.0.1 = elastic.net.0.1.ngenes, elastic.ne
 ```
 
 ```{r}
-summary(models.ngenes)
+cat(knitr::kable(as.data.frame(unclass(summary(models.ngenes)))), sep = "\n")
 ```
 
 
@@ -146,11 +142,54 @@ models.ngenes.long <- melt(models.ngenes, variable.name = "model", value.name = 
 ggplot(models.ngenes.long, aes(x = model, y = n.genes, fill = model)) +
   geom_boxplot() +
   geom_point(position = position_jitter(width = 0.2)) +
-  ggtitle("Number of genes included in Elastic net, Lasso and Ridge models", subtitle = paste("50 bootstrap replicates were performed")) +
+  ggtitle("Number of genes included in models", subtitle = paste(n.bootstrap, "bootstrap replicates were performed")) +
   xlab("Model") +
   ylab("Number of included genes") +
   theme_minimal() +
   scale_color_brewer()
+```
+
+
+```{r}
+# Get gene exclusion
+total.genes <- mean(models.ngenes$ridge)
+prop.excluded.genes <- as.data.frame(apply(models.ngenes, 2, function(x){ 1 - x/total.genes}))
+
+# Get accuracy
+models.raw <- list(elastic.net.0.1.acc, elastic.net.0.5.acc, elastic.net.0.9.acc, lasso.acc, ridge.acc)
+models.raw %>% 
+  lapply(function(x) x$accurate/(x$accurate + x$inaccurate)) %>% 
+  as.data.frame() -> models.raw.df 
+names(models.raw.df) <- c('elastic.net.0.1', 'elastic.net.0.5', 'elastic.net.0.9', 'lasso', 'ridge')
+
+AccNgenesRatio <- function(acc, ngenes){
+  return(acc*ngenes)
+}
+
+models.acc.weight <- mapply(AccNgenesRatio, models.raw.df, prop.excluded.genes, SIMPLIFY = TRUE) %>% 
+  as.data.frame() %>% 
+  melt(variable.name = "model", value.name = "accuracy") 
+```
+
+```{r}
+ggplot(models.acc.weight[models.acc.weight$model != 'ridge',], aes(x = model, y = accuracy, fill = model)) +
+  geom_boxplot() +
+  geom_point(position = position_jitter(width = 0.2)) +
+  ggtitle("Accuracy weighted by number of genes included in model", subtitle = paste(n.bootstrap, "bootstrap replicates were performed. Note that ridge method is zero as it uses all features")) +
+  xlab("Model") +
+  ylab("Accuracy*gene inclusion relation") +
+  theme_minimal() +
+  scale_color_brewer()
+```
+
+```{r include=FALSE}
+x <- results$lasso[[1]]$list.deviance
+
+ggplot(x[-nrow(x),], aes(x = as.integer(df), y = as.numeric(deviance))) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal() +
+  scale_y_continuous(limits = c(-0.1,1))
 ```
 
 
