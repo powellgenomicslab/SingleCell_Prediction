@@ -383,14 +383,13 @@ Differential gene expression was provided by @Quan via [Slack](https://files.sla
 
 Accuracy across models are similar. These results agree with the estimations reported in [previous analysis](http://biorxiv.org/content/early/2017/03/22/119255). Only 99 genes were used as features.
 
-
-
 ![](project_notebook_img/model_comparison_hipsc_22-05-2017.png)
 
 The number of genes included in all models (except ridge) is not variable across models as well.
 
 ![](project_notebook_img/number_genes_model_hipsc_22-05-2017.png)
 
+See commit [8fc3d60](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/8fc3d60ac564a1933a92109c73e8834f5e80f35d)
 
 ## TODO
 
