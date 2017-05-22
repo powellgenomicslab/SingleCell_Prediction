@@ -171,6 +171,8 @@ Considering @Quan's and @Joseph's comments on the alpha value, we should think a
 
 # 19/05/2017
 
+# Description
+
 `prediction.Rmd` was modified to find out training and testing dataset features that are problematic and causes the error `"NA/NaN argument"`. Random seeds were tracked to reproduce errors.
 
 Desktop analysis (in laptop) of a small dataset with 120 genes and 5905 cells produced a error in the first iteration:
@@ -330,3 +332,25 @@ cvfit.dev <- cvfit.dev[1:cvfit.dev.lambda.idx,]
 ```
 
 See commit [da91950](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/da91950303a123398375794aba44341739efbc95)
+
+## Results
+
+The previous comparison between lasso, elastic net and ridge was performed for 100 bootstrap replicates. No errors were generated due to selecting the minimum alpha value. We observe the same tendency: elastic net still performs better (particulary using an alpha value of `0.1`).
+
+
+![](project_notebook_img/model_comparison_19-05-2017.png)
+![](project_notebook_img/model_comparison_density_19-05-2017.png)
+
+|         |elastic.net.0.1 |elastic.net.0.5 |elastic.net.0.9 |    lasso     |    ridge    |
+|:--      |---------------:|---------------:|---------------:|-------------:|------------:|
+|Min      |        301.0   |         84.0   |         73.0   |         64.0 |        2817 |
+|1st Qu.  |        459.2   |        179.8   |        134.0   |        135.5 |        2817 |
+|Median   |        543.5   |        227.5   |        171.5   |        184.0 |        2817 |
+|Mean     |        543.5   |        247.3   |        190.0   |        186.4 |        2817 |
+|3rd Qu.  |        623.8   |        317.8   |        240.5   |        230.2 |        2817 |
+|Max.     |        775.0   |        491.0   |        379.0   |        393.0 |        2817 |
+
+If the number of genes is considered to decide which model is better, a weighted accuracy (using the number of genes included in each model) may be useful measure. The following plot shows the weighted accuracy of each model (notice that ridge has a weighted accuracy of zero since it uses all genes for the prediction).
+
+![](project_notebook_img/model_comparison_weighted_accuracy_19-05-2017.png)
+
