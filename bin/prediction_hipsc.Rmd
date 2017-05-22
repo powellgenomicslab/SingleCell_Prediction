@@ -12,10 +12,10 @@ output: html_document
 
 
 ```{r load_libraries}
-library('glmnet')
-library('foreach')
-library('doParallel')
-require('dplyr')
+suppressMessages(library('glmnet'))
+suppressMessages(library('foreach'))
+suppressMessages(library('doParallel'))
+suppressMessages(require('dplyr'))
 ```
 
 
@@ -43,13 +43,19 @@ other.cluster.ID <- argv[3]
 ```{r read_data}
 hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
 
-expression.data <- hipsc[[1]] 
+expression.data <- as.matrix(hipsc[[1]])
 cell.sample.data <- hipsc[[2]]
 cell.clusters <- cell.sample.data$Cluster
 
 # expression.data <- readRDS('ori_dat_sample.RDS')
 # cell.clusters <- readRDS('my.clusters.RDS')
 ```
+
+
+```{r print_status}
+cat("Data loaded successfully...\n")
+```
+
 
 ```{r show_unique_clusters}
 cat("Clusters in dataset:\n")
@@ -93,6 +99,9 @@ DE.gene.names <- gsub("_.*", '',  DE.genes$id)
 DE.gene.idx <- which(rownames(expression.data) %in% DE.gene.names)
 ```
 
+```{r print_status_DEdata}
+cat("Features loaded successfully...\n")
+```
 
 
 # Run regularization method
@@ -293,6 +302,7 @@ n <- 100
 iter <- seq_len(n)  
 ```
 
+cat("Bootstrapping starts...\n")
 
 
 ```{r run_predictions}
@@ -368,5 +378,3 @@ stopCluster(cl)
 ```{r save_results}
 saveRDS(results, file = paste0('All_List_cluster_', cluster.ID, 'vs_RemainingClusters_n', n, '-' ,'replicates.RDS'))
 ```
-
-
