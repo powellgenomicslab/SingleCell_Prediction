@@ -335,7 +335,7 @@ See commit [da91950](https://github.com/IMB-Computational-Genomics-Lab/SingleCel
 
 ## Results
 
-The previous comparison between lasso, elastic net and ridge was performed for 100 bootstrap replicates. No errors were generated due to selecting the minimum alpha value. We observe the same tendency: elastic net still performs better (particulary using an alpha value of `0.1`).
+The following comparison between lasso, elastic net and ridge was performed for 100 bootstrap replicates using the new version of `prediction.Rmd`. No errors were generated due to selecting the minimum alpha value. We observe the same tendency: elastic net still performs better (particulary using an alpha value of `0.1`).
 
 
 ![](project_notebook_img/model_comparison_19-05-2017.png)
