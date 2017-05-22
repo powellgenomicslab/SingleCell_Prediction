@@ -1,0 +1,18 @@
+## PBS SETTINGS
+#PBS -q normal
+#PBS -S /bin/bash
+#PBS -r y
+#PBS -l select=1:ncpus=10:mem=60GB
+
+
+## ADJUSTABLE SETTINGS
+#PBS -N day0_prediction
+#PBS -l walltime=80:00:00
+
+cd $PBS_O_WORKDIR
+
+script_dir=../../../bin/
+
+Rscript ${script_dir}/prediction_hipsc.R ../../../data/2017-05-22_HiPSC/ 1 234
+
+

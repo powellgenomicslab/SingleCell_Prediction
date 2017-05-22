@@ -1,0 +1,58 @@
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+Loading required package: Matrix
+Loading required package: foreach
+Loaded glmnet 2.0-9
+
+########################### Job Execution History #############################
+JobId: 642973.delta
+UserName: j.alquicira
+GroupName: Group-Powell
+JobName: day0_prediction
+SessionId: 118191
+ResourcesRequested: mem=60gb,ncpus=10,nice=0,place=free,walltime=80:00:00
+ResourcesUsed: cpupercent=850,cput=01:24:48,mem=44871884kb,ncpus=10,vmem=47089224kb,walltime=00:12:29
+QueueUsed: normal
+Account: null
+ExitStatus: 0
+###############################################################################
+Efficiencies
+
+Walltime Efficiency:   0.2601 %
+CPU time Efficiency:  67.9306 %
+mem Efficiency:      71.3219 %
+#####################################
