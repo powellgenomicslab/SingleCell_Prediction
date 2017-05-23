@@ -34,7 +34,7 @@ library(ggthemes)
 
 ```{r read_data}
 # Read prediction results
-results.path <- file.path('..','results','output_lasso_elastic-net_ridge_may19','All_List_c1vs_Remaining_Day2_n100-iterations.RDS')
+results.path <- file.path('..','results','2017-05-22_IPSCAnalysis', '2017-05-22_n100_replicates', 'All_List_cluster_1vs_RemainingClusters_n100-replicates.RDS')
 results <- readRDS(results.path)
 ```
 
@@ -85,9 +85,11 @@ models$model <- c(rep("lasso", n.bootstrap),
 
 ```{r plot_data, comment=FALSE}
 ggplot(models, aes(x = model, y = accurate/(accurate + inaccurate), fill = model)) +
-  geom_boxplot() +
-  geom_point(position = position_jitter(width = 0.2)) +
-  ggtitle("Accuracy comparison between Elastic net, Lasso and Ridge", subtitle = paste(n.bootstrap, "bootstrap replicates were performed")) +
+  geom_violin() +
+  #geom_boxplot() +
+  scale_y_continuous(limits = c(0, 1)) +
+  geom_point(position = position_jitter(width = 0.3), size = 0.01) +
+  ggtitle("Model accuracy comparison for HiPSCs", subtitle = paste(n.bootstrap, "bootstrap replicates were performed. Cluster 1 versus clusters 2,3 and 4")) +
   xlab("Model") +
   ylab("Accuracy") +
   theme_minimal() +
@@ -182,14 +184,80 @@ ggplot(models.acc.weight[models.acc.weight$model != 'ridge',], aes(x = model, y 
   scale_color_brewer()
 ```
 
-```{r include=FALSE}
-x <- results$lasso[[1]]$list.deviance
 
-ggplot(x[-nrow(x),], aes(x = as.integer(df), y = as.numeric(deviance))) +
-  geom_point() +
-  geom_smooth() +
-  theme_minimal() +
-  scale_y_continuous(limits = c(-0.1,1))
+
+```{r}
+GetGenes <- function(model){
+  model %>% 
+    lapply("[[", 2) %>% 
+    lapply(function(x) nrow(x) - 1) %>% 
+    unlist -> n.genes
+  return(n.genes)
+}
+
 ```
 
 
+```{r}
+GetDeviance <- function(model){
+  model %>% 
+    lapply("[[", 3)
+}
+```
+
+
+```{r}
+models.deviance <- lapply(results, GetDeviance)
+```
+
+
+```{r}
+ProcessDeviance <- function(model){
+  model %>%
+  lapply(function(x) x[-c(which(x$df == 0), nrow(x)),]) %>% 
+  lapply('[', c(1,2)) %>%
+  Reduce(rbind,.) -> model.processed
+  model.processed$deviance %<>% as.numeric()
+  model.processed$df %<>% as.integer()
+  return(model.processed)
+}
+```
+
+
+```{r}
+models.p.deviance <- lapply(models.deviance, ProcessDeviance)
+```
+
+```{r}
+AssignLabels <- function(deviance, label){
+  deviance$model <- rep(label, nrow(deviance))
+  deviance
+}
+
+models.p.deviance.label <- mapply(AssignLabels, models.p.deviance, names(models.p.deviance), SIMPLIFY = FALSE)
+
+models.p.deviance.label <- Reduce(rbind, models.p.deviance.label)
+```
+
+
+
+```{r include=FALSE}
+# ggplot(lasso.all.deviance, aes(x = deviance, y = df)) +
+#   geom_segment(aes(xend = deviance, yend = 0, colour = df), size = 1, lineend = "butt") +
+#   scale_x_continuous(limits = c(0, 1))
+```
+
+```{r}
+ggplot(models.p.deviance.label, aes(x = deviance, y = 1)) +
+  geom_segment(aes(xend = deviance, yend = 0, color = df), size = 0.5, lineend = "butt") +
+  scale_x_continuous(limits = c(0, 1)) + 
+  ggtitle('Classification Subpop 1 vs Subpop 2, 3 and 4', subtitle = 'Lasso') +
+  ylab('Deviance explained') +
+  ylab('DEgenes') +
+  theme_base() +
+  theme(axis.text.y=element_blank(),
+      axis.ticks.y=element_blank(),
+      legend.title = element_text(size = 10)) +
+  facet_wrap(~model, nrow = length(results)) +
+  labs(col = "# of genes")
+```
