@@ -420,6 +420,10 @@ In the density plot below we can see a bimodal distribution of accuracy across a
 
 ![](project_notebook_img/model_comparison_hipsc_density_4_vs_123_24-05-2017.png)
 
+Lasso and elastic net 0.9 chose a smaller number of genes for making the predictions.
+
+![](project_notebook_img/number_genes_model_hipsc_4_vs_123_24-05-2017.png)
+
 
 The performance is also better when comparing the deviance explained by the models.
 
