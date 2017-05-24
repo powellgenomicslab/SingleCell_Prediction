@@ -430,3 +430,19 @@ The performance is also better when comparing the deviance explained by the mode
 ![](project_notebook_img/model_hipsc_deviance_4_vs_123_24-05-2017.png)
 
 See commit [945839b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/945839b11d5f622b1e5e558dd6de7db618cccc78)
+
+## TODO
+
+In a meeting with Joseph, the following points were discusses:
+
+- Expand the methods to be evaluated: 
+  + Multivariate regression
+  + Stepwise regression
+  + Random forest
+  + SVM
+  + Multinomial naive bayes
+- Check these papers:
+  + [Additive Genetic Variability and the Bayesian Alphabet](http://www.genetics.org/content/183/1/347)
+  + [Extension of the bayesian alphabet for genomic selection](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-186)
+- Keep using the HiPSC data to compare the models
+- Look for R packages/code by *Ben Hayes* for Bayesian models
