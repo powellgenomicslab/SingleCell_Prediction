@@ -391,7 +391,7 @@ The number of genes included in all models (except ridge) is not variable across
 
 See commit [8fc3d60](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/8fc3d60ac564a1933a92109c73e8834f5e80f35d)
 
-> Note: style figures were modified
+> Note: style figures were modified. See commit [945839b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/945839b11d5f622b1e5e558dd6de7db618cccc78)
 
 ## TODO
 
@@ -429,3 +429,4 @@ The performance is also better when comparing the deviance explained by the mode
 
 ![](project_notebook_img/model_hipsc_deviance_4_vs_123_24-05-2017.png)
 
+See commit [945839b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/945839b11d5f622b1e5e558dd6de7db618cccc78)
