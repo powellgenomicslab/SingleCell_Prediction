@@ -383,15 +383,45 @@ Differential gene expression was provided by @Quan via [Slack](https://files.sla
 
 Accuracy across models are similar. These results agree with the estimations reported in [previous analysis](http://biorxiv.org/content/early/2017/03/22/119255). Only 99 genes were used as features.
 
-![](project_notebook_img/model_comparison_hipsc_22-05-2017.png)
+![](project_notebook_img/model_comparison_hipsc_1_vs_234_22-05-2017.png)
 
 The number of genes included in all models (except ridge) is not variable across models as well.
 
-![](project_notebook_img/number_genes_model_hipsc_22-05-2017.png)
+![](project_notebook_img/number_genes_model_hipsc_1_vs_234_22-05-2017.png)
 
 See commit [8fc3d60](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/8fc3d60ac564a1933a92109c73e8834f5e80f35d)
+
+> Note: style figures were modified
 
 ## TODO
 
 - Run analysis comparing cluster 4 versus others
 - Analyse pathways and identified co-regulation (in order to add variable interaction in models)
+
+
+# 23/05/2017
+
+## Results
+
+Deviance explained was plotted for all models. Note that this results are similar to the ones [reported already](http://biorxiv.org/content/early/2017/03/22/119255). In the following figure the deviance explanation is shown. The cluster comparison was 1 vs 2,3 and 4.
+
+![](project_notebook_img/model_hipsc_deviance_1_vs_234_23-05-2017.png)
+
+
+# 24/05/2017
+
+## Results
+
+Model accuracy for lasso is better than the one [reported previously](http://biorxiv.org/content/early/2017/03/22/119255) (around 90% versus 99% - 100%). 
+
+![](project_notebook_img/model_comparison_hipsc_4_vs_123_24-05-2017.png)
+
+In the density plot below we can see a bimodal distribution of accuracy across all models.
+
+![](project_notebook_img/model_comparison_hipsc_density_4_vs_123_24-05-2017.png)
+
+
+The performance is also better when comparing the deviance explained by the models.
+
+![](project_notebook_img/model_hipsc_deviance_4_vs_123_24-05-2017.png)
+
