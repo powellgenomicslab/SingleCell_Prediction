@@ -433,7 +433,7 @@ See commit [945839b](https://github.com/IMB-Computational-Genomics-Lab/SingleCel
 
 ## TODO
 
-In a meeting with Joseph, the following points were discusses:
+In a meeting with Joseph, the following points were discussed:
 
 - Expand the methods to be evaluated: 
   + Multivariate regression
