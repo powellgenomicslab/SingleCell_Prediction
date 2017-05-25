@@ -13,6 +13,7 @@ output: html_document
 
 ```{r load_libraries}
 suppressMessages(library('glmnet'))
+suppressMessages(require('earth'))
 suppressMessages(library('foreach'))
 suppressMessages(library('doParallel'))
 suppressMessages(require('dplyr'))
@@ -27,7 +28,7 @@ other.cluster.ID <- argv[3]
 
 ###
 
-# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/"
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
 # cluster.ID <- 1
 # other.cluster.ID <- '234'
 ```
@@ -47,8 +48,8 @@ expression.data <- as.matrix(hipsc[[1]])
 cell.sample.data <- hipsc[[2]]
 cell.clusters <- cell.sample.data$Cluster
 
-# expression.data <- readRDS('ori_dat_sample.RDS')
-# cell.clusters <- readRDS('my.clusters.RDS')
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# cell.clusters <- readRDS(paste0(f.path,'my.clusters.RDS'))
 ```
 
 
@@ -139,7 +140,7 @@ BuildTrainTest <- function(clusterID.select, cluster.select, clusterID.comp, clu
   
   # Set seed manually
   seed <- sample(1:2^15, 1)
-  cat(sprintf("Seed for cluster select: %s\n", seed))
+  # cat(sprintf("Seed for cluster select: %s\n", seed))
   set.seed(seed)
 
   cluster.select.indx <- sample(cluster.select, 
@@ -147,7 +148,7 @@ BuildTrainTest <- function(clusterID.select, cluster.select, clusterID.comp, clu
                                 replace = FALSE)
   # Set seed manually
   seed <- sample(1:2^15, 1)
-  cat(sprintf("Seed for cluster compare: %s\n", seed))
+  # cat(sprintf("Seed for cluster compare: %s\n", seed))
   set.seed(seed)
   
   
@@ -252,12 +253,25 @@ FitRegModel <- function(test, training, response, ...){
 ```
 
 
-```{r define_output_function}
-comb <- function(x, ...) {
-  lapply(seq_along(x),
-    function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
+```{r}
+FitMars <- function(test, training, response, family = "binomial", clusterID.select, clusterID.comp, ...){
+  
+  # Set categorical variable for 
+  response <- ifelse(response == clusterID.select, response, 0)
+  cvfit <- earth(as.matrix(training), as.integer(response), glm = list(family=family), nfold = 10, ...)
+  # cvfit <- earth(as.matrix(training), as.integer(response), glm = list(family=family), nfold = 10)
+  predict.clusters <- predict(cvfit, newdata = as.matrix(test), type = "class")
+  predict.clusters <- ifelse(predict.clusters == clusterID.select, predict.clusters, clusterID.comp)
+  
+  rownames(predict.clusters) <- rownames(test)
+  colnames(predict.clusters) <- 1
+  
+  return(list(prediction = predict.clusters, cvfit = cvfit))
 }
+  
 ```
+
+
 
 
 
@@ -290,6 +304,7 @@ ExtractResults <- function(training, prediction, cell.ids.cluster){
 ```
 
 
+
 ```{r setup_cluster}
 n_cores <- 10
 cl <- makeCluster(n_cores, outfile = '') 
@@ -299,24 +314,34 @@ registerDoParallel(cl)
 
 ```{r define_iterations}
 n <- 100
-iter <- seq_len(n)  
+iter <- seq_len(n)
 ```
 
+```{r}
 cat("Bootstrapping starts...\n")
+```
+
+
+
+```{r define_output_function}
+comb <- function(x, ...) {
+  lapply(seq_along(x),
+    function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
+}
+```
+
 
 
 ```{r run_predictions}
 #for DE genes
 i <- 1
-results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list()), .packages = "glmnet") %dopar% {
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list()), .packages = c("glmnet", "earth")) %dopar% {
   
   # Set cluster compare labels
   clusterID.comp = 1:length(unique(cell.clusters))
   clusterID.comp <- paste0(clusterID.comp[-which(clusterID.comp == cluster.ID)], collapse = "")
   
-  cat("\n##############################################################\n")
-  cat('Iteration:', i, "running....", "\n")
-  cat('----------', "\n")
+  cat('Bootstrap replicate:', i, "running....", "\n")
   
   # Random sampling for training and testing datasets ----------------------
   data.train.test <- BuildTrainTest(clusterID.select = cluster.ID, 
@@ -331,10 +356,8 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   training <- data.train.test$training
   response <- data.train.test$response
   
-  cat("##############################################################\n")
   
-  
- # Run lasso
+  # Run lasso
   predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
   prediction <- predict.marker$prediction
   lasso <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
@@ -359,15 +382,20 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   prediction <- predict.marker$prediction
   ridge <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
   
+  # Run MARS (Multivariate adaptive regression splines)
+  predict.marker <- FitMars(test, training, response, family = "binomial", cluster.ID, clusterID.comp)
+  prediction <- predict.marker$prediction
+  mars <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
+  
   i <- i  + 1
-  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge))
+  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars))
 
 }
 ```
 
 
 ```{r sets_listnames}
-names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge')
+names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars')
 ```
 
 
