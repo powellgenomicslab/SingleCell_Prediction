@@ -271,7 +271,22 @@ FitMars <- function(test, training, response, family = "binomial", clusterID.sel
   
 ```
 
-
+```{r}
+RunCaret <- function(test, training, response, method, ...){
+  
+  # Set categorical variable for 
+  cvfit <- train(as.matrix(training), response, method = method,
+                 trControl = trainControl(method = "cv", number = 10),
+                 prox = TRUE,
+                 allowParallel = TRUE, 
+                 ...)
+  predict.clusters <- as.matrix(predict(cvfit, newdata = test))
+  rownames(predict.clusters) <- rownames(test)
+  colnames(predict.clusters) <- 1
+  
+  return(list(prediction = predict.clusters, cvfit = cvfit))
+}
+```
 
 
 
@@ -306,7 +321,7 @@ ExtractResults <- function(training, prediction, cell.ids.cluster){
 
 
 ```{r setup_cluster}
-n_cores <- 10
+n_cores <- 12
 cl <- makeCluster(n_cores, outfile = '') 
 registerDoParallel(cl)
 ```
@@ -335,7 +350,7 @@ comb <- function(x, ...) {
 ```{r run_predictions}
 #for DE genes
 i <- 1
-results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list()), .packages = c("glmnet", "earth")) %dopar% {
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list()), .packages = c("glmnet", "earth", "caret", "randomForest")) %dopar% {
   
   # Set cluster compare labels
   clusterID.comp = 1:length(unique(cell.clusters))
@@ -356,6 +371,11 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   training <- data.train.test$training
   response <- data.train.test$response
   
+  
+  # Run Random Forests
+  predict.marker <- RunCaret(test, training, response, method = 'rf')
+  prediction <- predict.marker$prediction
+  random.forest <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
   
   # Run lasso
   predict.marker <- FitRegModel(test, training, response, family = "binomial", alpha = 1)
@@ -388,14 +408,14 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
   mars <- ExtractResults(training = training, prediction = prediction, cell.ids.cluster = cell.ids.cluster)
   
   i <- i  + 1
-  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars))
+  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest))
 
 }
 ```
 
 
 ```{r sets_listnames}
-names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars')
+names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forest')
 ```
 
 
