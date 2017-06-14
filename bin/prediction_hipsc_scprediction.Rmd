@@ -1,0 +1,269 @@
+---
+title: "Prediction HiPSC"
+subtitle: "scPrediction package"
+author: "Jose Alquicira Hernandez"
+date: "13 Jun 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+# module load R/3.3.2
+# require("knitr")
+# opts_knit$set(root.dir = "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis")
+```
+
+
+```{r load_libraries}
+suppressMessages(library('scPrediction'))
+suppressMessages(library('foreach'))
+suppressMessages(library('doParallel'))
+suppressMessages(require('dplyr'))
+```
+
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+f.path <- argv[1]
+clusterID.select <- argv[2]
+clusterID.compare <- argv[3]
+
+###
+
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
+# clusterID.select <- 1
+# clusterID.compare <- '234'
+```
+
+
+
+# Read data
+
+- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
+- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
+
+
+```{r read_data}
+hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
+
+expression.data <- as.matrix(hipsc[[1]])
+cell.sample.data <- hipsc[[2]]
+cell.clusters <- cell.sample.data$Cluster
+
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# cell.clusters <- readRDS(paste0(f.path,'my.clusters.RDS'))
+```
+
+
+```{r print_status}
+cat("Data loaded successfully...\n")
+```
+
+
+```{r show_unique_clusters}
+cat("Clusters in dataset:\n")
+cat(sort(unique(cell.clusters)))
+cat("\n")
+```
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```
+
+
+```{r get_cluster_ids}
+n.clusters <- length(unique(cell.clusters))
+```
+
+
+```{r define_clusters}
+## `cluster_select` contains indexes of all cluster tags that are equal to the cluster to be evaluated
+cluster.select <- which(cell.clusters == as.numeric(clusterID.select))
+
+## `cluster_compare` contains indexes of remaining cluster tags to be compared
+cluster.compare <- which(cell.clusters != as.numeric(clusterID.select))
+```
+
+
+```{r cell-cluster_classification}
+## cell.ids.cluster is a dataframe with two columns:
+### 1. Cell id
+### 2. Assigned cluster
+cell.ids.cluster <- cbind(colnames(expression.data), cell.clusters)
+```
+
+
+```{r read_DEdata}
+# Read differentially expressed data
+DE.genes <- read.table(paste0(f.path,'result_table_DESeq_', clusterID.select, '_vs_cluster', clusterID.compare, '_significant10x15K.txt'), header = TRUE)
+
+# Gets gene names from `DE_result` and gets indexes of differential expressed genes in `expression.data` 
+DE.gene.names <- gsub("_.*", '',  DE.genes$id)
+DE.gene.idx <- which(rownames(expression.data) %in% DE.gene.names)
+```
+
+```{r print_status_DEdata}
+cat("Features loaded successfully...\n")
+```
+
+
+
+```{r setup_cluster}
+n.cores <- 12
+cl <- makeCluster(n.cores, outfile = '')
+registerDoParallel(cl)
+```
+
+
+```{r define_iterations}
+n <- 100
+iter <- seq_len(n)
+```
+
+```{r}
+cat("Bootstrapping starts...\n")
+```
+
+
+
+```{r define_output_function}
+comb <- function(x, ...) {
+  lapply(seq_along(x),
+    function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
+}
+```
+
+```{r create_seeds}
+# seeds <- sample(1:50000, size = 100, replace = TRUE)
+seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
+
+seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+```
+
+
+```{r run_predictions}
+#for DE genes
+i <- 1
+results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list()), .packages = c("scPrediction")) %dopar% {
+  
+  # Set cluster compare labels
+  clusterID.comp = 1:length(unique(cell.clusters))
+  clusterID.comp <- paste0(clusterID.comp[-which(clusterID.comp == clusterID.select)], collapse = "")
+  
+  cat('Bootstrap replicate:', i, "running....", "\n")
+  
+  # Random sampling for training and testing datasets ----------------------
+  data.train.test <- BuildTrainTest(clusterID.select = clusterID.select, 
+                                    cluster.select = cluster.select, 
+                                    clusterID.comp = clusterID.comp, 
+                                    cluster.compare = cluster.compare, 
+                                    features = DE.gene.idx, 
+                                    expression.data = expression.data, 
+                                    seed.select = seeds.select[i], 
+                                    seed.compare = seeds.compare[i])
+  
+  # Initialize variables
+  test <- data.train.test$test
+  training <- data.train.test$training
+  response <- data.train.test$response
+  
+  # Run lasso
+  predict.marker <- FitRegModel(test, training, response,
+                                family = "binomial",
+                                clusterID.select = clusterID.select,
+                                alpha = 1, 
+                                seed = 92)
+
+
+  lasso <- ExtractResults(training = training, prediction = predict.marker,
+                          clusterID.select = clusterID.select,
+                          cell.class = cell.ids.cluster)
+
+  # Run elastic-net (alpha = 0.9)
+  predict.marker <- FitRegModel(test, training, response,
+                                family = "binomial",
+                                clusterID.select = clusterID.select,
+                                alpha = 0.9,
+                                seed = 92)
+
+
+  elastic.net.0.9 <- ExtractResults(training = training, prediction = predict.marker,
+                                    clusterID.select = clusterID.select,
+                                    cell.class = cell.ids.cluster)
+
+  # Run elastic-net (alpha = 0.5)
+  predict.marker <- FitRegModel(test, training, response,
+                                family = "binomial",
+                                clusterID.select = clusterID.select,
+                                alpha = 0.5,
+                                seed = 92)
+
+
+  elastic.net.0.5 <- ExtractResults(training = training, prediction = predict.marker,
+                                    clusterID.select = clusterID.select,
+                                    cell.class = cell.ids.cluster)
+
+  # Run elastic-net (alpha = 0.1)
+  predict.marker <- FitRegModel(test, training, response,
+                                family = "binomial",
+                                clusterID.select = clusterID.select,
+                                alpha = 0.1,
+                                seed = 92)
+
+  elastic.net.0.1 <- ExtractResults(training = training, prediction = predict.marker,
+                                    clusterID.select = clusterID.select,
+                                    cell.class = cell.ids.cluster)
+
+  # Run ridge
+  predict.marker <- FitRegModel(test, training, response,
+                                family = "binomial",
+                                clusterID.select = clusterID.select,
+                                alpha = 0,
+                                seed = 92)
+
+  ridge <- ExtractResults(training = training, prediction = predict.marker,
+                          clusterID.select = clusterID.select,
+                          cell.class = cell.ids.cluster)
+
+  # Run MARS (Multivariate adaptive regression splines)
+  predict.marker <- FitMars(test, training, response,
+                            family = "binomial",
+                            clusterID.select,
+                            clusterID.comp,
+                            seed = 92)
+
+  mars <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+  
+
+  # Run Random Forests
+  predict.marker <- RunCaret(test,
+                             training,
+                             response,
+                             method = 'rf',
+                             seed = 92)
+  
+  random.forest <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+  
+  
+
+  i <- i  + 1
+  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest))
+}
+```
+
+
+```{r sets_listnames}
+names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests')
+```
+
+
+```{r stop_cluster}
+stopCluster(cl)
+```
+
+```{r save_results}
+saveRDS(results, file = paste0('All_List_cluster_', clusterID.select, 'vs_RemainingClusters_n', n, '-' ,'replicates.RDS'))
+```
