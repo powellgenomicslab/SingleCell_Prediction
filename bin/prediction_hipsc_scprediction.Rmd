@@ -21,7 +21,7 @@ suppressMessages(require('dplyr'))
 ```
 
 
-```{r command_line_args}
+```{r command_line_args} 
 argv <- commandArgs(TRUE)
 f.path <- argv[1]
 clusterID.select <- argv[2]
@@ -247,16 +247,60 @@ results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list
                          clusterID.select = clusterID.select,
                          cell.class = cell.ids.cluster)
   
+  # Run Naive Bayes
+  suppressWarnings(predict.marker <- RunCaret(test,
+                             training,
+                             response,
+                             method = 'nb',
+                             seed = 92))
   
+  naive.bayes <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+  
+  # Run SVM with linear kernel
+  predict.marker <- RunCaret(test,
+                             training,
+                             response,
+                             method = 'svmLinear',
+                             seed = 92)
+  
+  svm.linear <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+  
+  
+  # Run Generalized Linear Model
+  predict.marker <- RunCaret(test,
+                             training,
+                             response,
+                             method = 'glm',
+                             seed = 92)
+  
+  glm <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+  
+  # Neural network
+  predict.marker <- RunCaret(test,
+                             training,
+                             response,
+                             method = 'nnet',
+                             seed = 92)
+  
+  neural.network <- ExtractResults(training = training, prediction = predict.marker,
+                         clusterID.select = clusterID.select,
+                         cell.class = cell.ids.cluster)
+
 
   i <- i  + 1
-  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest))
+  return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest, naive.bayes, svm.linear, glm, neural.network))
 }
 ```
 
 
 ```{r sets_listnames}
-names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests')
+names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests', 'naive.bayes', 'svm.linear', 'glm', 'neural.network')
 ```
 
 
