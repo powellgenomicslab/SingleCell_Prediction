@@ -446,3 +446,26 @@ In a meeting with Joseph, the following points were discussed:
   + [Extension of the bayesian alphabet for genomic selection](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-186)
 - Keep using the HiPSC data to compare the models
 - Look for R packages/code by *Ben Hayes* for Bayesian models
+
+# 27/06/2017
+
+Code has been restructured into and R package. See [scPrediction](https://github.com/IMB-Computational-Genomics-Lab/scPrediction)
+
+The following methods have been incorporated for the prediction tasks:
+
+- Generalized linear model- Lasso *- Elastic Net *- Ridge *- MARS (Multivariate adaptive regression splines- Random Forests
+- Naïve Bayes- SVM (linear kernel)
+
+\* *Already incorporated*
+
+The R package [splatter](https://bioconductor.org/packages/devel/bioc/vignettes/splatter/inst/doc/splatter.html) is being evaluated to make simulations and perform predictions using simulated gene expression datasets. 
+
+We could consider the following simulations tuning specific parameters:
+
+- **Number of genes**: Evaluate a range of genes (from 100 to 50000).
+  + Number of cells: 100
+  + Number of groups: 2
+
+A script called `prediction_simulation.Rmd` has been [added](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/master/bin/prediction_simulation.Rmd).
+
+
