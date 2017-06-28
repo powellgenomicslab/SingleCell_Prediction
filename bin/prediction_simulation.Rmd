@@ -21,8 +21,7 @@ library(tidyverse)
 
 
 ```{r simulate_data}
-n.genes <- c(c(100, 500), seq(1000, 10000, 500))
-n.genes <- c(100, 500)
+n.genes <- c(c(100, 500), seq(1000, 5000, 1000))
 sim <- lapply(n.genes, function(x){splatSimulate(nGenes = x, groupCells = c(50, 50), method = "groups", seed = 99, verbose = FALSE)})
 names(sim) <- paste0('n', n.genes)
 ```
@@ -37,14 +36,14 @@ sim.data.pheno <- lapply(sim, function(s){
 
 
 ```{r setup_cluster}
-n.cores <- 3
+n.cores <- 12
 cl <- makeCluster(n.cores, outfile = '')
 registerDoParallel(cl)
 ```
 
 
 ```{r define_iterations}
-n <- 3
+n <- 50
 iter <- seq_len(n)
 ```
 
@@ -75,7 +74,7 @@ ApplyMethods <- function(sim.n){
   
   seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
   
-  i <- 1
+  i <- 3
   results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list()), .packages = c("scPrediction")) %dopar% {
     
     cat('Bootstrap replicate:', i, "running....", "\n")
@@ -190,27 +189,27 @@ ApplyMethods <- function(sim.n){
     glm <- GetAccuracy(prediction = prediction, cell.class = cell.class)
     glm$fit <- prediction
     
-    # Neural network
+    # Classification and regression tree
     prediction <- RunCaret(test,
                            training,
                            response,
-                           method = 'nnet',
+                           method = 'rpart',
                            seed = 92)
     
-    neural.network <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    neural.network$fit <- prediction
+    cart <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    cart$fit <- prediction
     
     i <- i  + 1
-    return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest, naive.bayes, svm.linear, glm, neural.network))
+    return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest, naive.bayes, svm.linear, glm, cart))
   }
   
-  names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests', 'naive.bayes', 'svm.linear', 'glm', 'neural.network')
+  names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests', 'naive.bayes', 'svm.linear', 'glm', 'cart')
   return(results)
 }
 ```
 
 ```{r run_predictions, results="hide"}
-res <- lapply(sim.data.pheno, ApplyMethods)
+res <- lapply(sim.data.pheno[1:2], ApplyMethods)
 ```
 
 
@@ -230,7 +229,7 @@ res %>%
   lapply(as.data.frame) %>% 
   lapply(function(x){
     x <- gather(x, key = 'Model', value = 'Accuracy')
-    model.order <- c( "mars", "glm", "lasso", "elastic.net.0.9", "elastic.net.0.5", "elastic.net.0.1", "ridge", "svm.linear", "random.forests", "naive.bayes", "neural.network")
+    model.order <- c( "glm", "mars", "lasso", "elastic.net.0.9", "elastic.net.0.5", "elastic.net.0.1", "ridge", "svm.linear", "random.forests", "naive.bayes", "cart")
     x$Model <- factor(x$Model, levels = model.order)
     x
   }) -> accuracy.sim
@@ -266,6 +265,40 @@ SavePlots <- function(p, label){
 mapply(SavePlots, plots, names(plots))
 ```
 
+
+```{r reduce_accuracy_matrix}
+accuracy.all <- mapply(function(sim, label){
+  sim$ngenes <- label
+  sim
+}, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE) %>% 
+  Reduce(rbind, .)
+
+```
+
+
+```{r plot_accuracy_per_model}
+PlotAccuracyAll <- function(model){
+  p <- ggplot(model, aes(x = ngenes, y = Accuracy, fill = ngenes)) +
+    geom_boxplot() +
+    scale_fill_brewer(palette = "Spectral") +
+    stat_summary(fun.y = median, geom = "line", aes(group=1)) +
+    stat_summary(fun.y = median, geom = "point") +
+    facet_wrap(~Model, ncol = 4, scales = "free") +
+    scale_y_continuous(limits = c(min(model$Accuracy) - 0.01, 1)) +
+    guides(fill = FALSE)
+  p
+}
+
+accuracy.all %>% 
+  split(accuracy.all$Model) %>% 
+  lapply(PlotAccuracyAll) %>% 
+  cowplot::plot_grid(plotlist = .) %>% 
+  ggsave(filename = paste0('simulation_100_cells_ngenes-accuracy_per_model.png'),
+         plot = .,
+         device = 'png',
+         dpi = 350)
+  
+```
 
 
 ```{r save_results}
