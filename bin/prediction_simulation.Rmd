@@ -280,6 +280,7 @@ accuracy.all <- mapply(function(sim, label){
 PlotAccuracyAll <- function(model){
   p <- ggplot(model, aes(x = ngenes, y = Accuracy, fill = ngenes)) +
     geom_boxplot() +
+     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     scale_fill_brewer(palette = "Spectral") +
     stat_summary(fun.y = median, geom = "line", aes(group=1)) +
     stat_summary(fun.y = median, geom = "point") +
