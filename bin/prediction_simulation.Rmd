@@ -36,7 +36,7 @@ sim.data.pheno <- lapply(sim, function(s){
 
 
 ```{r setup_cluster}
-n.cores <- 12
+n.cores <- 8
 cl <- makeCluster(n.cores, outfile = '')
 registerDoParallel(cl)
 ```
