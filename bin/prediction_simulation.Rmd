@@ -22,7 +22,6 @@ library(tidyverse)
 
 ```{r simulate_data}
 n.genes <- c(100, 500, 1000, 2000)
-n.genes <- c(5, 10, 15, 20)
 sim <- lapply(n.genes, function(x){splatSimulate(nGenes = x, groupCells = c(50, 50), method = "groups", seed = 99, verbose = FALSE)})
 names(sim) <- n.genes
 ```
