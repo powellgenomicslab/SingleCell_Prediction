@@ -1,0 +1,2169 @@
+starting worker pid=177253 on localhost:11576 at 18:03:10.145
+starting worker pid=177262 on localhost:11576 at 18:03:10.494
+starting worker pid=177271 on localhost:11576 at 18:03:10.844
+starting worker pid=177280 on localhost:11576 at 18:03:11.195
+starting worker pid=177289 on localhost:11576 at 18:03:11.541
+starting worker pid=177298 on localhost:11576 at 18:03:11.894
+starting worker pid=177307 on localhost:11576 at 18:03:12.240
+starting worker pid=177316 on localhost:11576 at 18:03:12.576
+Bootstrapping starts...
+Bootstrap replicate: 1 running.... 
+Bootstrap replicate: 2 running.... 
+Bootstrap replicate: 3 running.... 
+Bootstrap replicate: 4 running.... 
+Bootstrap replicate: Bootstrap replicate:5  running.... 
+6 running.... 
+Bootstrap replicate: 7 running.... 
+Bootstrap replicate: 8 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 9 running.... 
+Bootstrap replicate: 10 running.... 
+Bootstrap replicate: 11 running.... 
+Bootstrap replicate: 12 running.... 
+Bootstrap replicate: 13 running.... 
+Bootstrap replicate: 14 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 15 running.... 
+Bootstrap replicate: 16 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 17 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 18 running.... 
+Bootstrap replicate: 19 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 20 running.... 
+Bootstrap replicate: 21 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 22 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 23 running.... 
+Bootstrap replicate: 24 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 25 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 26 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 27 running.... 
+Bootstrap replicate: 28 running.... 
+Bootstrap replicate: 29 running.... 
+Bootstrap replicate: 30 running.... 
+Bootstrap replicate: 31 running.... 
+Bootstrap replicate: 32 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 33 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 34 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 35 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 36 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 37 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 38 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 39 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 40 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 41 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 42 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 43 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 44 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 45 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 46 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 47 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 48 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 49 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 50 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 1 running.... 
+Bootstrap replicate: 2 running.... 
+Bootstrap replicate: 3 running.... 
+Bootstrap replicate: 4 running.... 
+Bootstrap replicate: 6 running.... 
+Bootstrap replicate: 5 running.... 
+Bootstrap replicate: 7 running.... 
+Bootstrap replicate: 8 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 9 running.... 
+Bootstrap replicate: 10 running.... 
+Bootstrap replicate: 11 running.... 
+Bootstrap replicate: 12 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 13 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 14 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 15 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 16 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 17 running.... 
+Bootstrap replicate: 18 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 19 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 20 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 21 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 22 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 23 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 24 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 25 running.... 
+Bootstrap replicate: 26 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 27 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 28 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 29 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 30 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 31 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 32 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 33 running.... 
+Bootstrap replicate: 34 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 35 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 36 running.... 
+Bootstrap replicate: 37 running.... 
+Bootstrap replicate: 38 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 39 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 40 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 41 running.... 
+Bootstrap replicate: 42 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 43 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 44 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 45 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 46 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 47 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 48 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 49 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 50 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 1 running.... 
+Bootstrap replicate: Bootstrap replicate: 4 Bootstrap replicate:running....  
+2 running.... 
+3 running.... 
+Bootstrap replicate: Bootstrap replicate: Bootstrap replicate: Bootstrap replicate: 5 running.... 
+6 running.... 
+7 running.... 
+8 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 9 running.... 
+Bootstrap replicate: 10 running.... 
+Bootstrap replicate: 11 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 12 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 13 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 14 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 15 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 16 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 17 running.... 
+Bootstrap replicate: 18 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 19 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 20 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 21 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 22 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 23 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 24 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 25 running.... 
+Bootstrap replicate: 26 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 27 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 28 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 29 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 30 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 31 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 32 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 33 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 34 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 35 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 36 running.... 
+Bootstrap replicate: 37 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 38 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 39 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 40 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 41 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 42 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 43 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 44 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 45 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 46 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 47 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 48 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 49 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 50 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: Bootstrap replicate: 3 running.... 
+1 Bootstrap replicate:running....  
+Bootstrap replicate: 2 running.... 
+Bootstrap replicate: Bootstrap replicate: Bootstrap replicate: 4Bootstrap replicate:  running.... 
+6 running.... 
+5 running.... 
+7 running.... 
+8 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 9 running.... 
+Bootstrap replicate: 10 running.... 
+Bootstrap replicate: 11 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 12 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 13 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 14 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 15 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 16 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 17 running.... 
+Bootstrap replicate: 18 running.... 
+Bootstrap replicate: 19 running.... 
+Bootstrap replicate: 20 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 21 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 22 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 23 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 24 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 25 running.... 
+Bootstrap replicate: 26 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 27 running.... 
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 28 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 29 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 30 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 31 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 32 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 33 running.... 
+Bootstrap replicate: 34 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 35 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 36 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 37 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 38 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 39 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 40 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 41 running.... 
+Bootstrap replicate: 42 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 43 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 44 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 45 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 46 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 47 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 48 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+Bootstrap replicate: 49 running.... 
+Bootstrap replicate: 50 running.... 
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+earth glm Group2: did not converge after 25 iterations
+$`100`
+NULL
+
+$`500`
+NULL
+
+$`1000`
+NULL
+
+$`2000`
+NULL
+
