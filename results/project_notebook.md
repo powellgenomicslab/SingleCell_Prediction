@@ -462,10 +462,28 @@ The R package [splatter](https://bioconductor.org/packages/devel/bioc/vignettes/
 
 We could consider the following simulations tuning specific parameters:
 
-- **Number of genes**: Evaluate a range of genes (from 100 to 50000).
+- **Number of genes**: Evaluate a range of genes (from 100 to 2000).
   + Number of cells: 100
-  + Number of groups: 2
+  + Number of groups: 2 (50 in each group)
+  + Number of bootstrap replicates (50 per dataset)
 
 A script called `prediction_simulation.Rmd` has been [added](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/master/bin/prediction_simulation.Rmd).
 
+# 29/06/2017
 
+`prediction_simulation.Rmd` now permits run predictions from multiple simulated datasets.
+
+`prediction_simulation.Rmd` was run under the version included in this commit [a561572](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/a56157285acbfe78f3f93263bde0eb3169d2789a).
+
+Results may be found in `results/2017-06-28_simulation_variable_genenumber`
+
+The following figure shows the accuracy obtained by different machine learning methods. Note that the **generalized linear model** (glm) performed worse than other models. **Random forests** mantained the same accuracy along the different datasets (as well as elastic net with an alpha parameter of 0.5 and 0.1).
+
+![](project_notebook_img/simulation_100_cells_ngenes-accuracy_per_model.png)
+
+This same analysis will be performed using a range of genes from 1 to 3000.
+
+![](project_notebook_img/simulation_100_cells_ngenes-100.png)
+![](project_notebook_img/simulation_100_cells_ngenes-500.png)
+![](project_notebook_img/simulation_100_cells_ngenes-1000.png)
+![](project_notebook_img/simulation_100_cells_ngenes-2000.png)
