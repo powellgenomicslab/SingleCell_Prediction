@@ -106,7 +106,7 @@ ApplyMethods <- function(sim.n){
   seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
   
   i <- 1
-  results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list()), .packages = c("scPrediction")) %dopar% {
+  results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list()), .packages = c("scPrediction")) %dopar% {
     
     cat('Bootstrap replicate:', i, "running....", "\n")
     
@@ -162,10 +162,17 @@ ApplyMethods <- function(sim.n){
     elastic.net.0.1$fit <- prediction
     
     # Run ridge
+    ## Provide lambda values to prevent error in current verisons of glmnet as suggested by Lukas M. Weber
+    ## See:
+    ## https://stackoverflow.com/questions/40145209/cv-glmnet-fails-for-ridge-not-lasso-for-simulated-data-with-coder-error
+    ## And
+    ## https://github.com/lmweber/glmnet-error-example/blob/master/glmnet_error_example.R
+    
     prediction <- FitRegModel(test, training, response,
                               family = "binomial",
                               alpha = 0,
-                              seed = 92)
+                              seed = 92,
+                              lambda = exp(seq(log(0.001), log(5), length.out = 100)))
     
     ridge <- GetAccuracy(prediction = prediction, cell.class = cell.class)
     ridge$fit <- prediction
@@ -180,26 +187,6 @@ ApplyMethods <- function(sim.n){
     mars <-  GetAccuracy(prediction = prediction, cell.class = cell.class)
     mars$fit <- prediction
     
-    # Run Random Forests
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'rf',
-                           seed = 92)
-    
-    random.forest <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    random.forest$fit <- prediction
-    
-    # Run Naive Bayes
-    suppressWarnings(prediction <- RunCaret(test,
-                                            training,
-                                            response,
-                                            method = 'nb',
-                                            seed = 92))
-    
-    naive.bayes <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    naive.bayes$fit <- prediction
-    
     # Run SVM with linear kernel
     prediction <- RunCaret(test,
                            training,
@@ -209,6 +196,16 @@ ApplyMethods <- function(sim.n){
     
     svm.linear <- GetAccuracy(prediction = prediction, cell.class = cell.class)
     svm.linear$fit <- prediction
+    
+    # Run SVM with polynomial kernel
+    prediction <- RunCaret(test,
+                           training,
+                           response,
+                           method = 'svmPoly',
+                           seed = 92)
+    
+    svm.poly <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    svm.poly$fit <- prediction
     
     # Run Generalized Linear Model
     prediction <- RunCaret(test,
@@ -230,11 +227,62 @@ ApplyMethods <- function(sim.n){
     cart <- GetAccuracy(prediction = prediction, cell.class = cell.class)
     cart$fit <- prediction
     
-    i <- i  + 1
-    return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, random.forest, naive.bayes, svm.linear, glm, cart))
+    # Run Random Forests
+    prediction <- RunCaret(test,
+                           training,
+                           response,
+                           method = 'rf',
+                           seed = 92)
+    
+    random.forest <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    random.forest$fit <- prediction
+    
+    # Run Naive Bayes
+    suppressWarnings(prediction <- RunCaret(test,
+                                            training,
+                                            response,
+                                            method = 'nb',
+                                            seed = 92))
+    
+    naive.bayes <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    naive.bayes$fit <- prediction
+    
+    # Run nnet (neural network)
+    prediction <- RunCaret(test,
+                           training,
+                           response,
+                           method = 'nnet',
+                           seed = 92)
+    
+    nnet <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    nnet$fit <- prediction
+    
+    # Run bglm (Bayesian Generalized Linear Model)
+    prediction <- RunCaret(test,
+                           training,
+                           response,
+                           method = 'bayesglm',
+                           seed = 92)
+    
+    bglm <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    bglm$fit <- prediction
+    
+    # Run sadnn (Stacked AutoEncoder Deep Neural Network)
+    prediction <- RunCaret(test,
+                           training,
+                           response,
+                           method = 'dnn',
+                           seed = 92)
+    
+    dnn <- GetAccuracy(prediction = prediction, cell.class = cell.class)
+    dnn$fit <- prediction
+    
+    i <- i + 1
+    
+    return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, svm.linear, svm.poly, glm, cart, random.forest, naive.bayes, nnet, bglm, dnn))
   }
   
-  names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'random.forests', 'naive.bayes', 'svm.linear', 'glm', 'cart')
+  names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'svm.linear','svm.poly', 'glm', 'cart', 'random.forest', 'naive.bayes', 'nnet', 'bglm', 'dnn')
   return(results)
 }
 ```
@@ -260,7 +308,7 @@ res %>%
   lapply(as.data.frame) %>%
   lapply(function(x){
     x <- gather(x, key = 'Model', value = 'Accuracy')
-    model.order <- c( "glm", "mars", "lasso", "elastic.net.0.9", "elastic.net.0.5", "elastic.net.0.1", "ridge", "svm.linear", "random.forests", "naive.bayes", "cart")
+    model.order <- c( "glm", "bglm", "mars", "lasso", "elastic.net.0.9", "elastic.net.0.5", "elastic.net.0.1", "ridge", "svm.linear", "svm.poly", "random.forest", "naive.bayes", "cart", "nnet", "dnn")
     x$Model <- factor(x$Model, levels = model.order)
     x
   }) -> accuracy.sim
@@ -303,7 +351,6 @@ accuracy.all <- mapply(function(sim, label){
   sim
 }, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE) %>% 
   Reduce(rbind, .)
-
 ```
 
 
