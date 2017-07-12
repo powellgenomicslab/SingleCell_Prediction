@@ -1,5 +1,6 @@
 ---
-title: "Splatter"
+title: "Evaluation of ML methods using simulated data"
+subtitle: "Variable: Number of genes"
 author: "Jose Alquicira Hernandez"
 date: "27/06/2017"
 output: html_document
@@ -9,8 +10,8 @@ output: html_document
 
 ```{r load_libraries, results='hide', message=FALSE, warning=FALSE}
 # module load R/3.4.0_devtools
-suppressMessages(library(scPrediction))
-suppressWarnings(suppressMessages(library(splatter)))
+suppressMessages(library('scPrediction'))
+suppressWarnings(suppressMessages(library('splatter')))
 suppressMessages(library('foreach'))
 suppressMessages(library('doParallel'))
 library(tidyverse)
@@ -23,10 +24,11 @@ library(cowplot)
 nGenes <- c(2, 3, 4, 5, 10, 20, 30, 50, 100, 200, 500, 1000, 1500, 2000)
 ```
 
-```{r}
+```{r define_splatter_parameters}
 groupCells <- c(50, 50)
 method <-  "groups"
 seed <-  10
+de.prob <- 1
 ```
 
 
@@ -39,12 +41,13 @@ sim <- mapply(SimulateData,
               x = nGenes,
               groupCells = list(groupCells),
               method = method,
+              de.prob = de.prob,
               seed = seed,
               verbose = FALSE)
 names(sim) <- nGenes
 ```
 
-```{r}
+```{r plotPCA}
 sim %>%
 lapply(plotPCA, colour_by = "Group") %>%
   mapply(function(x, label){return(x + ggtitle(paste('Number of genes included:',label)))},.,nGenes, SIMPLIFY = FALSE) %>% 
@@ -78,13 +81,6 @@ n <- 50
 iter <- seq_len(n)
 ```
 
-```{r define_output_function}
-comb <- function(x, ...) {
-  lapply(seq_along(x),
-    function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
-}
-```
-
 
 ```{r message_bootstrap}
 cat("Bootstrapping starts...\n")
@@ -106,7 +102,7 @@ ApplyMethods <- function(sim.n){
   seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
   
   i <- 1
-  results <- foreach(i = iter, .combine = comb, .multicombine = TRUE, .init = list(list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list(), list()), .packages = c("scPrediction")) %dopar% {
+  results <- foreach(i = iter,.packages = c("scPrediction")) %dopar% {
     
     cat('Bootstrap replicate:', i, "running....", "\n")
     
@@ -123,166 +119,90 @@ ApplyMethods <- function(sim.n){
     training <- data.train.test$training
     response <- data.train.test$response
     
-    # Run lasso
-    prediction <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 1, 
-                              seed = 92)
-    
-    lasso <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    lasso$fit <- prediction
-    
-    # Run elastic-net (alpha = 0.9)
-    prediction <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 0.9,
-                              seed = 92)
-    
-    
-    elastic.net.0.9 <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    elastic.net.0.9$fit <- prediction
-    
-    # Run elastic-net (alpha = 0.5)
-    prediction <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 0.5,
-                              seed = 92)
-    
-    
-    elastic.net.0.5 <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    elastic.net.0.5$fit <- prediction
-    
-    # Run elastic-net (alpha = 0.1)
-    prediction <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 0.1,
-                              seed = 92)
-    
-    elastic.net.0.1 <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    elastic.net.0.1$fit <- prediction
-    
     # Run ridge
     ## Provide lambda values to prevent error in current verisons of glmnet as suggested by Lukas M. Weber
     ## See:
     ## https://stackoverflow.com/questions/40145209/cv-glmnet-fails-for-ridge-not-lasso-for-simulated-data-with-coder-error
     ## And
     ## https://github.com/lmweber/glmnet-error-example/blob/master/glmnet_error_example.R
-    
-    prediction <- FitRegModel(test, training, response,
+
+    ridge <- FitRegModel(test, training, response,
                               family = "binomial",
                               alpha = 0,
                               seed = 92,
+                              positive.class = 'Group1',
                               lambda = exp(seq(log(0.001), log(5), length.out = 100)))
     
-    ridge <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    ridge$fit <- prediction
+    # Run lasso
+    lasso <- FitRegModel(test, training, response,
+                              family = "binomial",
+                              alpha = 1,
+                              seed = 92, 
+                              positive.class = 'Group1',
+                              lambda = exp(seq(log(0.001), log(5), length.out = 100)))
     
+    # Run Elastic Net using Caret
+    
+    lambda.grid <- exp(seq(log(0.001), log(5), length.out = 100))
+    alpha.grid <- seq(0.1, 0.9, 0.2)
+    
+    tune.grid <- expand.grid(.alpha = alpha.grid, .lambda = lambda.grid)
+    
+    elastic.net <- RunCaret(test,
+             training,
+             response,
+             ml.method = 'glmnet',
+             seed = 92,
+             positive.class = 'Group1',
+             tune.grid = tune.grid,
+             method = "cv", 
+             number = 10,
+             returnData = FALSE,
+             returnResamp = "final")
+
+    # Using CARET:
+    #
     # Run MARS (Multivariate adaptive regression splines)
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'earth',
-                           seed = 92)
-    
-    mars <-  GetAccuracy(prediction = prediction, cell.class = cell.class)
-    mars$fit <- prediction
-    
     # Run SVM with linear kernel
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'svmLinear',
-                           seed = 92)
-    
-    svm.linear <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    svm.linear$fit <- prediction
-    
     # Run SVM with polynomial kernel
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'svmPoly',
-                           seed = 92)
-    
-    svm.poly <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    svm.poly$fit <- prediction
-    
     # Run Generalized Linear Model
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'glm',
-                           seed = 92)
-    
-    glm <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    glm$fit <- prediction
-    
-    # Classification and regression tree
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'rpart',
-                           seed = 92)
-    
-    cart <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    cart$fit <- prediction
-    
+    # Run CART (Classification and regression tree)
     # Run Random Forests
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'rf',
-                           seed = 92)
-    
-    random.forest <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    random.forest$fit <- prediction
-    
     # Run Naive Bayes
-    suppressWarnings(prediction <- RunCaret(test,
-                                            training,
-                                            response,
-                                            method = 'nb',
-                                            seed = 92))
-    
-    naive.bayes <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    naive.bayes$fit <- prediction
-    
     # Run nnet (neural network)
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'nnet',
-                           seed = 92)
-    
-    nnet <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    nnet$fit <- prediction
-    
     # Run bglm (Bayesian Generalized Linear Model)
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'bayesglm',
-                           seed = 92)
-    
-    bglm <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    bglm$fit <- prediction
-    
     # Run sadnn (Stacked AutoEncoder Deep Neural Network)
-    prediction <- RunCaret(test,
-                           training,
-                           response,
-                           method = 'dnn',
-                           seed = 92)
     
-    dnn <- GetAccuracy(prediction = prediction, cell.class = cell.class)
-    dnn$fit <- prediction
+    methods <- c('earth', 'svmLinear', 'svmPoly', 'glm', 'rpart', 'rf', 'nb', 'nnet', 'bayesglm', 'dnn')
     
+    methods.predictions <- lapply(methods,
+                             function(method){
+                               RunCaret(test,
+                                        training,
+                                        response,
+                                        ml.method = method,
+                                        seed = 92,
+                                        positive.class = 'Group1',
+                                        method = "cv", 
+                                        number = 10,
+                                        returnData = FALSE,
+                                        returnResamp = "final"
+                                        )
+                             })
+    
+    names(methods.predictions) <- methods
+    
+    # Add regulatization methods.
+    ## Preserve best alpha in label for elastic net
+    methods.predictions$ridge <- ridge
+    methods.predictions$lasso <- lasso
+    methods.predictions[[paste0("elastic.net.", elastic.net$fit$bestTune$alpha)]] <- elastic.net
+    
+
     i <- i + 1
     
-    return(list(lasso, elastic.net.0.9, elastic.net.0.5, elastic.net.0.1, ridge, mars, svm.linear, svm.poly, glm, cart, random.forest, naive.bayes, nnet, bglm, dnn))
+    return(methods.predictions)
   }
-  
-  names(results) <- c('lasso', 'elastic.net.0.9', 'elastic.net.0.5', 'elastic.net.0.1', 'ridge', 'mars', 'svm.linear','svm.poly', 'glm', 'cart', 'random.forest', 'naive.bayes', 'nnet', 'bglm', 'dnn')
   return(results)
 }
 ```
@@ -299,18 +219,12 @@ stopCluster(cl)
 
 ```{r get_accuracy}
 res %>%
-  lapply(function(sim){
-    lapply(sim,
-           function(model){
-             lapply(model, '[[', 'accuracy') %>% unlist
-           }
-    )}) %>%
-  lapply(as.data.frame) %>%
-  lapply(function(x){
-    x <- gather(x, key = 'Model', value = 'Accuracy')
-    model.order <- c( "glm", "bglm", "mars", "lasso", "elastic.net.0.9", "elastic.net.0.5", "elastic.net.0.1", "ridge", "svm.linear", "svm.poly", "random.forest", "naive.bayes", "cart", "nnet", "dnn")
-    x$Model <- factor(x$Model, levels = model.order)
-    x
+  lapply(function(sim){ # Iterates simulation
+    lapply(sim, function(b.replicate){ # Iterates bootstrap replicate
+      lapply(b.replicate, function(model){ # Iterates model
+        model$conf.mat$overall["Accuracy"]
+      }) %>% as.data.frame %>% gather(key = 'Model', value = 'Accuracy')
+      }) %>% Reduce(rbind, .)
   }) -> accuracy.sim
 ```
 
@@ -363,7 +277,7 @@ PlotAccuracyAll <- function(model){
     geom_boxplot() +
     xlab('N genes') +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    scale_fill_brewer(palette = "Spectral") +
+    scale_fill_brewer(palette = "Set1") +
     stat_summary(fun.y = median, geom = "line", aes(group=1)) +
     stat_summary(fun.y = median, geom = "point") +
     facet_wrap(~Model, ncol = 4, scales = "free") +
