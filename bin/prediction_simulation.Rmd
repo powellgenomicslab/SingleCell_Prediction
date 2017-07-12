@@ -16,6 +16,7 @@ suppressMessages(library('foreach'))
 suppressMessages(library('doParallel'))
 library(tidyverse)
 library(cowplot)
+library(RColorBrewer)
 ```
 
 # Simulate datasets
@@ -196,7 +197,8 @@ ApplyMethods <- function(sim.n){
     ## Preserve best alpha in label for elastic net
     methods.predictions$ridge <- ridge
     methods.predictions$lasso <- lasso
-    methods.predictions[[paste0("elastic.net.", elastic.net$fit$bestTune$alpha)]] <- elastic.net
+    #methods.predictions[[paste0("elastic.net.", elastic.net$fit$bestTune$alpha)]] <- elastic.net
+    methods.predictions$elasticNet <- elastic.net
     
 
     i <- i + 1
@@ -229,21 +231,42 @@ res %>%
 ```
 
 
+```{r sets_model_plotting_order}
+model.order <- c('glm',
+                 'bayesglm', 
+                 'ridge', 'elasticNet', 'lasso',
+                 'earth', 
+                 'svmLinear', 'svmPoly', 
+                 'rpart', 
+                 'rf', 
+                 'nb', 
+                 'nnet',
+                 'dnn')
+```
+
+
+
 ```{r plot_accuracy}
-PlotAccuracy <- function(sim, label){
+n.methods <- length(unique(accuracy.sim[[1]]$Model))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+PlotAccuracy <- function(sim, label, model.order){
   n.genes <- gsub('n', '', label)
+  
+  sim$Model <- factor(sim$Model, levels = model.order)
+  
   p <- ggplot(sim, aes(x = Model, y  = Accuracy, fill = Model)) +
     geom_boxplot() +
     ggtitle(label = 'Simulated data from 100 cells and 2 clusters (50 cells each)', 
           subtitle = paste('Number of genes included in dataset:', n.genes)) +
-    scale_color_brewer() +
+    scale_fill_manual(values = getPalette(n.methods)) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     guides(fill = FALSE)
   
   return(p)
 }
 
-plots <- mapply(PlotAccuracy, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE)
+plots <- mapply(PlotAccuracy, accuracy.sim, names(accuracy.sim), list(model.order), SIMPLIFY = FALSE)
 ```
 
 
@@ -265,6 +288,8 @@ accuracy.all <- mapply(function(sim, label){
   sim
 }, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE) %>% 
   Reduce(rbind, .)
+
+accuracy.all$Model <- factor(accuracy.all$Model, levels = model.order)
 ```
 
 
@@ -273,11 +298,11 @@ PlotAccuracyAll <- function(model){
   
   model$ngenes <- factor(model$ngenes, sort(unique(as.integer(model$ngenes))))
   
-  p <- ggplot(model, aes(x = ngenes, y = Accuracy, fill = ngenes)) +
+  p <- ggplot(model, aes(x = ngenes, y = Accuracy)) +
     geom_boxplot() +
-    xlab('N genes') +
+    xlab('') +
+    ylab('') +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    scale_fill_brewer(palette = "Set1") +
     stat_summary(fun.y = median, geom = "line", aes(group=1)) +
     stat_summary(fun.y = median, geom = "point") +
     facet_wrap(~Model, ncol = 4, scales = "free") +
@@ -286,10 +311,13 @@ PlotAccuracyAll <- function(model){
   p
 }
 
+
 accuracy.all %>% 
   split(accuracy.all$Model) %>% 
   lapply(PlotAccuracyAll) %>% 
-  cowplot::plot_grid(plotlist = .) %>% 
+  plot_grid(plotlist = .) %>% 
+  add_sub('Accuracy ~ Number of genes', fontface = 'bold') %>% 
+  ggdraw() %>% 
   ggsave(filename = paste0('simulation_100_cells_ngenes-accuracy_per_model.png'),
          plot = .,
          device = 'png',
@@ -302,4 +330,6 @@ accuracy.all %>%
 saveRDS(res, file = paste0('simulation_', nrow(sim.data.pheno[[1]]$sim.pheno),'cells_', length(unique(sim.data.pheno[[1]]$sim.pheno$Group)), '-groups_', n, '-' ,'replicates.RDS'))
 
 saveRDS(accuracy.sim, file = paste0('simulation_', nrow(sim.data.pheno[[1]]$sim.pheno),'cells_', length(unique(sim.data.pheno[[1]]$sim.pheno$Group)), '-groups_', n, '-' ,'replicates_accuracy.RDS'))
+
+saveRDS(accuracy.all, file = paste0('simulation_', nrow(sim.data.pheno[[1]]$sim.pheno),'cells_', length(unique(sim.data.pheno[[1]]$sim.pheno$Group)), '-groups_', n, '-' ,'replicates_accuracy_longTable.RDS'))
 ```
