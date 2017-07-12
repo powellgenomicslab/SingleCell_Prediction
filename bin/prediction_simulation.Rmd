@@ -50,7 +50,7 @@ names(sim) <- nGenes
 
 ```{r plotPCA}
 sim %>%
-lapply(plotPCA, colour_by = "Group") %>%
+  lapply(plotPCA, colour_by = "Group") %>%
   mapply(function(x, label){return(x + ggtitle(paste('Number of genes included:',label)))},.,nGenes, SIMPLIFY = FALSE) %>% 
   plot_grid(plotlist = .) %>%
   ggsave(filename = paste0('simulation_100_cells_variable-nGenes.png'),
@@ -107,100 +107,25 @@ ApplyMethods <- function(sim.n){
     
     cat('Bootstrap replicate:', i, "running....", "\n")
     
-    # Random sampling for training and testing datasets ----------------------
-    data.train.test <- BuildTrainTest(groups = groups,
-                                      group.select = "Group1",
-                                      features = features, 
-                                      expression.data = expression.data, 
-                                      seed.select = seeds.select[i], 
-                                      seed.compare = seeds.compare[i])
     
-    # Initialize variables
-    test <- data.train.test$test
-    training <- data.train.test$training
-    response <- data.train.test$response
+    methods.predictions <- TrainPredict(groups = groups,
+                 group.select = 'Group1',
+                 features = features,
+                 expression.data = expression.data,
+                 seed.select = seeds.select[i],
+                 seed.compare = seeds.compare[i],
+                 methods =c('glm',
+                            'bayesglm',
+                            'earth',
+                            'svmLinear', 'svmPoly',
+                            'rpart',
+                            'rf',
+                            'nb',
+                            'nnet',
+                            'dnn'),
+                 seed = 92)
     
-    # Run ridge
-    ## Provide lambda values to prevent error in current verisons of glmnet as suggested by Lukas M. Weber
-    ## See:
-    ## https://stackoverflow.com/questions/40145209/cv-glmnet-fails-for-ridge-not-lasso-for-simulated-data-with-coder-error
-    ## And
-    ## https://github.com/lmweber/glmnet-error-example/blob/master/glmnet_error_example.R
-
-    ridge <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 0,
-                              seed = 92,
-                              positive.class = 'Group1',
-                              lambda = exp(seq(log(0.001), log(5), length.out = 100)))
     
-    # Run lasso
-    lasso <- FitRegModel(test, training, response,
-                              family = "binomial",
-                              alpha = 1,
-                              seed = 92, 
-                              positive.class = 'Group1',
-                              lambda = exp(seq(log(0.001), log(5), length.out = 100)))
-    
-    # Run Elastic Net using Caret
-    
-    lambda.grid <- exp(seq(log(0.001), log(5), length.out = 100))
-    alpha.grid <- seq(0.1, 0.9, 0.2)
-    
-    tune.grid <- expand.grid(.alpha = alpha.grid, .lambda = lambda.grid)
-    
-    elastic.net <- RunCaret(test,
-             training,
-             response,
-             ml.method = 'glmnet',
-             seed = 92,
-             positive.class = 'Group1',
-             tune.grid = tune.grid,
-             method = "cv", 
-             number = 10,
-             returnData = FALSE,
-             returnResamp = "final")
-
-    # Using CARET:
-    #
-    # Run MARS (Multivariate adaptive regression splines)
-    # Run SVM with linear kernel
-    # Run SVM with polynomial kernel
-    # Run Generalized Linear Model
-    # Run CART (Classification and regression tree)
-    # Run Random Forests
-    # Run Naive Bayes
-    # Run nnet (neural network)
-    # Run bglm (Bayesian Generalized Linear Model)
-    # Run sadnn (Stacked AutoEncoder Deep Neural Network)
-    
-    methods <- c('earth', 'svmLinear', 'svmPoly', 'glm', 'rpart', 'rf', 'nb', 'nnet', 'bayesglm', 'dnn')
-    
-    methods.predictions <- lapply(methods,
-                             function(method){
-                               RunCaret(test,
-                                        training,
-                                        response,
-                                        ml.method = method,
-                                        seed = 92,
-                                        positive.class = 'Group1',
-                                        method = "cv", 
-                                        number = 10,
-                                        returnData = FALSE,
-                                        returnResamp = "final"
-                                        )
-                             })
-    
-    names(methods.predictions) <- methods
-    
-    # Add regulatization methods.
-    ## Preserve best alpha in label for elastic net
-    methods.predictions$ridge <- ridge
-    methods.predictions$lasso <- lasso
-    #methods.predictions[[paste0("elastic.net.", elastic.net$fit$bestTune$alpha)]] <- elastic.net
-    methods.predictions$elasticNet <- elastic.net
-    
-
     i <- i + 1
     
     return(methods.predictions)
@@ -226,7 +151,7 @@ res %>%
       lapply(b.replicate, function(model){ # Iterates model
         model$conf.mat$overall["Accuracy"]
       }) %>% as.data.frame %>% gather(key = 'Model', value = 'Accuracy')
-      }) %>% Reduce(rbind, .)
+    }) %>% Reduce(rbind, .)
   }) -> accuracy.sim
 ```
 
@@ -258,7 +183,7 @@ PlotAccuracy <- function(sim, label, model.order){
   p <- ggplot(sim, aes(x = Model, y  = Accuracy, fill = Model)) +
     geom_boxplot() +
     ggtitle(label = 'Simulated data from 100 cells and 2 clusters (50 cells each)', 
-          subtitle = paste('Number of genes included in dataset:', n.genes)) +
+            subtitle = paste('Number of genes included in dataset:', n.genes)) +
     scale_fill_manual(values = getPalette(n.methods)) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     guides(fill = FALSE)
@@ -322,7 +247,7 @@ accuracy.all %>%
          plot = .,
          device = 'png',
          dpi = 350)
-  
+
 ```
 
 
