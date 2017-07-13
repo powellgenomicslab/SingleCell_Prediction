@@ -583,3 +583,7 @@ As shown in the following plot, in general all curves (number of genes vs. accur
 - **dnn** (Stacked AutoEncoder Deep Neural Network) presents an oscillatory behaviour
 
 ![](project_notebook_img/simulation_100_cells_ngenes-accuracy_per_model_fixed_2017-07-13.png)
+
+![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-2.png)
+![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-3.png)
+![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-4.png)
