@@ -557,10 +557,10 @@ As some predictors after center and scaled have zero variances:
 
 As this error seemed to appeared when using 1000 genes, we will reduce the number of genes to 500 and see if we get the zero predictors.
 
-Two axplanations are possible:
+Two explanations are possible:
 
-1. This error did not happen before maybe due to the differential expression parameter (`de.prob`). As all genes are differentially expressed, the variance in the dataset may be reduced due to constant predictors with similar values. 
-2. Centering and scaling affects estimations in some ML methods such as `glm`.
+1. This error did not happen before maybe due to the differential expression parameter (`de.prob`). As all genes are differentially expressed, the variance in the dataset may be reduced due to constant predictors with similar values
+2. Centering and scaling affects estimations in some ML methods such as `glm`
 
 
 # 13/07/2017
