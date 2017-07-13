@@ -486,4 +486,69 @@ This same analysis will be performed using a range of genes from 1 to 3000.
 ![](project_notebook_img/simulation_100_cells_ngenes-100.png)
 ![](project_notebook_img/simulation_100_cells_ngenes-500.png)
 ![](project_notebook_img/simulation_100_cells_ngenes-1000.png)
-![](project_notebook_img/simulation_100_cells_ngenes-2000.png)
+![](project_notebook_img/simulation_100_cells_ngenes-2000.png)# 12/07/2017
+
+`prediction_simulation.Rmd` (commit [e18d026](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/e18d026f4aabbf91f31cadfe3132fa59969c5c40/bin/prediction_simulation.Rmd)).
+
+Some of the updates so far in this version include:
+
+- Use of new `TrainPredict()` function from the `scPrediction` package to optimize code and reduce redundancy
+- Avoids complex call of `foreach()` function by creating output list within loop
+- Adds new models such as:
+  + **bayesglm** (Bayesian generalized model)
+  + **nnet** (Neural network)
+  + **dnn** (Stacked AutoEncoder Deep Neural Network)
+- Runs **elastic net** algorithm using the `caret` package. This way only the best model for a **alpha between 0.1 and 0.9** is selected
+- `Ridge` and `lasso` methods are run outside `caret` using the `glmnet` package
+- Creates accuracy plot per dataset and method
+- Saves accuracy summaries (to reproduce plots in case something goes wrong)
+
+Notes:
+
+> Least angle regression was not included in the analysis since it is not implemented for classification tasks in R. See [Stack Exchange post](https://stats.stackexchange.com/questions/48651/least-angle-regression-packages-for-r-or-matlab)
+
+This version was run with the following parameters:
+
+`Splatter`
+
+```R
+nGenes <- c(2, 3, 4, 5, 10, 20, 30, 50, 100, 200, 500, 1000, 1500, 2000)
+groupCells <- c(50, 50)
+method <-  "groups"
+seed <-  10
+de.prob <- 1
+```
+
+`de.prob` refers to 
+
+> Probability that a gene is differentially expressed in a group
+
+Setting `de.prob` to 1 forces all genes to be differentially expressed.
+
+After running the pipeline the following warnings stopped the process.
+
+From the MARS method:
+
+```R
+earth glm Group2: did not converge after 25 iterations
+Something is wrong; all the Accuracy metric values are missing:
+```
+
+And from `caret` function `preProcess()`.
+
+```R
+Warning in preProcess.default(thresh = 0.95, k = 5, freqCut = 19, uniqueCut = 10,  :
+  These variables have zero variances: Gene92, Gene127, Gene193, Gene279, Gene343, Gene457, Gene532, Gene543, Gene589, Gene593, Gene694, Gene739, Gene773, Gene842, Gene906, Gene910, Gene934, Gene976```
+
+This last warning happens when trying to center and scale the data prior to training the model.
+
+As noted by [Thiago G. Martins](https://tgmstat.wordpress.com/2014/03/06/near-zero-variance-predictors/), this error may be due to zero and near-zero predictors:
+
+> Constant and almost constant predictors across samples (called zero and near-zero variance predictors in [1], respectively) happens quite often. One reason is because we usually break a categorical variable with many categories into several dummy variables. Hence, when one of the categories have zero observations, it becomes a dummy variable full of zeroes.
+
+As some predictors after center and scaled have zero variances:
+
+> This kind of predictor is not only non-informative, it can break some models you may want to fit to your data
+
+
+As this error seemed to appeared when using 1000 genes, we will reduce the number of genes to 500 and see if we get the zero predictors. 
