@@ -493,6 +493,10 @@ This same analysis will be performed using a range of genes from 1 to 3000.
 Some of the updates so far in this version include:
 
 - Use of new `TrainPredict()` function from the `scPrediction` package to optimize code and reduce redundancy
+- Centers and scales the data before training model to improve accuracy. As noted by [ Jason Brownlee](http://machinelearningmastery.com/pre-process-your-dataset-in-r/)
+
+> It is an easy step to forget or skip over and often has a huge impact on the accuracy of your final models
+
 - Avoids complex call of `foreach()` function by creating output list within loop
 - Adds new models such as:
   + **bayesglm** (Bayesian generalized model)
@@ -500,7 +504,7 @@ Some of the updates so far in this version include:
   + **dnn** (Stacked AutoEncoder Deep Neural Network)
 - Runs **elastic net** algorithm using the `caret` package. This way only the best model for a **alpha between 0.1 and 0.9** is selected
 - `Ridge` and `lasso` methods are run outside `caret` using the `glmnet` package
-- Creates accuracy plot per dataset and method
+- Creates accuracy plot per dataset and method. Plots boxplots in specified order.
 - Saves accuracy summaries (to reproduce plots in case something goes wrong)
 
 Notes:
@@ -509,7 +513,7 @@ Notes:
 
 This version was run with the following parameters:
 
-`Splatter`
+`Splatter`:
 
 ```R
 nGenes <- c(2, 3, 4, 5, 10, 20, 30, 50, 100, 200, 500, 1000, 1500, 2000)
@@ -551,4 +555,14 @@ As some predictors after center and scaled have zero variances:
 > This kind of predictor is not only non-informative, it can break some models you may want to fit to your data
 
 
-As this error seemed to appeared when using 1000 genes, we will reduce the number of genes to 500 and see if we get the zero predictors. 
+As this error seemed to appeared when using 1000 genes, we will reduce the number of genes to 500 and see if we get the zero predictors.
+
+Two axplanations are possible:
+
+1. This error did not happen before maybe due to the differential expression parameter (`de.prob`). As all genes are differentially expressed, the variance in the dataset may be reduced due to constant predictors with similar values. 
+2. Centering and scaling affects estimations in some ML methods such as `glm`.
+
+
+# 13/07/2017
+
+`prediction_simulation.Rmd` (commit [c187835](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/c187835dc1d6eae284cb2291e503ace58011db1d/bin/prediction_simulation.Rmd)) was run changing the number of genes to be analyzed.
