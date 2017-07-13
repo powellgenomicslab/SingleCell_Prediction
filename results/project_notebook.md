@@ -499,6 +499,7 @@ Some of the updates so far in this version include:
 
 - Avoids complex call of `foreach()` function by creating output list within loop
 - Adds new models such as:
+  + **cart** (Classification and regression tree)
   + **bayesglm** (Bayesian generalized model)
   + **nnet** (Neural network)
   + **dnn** (Stacked AutoEncoder Deep Neural Network)
@@ -566,3 +567,19 @@ Two explanations are possible:
 # 13/07/2017
 
 `prediction_simulation.Rmd` (commit [c187835](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/c187835dc1d6eae284cb2291e503ace58011db1d/bin/prediction_simulation.Rmd)) was run changing the number of genes to be analyzed.
+
+```R
+nGenes <- c(2, 3, 4, 5, 10, 20, 30, 40, 50, 100, 200, 300, 400, 500)
+```
+
+![](project_notebook_img/simulation_100_cells_variable-nGenes_2017-07-13.png)
+
+
+As shown in the following plot, in general all curves (number of genes vs. accuracy) **tend to asymptote with four genes** to make the predictions.
+
+- **glm** (generalized linear model) tends to perform as good as other models. However, when the number of genes increases (from 50) the accuracy decreases.
+- **rpart** (Classification and regression tree) presents more variability whern compared to other models as the number of genes increases
+- **rf** (random forests) performs worse eith a low number of genes but the accuracy is more stable as more genes are added
+- **dnn** (Stacked AutoEncoder Deep Neural Network) presents an oscillatory behaviour
+
+![](project_notebook_img/simulation_100_cells_ngenes-accuracy_per_model_fixed_2017-07-13.png)
