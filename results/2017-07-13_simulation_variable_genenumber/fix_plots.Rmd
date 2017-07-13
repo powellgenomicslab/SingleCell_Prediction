@@ -1,0 +1,54 @@
+---
+title: "Plot accuracy results"
+author: "Jose Alquicira Hernandez"
+date: "13/07/2017"
+output: html_document
+---
+
+```{r import_libraries}
+library(cowplot)
+library(RColorBrewer)
+library(tidyverse)
+```
+
+
+```{r read_data}
+accuracy.sim <- readRDS("simulation_100cells_2-groups_50-replicates_accuracy.RDS")
+accuracy.all <- readRDS("simulation_100cells_2-groups_50-replicates_accuracy_longTable.RDS")
+```
+
+
+```{r plot_accuracy_per_model}
+PlotAccuracyAll <- function(model){
+  
+  model$ngenes <- factor(model$ngenes, sort(unique(as.integer(model$ngenes))))
+  
+  p <- ggplot(model, aes(x = ngenes, y = Accuracy)) +
+    geom_boxplot() +
+    xlab('') +
+    ylab('') +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    stat_summary(fun.y = median, geom = "line", aes(group=1)) +
+    stat_summary(fun.y = median, geom = "point") +
+    facet_wrap(~Model, ncol = 4, scales = "free") +
+    scale_y_continuous(limits = c(min(model$Accuracy) - 0.01, 1)) +
+    guides(fill = FALSE)
+  p
+}
+
+
+accuracy.all %>% 
+  split(accuracy.all$Model) %>% 
+  lapply(PlotAccuracyAll) %>% 
+  plot_grid(plotlist = .) %>% 
+  add_sub('Accuracy ~ Number of genes', fontface = 'bold') %>% 
+  ggdraw() %>%
+  ggsave(filename = paste0('simulation_100_cells_ngenes-accuracy_per_model_fixed.png'),
+         height = 8,
+         width = 11,
+         plot = .,
+         device = 'png',
+         dpi = 350)
+
+```
+
