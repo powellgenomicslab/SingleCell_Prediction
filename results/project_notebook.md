@@ -586,4 +586,19 @@ As shown in the following plot, in general all curves (number of genes vs. accur
 
 ![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-2.png)
 ![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-3.png)
-![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-4.png)
+![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-4.png)# 14/07/2017
+
+In a meeting with @joseph, we proposed the following tasks to do:
+
+## TODO
+
+### Simulations
+
+- Reduce the number of differentially expresed genes to evaluate to 100
+- Test the accuracy as the number of cells increases
+- Test the accuracy changing the number of cells in each cluster (ratio)
+
+### Real datasets
+
+- Build a predictor for the [Atlas of human blood dentritic cells and monocytes](https://portals.broadinstitute.org/single_cell/study/atlas-of-human-blood-dendritic-cells-and-monocytes)
+- Build a predictor using bulk RNA-seq data to predict tissue origin of single cells
