@@ -150,7 +150,7 @@ ApplyMethods <- function(sim.n){
 ```
 
 ```{r run_predictions, results="hide"}
-res <- lapply(sim.data.pheno[1:4], ApplyMethods)
+res <- lapply(sim.data.pheno, ApplyMethods)
 ```
 
 
