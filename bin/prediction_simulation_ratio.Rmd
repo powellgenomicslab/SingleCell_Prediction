@@ -1,0 +1,287 @@
+---
+title: "Evaluation of ML methods using simulated data"
+subtitle: "Variable: Number of cells and number of genes"
+author: "Jose Alquicira Hernandez"
+date: "27/06/2017"
+output: html_document
+---
+
+# Load libraries
+
+```{r load_libraries, results='hide', message=FALSE, warning=FALSE}
+# module load R/3.4.0_devtools
+suppressMessages(library('scPrediction'))
+suppressWarnings(suppressMessages(library('splatter')))
+suppressMessages(library('foreach'))
+suppressMessages(library('doParallel'))
+library(tidyverse)
+library(cowplot)
+library(RColorBrewer)
+```
+
+# Simulate datasets
+
+
+```{r define_splatter_parameters}
+n.genes <- c(2, 3, 4, 5, 10, 20, 30, 40, 50, 100)
+n.cells <- 10000
+cell.ratio <- seq(0.1, 0.4, 0.1)
+```
+
+
+```{r simulate_data}
+sim.params <- expand.grid(genes = n.genes, cluster1 = n.cells*cell.ratio)
+sim.params$cluster2 <- n.cells - sim.params$cluster1
+
+SimulateData <- function(genes.cluster1.cluster2){
+  
+  n.genes <- genes.cluster1.cluster2[1]
+  cluster1 <- genes.cluster1.cluster2[2]
+  cluster2 <- genes.cluster1.cluster2[3]
+  
+  params <- setParams(newSplatParams(), 
+                      update = list(groupCells = c(cluster1, cluster2),
+                                    nGenes = n.genes, 
+                                    de.prob = 1))
+  
+  sim <- splatSimulateGroups(params, seed = 10, verbose = FALSE)
+
+  return(sim)
+}
+
+sim <- apply(sim.params, 1, SimulateData)
+names(sim) <- paste0("ng-", sim.params$genes, ".", "c1-", sim.params$cluster1, ".", "c2-", sim.params$cluster2)
+```
+
+
+```{r plotPCA}
+sim %>%
+  lapply(plotPCA, colour_by = "Group") %>%
+  mapply(function(x, label){
+    label <- unlist(strsplit(label, "\\."))
+    n.genes <- unlist(strsplit(label[1], "-"))[2]
+    cluster1 <- unlist(strsplit(label[2], "-"))[2]
+    cluster2 <- unlist(strsplit(label[3], "-"))[2]
+    return(x + ggtitle(paste('Genes =',n.genes, "|", "Group1 =", cluster1,  "|", "Group2 =", cluster2)))},
+    .,
+    names(sim), SIMPLIFY = FALSE) %>% 
+  plot_grid(plotlist = ., nrow = length(cell.ratio)) %>%
+  ggsave(filename = paste0('PCA_simulations.png'),
+         plot = ., width = 12, height = 14,
+         device = 'png',
+         dpi = 350)
+```
+
+
+
+```{r get_GEmatrix_pheno}
+sim.data.pheno <- lapply(sim, function(s){
+  sim.pheno <- phenoData(object = s)@data
+  sim.data <- exprs(s)
+  list(sim.data = sim.data, sim.pheno = sim.pheno)
+})
+```
+
+
+```{r setup_cluster}
+n.cores <- 9
+cl <- makeCluster(n.cores, outfile = '')
+registerDoParallel(cl)
+```
+
+
+```{r define_iterations}
+n <- 50
+iter <- seq_len(n)
+```
+
+
+```{r message_bootstrap}
+cat("Bootstrapping starts...\n")
+```
+
+
+
+```{r function_ApplyMethods}
+ApplyMethods <- function(sim.n){
+  
+  features <- seq_len(nrow(sim.n$sim.data))
+  cell.class <- sim.n$sim.pheno[,c('Cell', 'Group')]
+  groups <- sim.n$sim.pheno$Group
+  expression.data <- sim.n$sim.data
+  
+  # seeds <- sample(1:50000, size = 100, replace = TRUE)
+  seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
+  
+  seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+  
+  i <- 1
+  results <- foreach(i = iter,.packages = c("scPrediction")) %dopar% {
+    
+    cat('Bootstrap replicate:', i, "running....", "\n")
+    
+    
+    methods.predictions <- TrainPredict(groups = groups,
+                 group.select = 'Group1',
+                 features = features,
+                 expression.data = expression.data,
+                 seed.select = seeds.select[i],
+                 seed.compare = seeds.compare[i],
+                 methods =c('glm',
+                            'bayesglm',
+                            'earth',
+                            'svmLinear', 'svmPoly',
+                            'rpart',
+                            'rf',
+                            'nb',
+                            'nnet',
+                            'dnn'),
+                 returnResamp = 'none',
+                 seed = 92,
+                 number = 5)
+    
+    
+    i <- i + 1
+    
+    return(methods.predictions)
+  }
+  return(results)
+}
+```
+
+```{r run_predictions, results="hide"}
+res <- lapply(sim.data.pheno[1:4], ApplyMethods)
+```
+
+
+```{r stop_cluster}
+stopCluster(cl)
+```
+
+
+```{r get_accuracy}
+res %>%
+  lapply(function(sim){ # Iterates simulation
+    lapply(sim, function(b.replicate){ # Iterates bootstrap replicate
+      lapply(b.replicate, function(model){ # Iterates model
+        model$conf.mat$overall["Accuracy"]
+      }) %>% as.data.frame %>% gather(key = 'Model', value = 'Accuracy')
+    }) %>% Reduce(rbind, .)
+  }) -> accuracy.sim
+```
+
+
+```{r sets_model_plotting_order}
+model.order <- c('glm',
+                 'bayesglm', 
+                 'ridge', 'elasticNet', 'lasso',
+                 'earth', 
+                 'svmLinear', 'svmPoly', 
+                 'rpart', 
+                 'rf', 
+                 'nb', 
+                 'nnet',
+                 'dnn')
+```
+
+
+
+```{r plot_accuracy}
+n.methods <- length(unique(accuracy.sim[[1]]$Model))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+PlotAccuracy <- function(sim, label, model.order){
+    label <- unlist(strsplit(label, "\\."))
+    n.genes <- unlist(strsplit(label[1], "-"))[2]
+    cluster1 <- unlist(strsplit(label[2], "-"))[2]
+    cluster2 <- unlist(strsplit(label[3], "-"))[2]
+  
+  sim$Model <- factor(sim$Model, levels = model.order)
+  
+  p <- ggplot(sim, aes(x = Model, y  = Accuracy, fill = Model)) +
+    geom_boxplot() +
+    ggtitle(label = paste('Genes =',n.genes, "|", "Group1 =", cluster1,  "|", "Group2 =", cluster2)) +
+    scale_fill_manual(values = getPalette(n.methods)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    guides(fill = FALSE)
+  
+  return(p)
+}
+
+plots <- mapply(PlotAccuracy, accuracy.sim, names(accuracy.sim), list(model.order), SIMPLIFY = FALSE)
+```
+
+
+```{r save_plots}
+SavePlots <- function(p, label){
+  ggsave(filename = paste0(label, '.png'),
+         plot = p,
+         width = 10,
+         device = 'png',
+         dpi = 350)
+}
+
+mapply(SavePlots, plots, gsub("\\.", "_",names(plots)))
+```
+
+
+```{r reduce_accuracy_matrix}
+accuracy.all <- mapply(function(sim, label){
+    label <- unlist(strsplit(label, "\\."))
+    n.genes <- unlist(strsplit(label[1], "-"))[2]
+    cluster1 <- unlist(strsplit(label[2], "-"))[2]
+    cluster2 <- unlist(strsplit(label[3], "-"))[2]
+    sim$cluster1 <- as.numeric(cluster1)
+    sim$cluster2 <- as.numeric(cluster2)
+    sim$genes <- n.genes
+    
+  sim
+}, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE) %>% 
+  Reduce(rbind, .)
+
+accuracy.all$Model <- factor(accuracy.all$Model, levels = model.order)
+```
+
+
+```{r plot_accuracy_per_model}
+PlotAccuracyAll <- function(model){
+  
+  model.label <- unique(model$Model)
+  
+  model$ratio <- model$cluster1 / (model$cluster1 + model$cluster2)
+   
+  p <- ggplot(model, aes(x = genes, y = Accuracy)) +
+    geom_boxplot() +
+    ggtitle(model.label) +
+    xlab('') +
+    ylab('') +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    stat_summary(fun.y = median, geom = "line", aes(group=1)) +
+    stat_summary(fun.y = median, geom = "point") +
+    facet_wrap(~ratio, ncol = 4) +
+    scale_y_continuous(limits = c(min(model$Accuracy) - 0.01, 1))
+  p
+}
+
+
+accuracy.all %>%
+  split(accuracy.all$Model) %>%
+  lapply(PlotAccuracyAll) %>%
+  plot_grid(plotlist = .) %>%
+  add_sub('Accuracy ~ Number of genes | Proportion of cells in a group', fontface = 'bold') %>%
+  ggdraw() %>%
+  ggsave(filename = paste0('simulation-accuracy_per_model.png'),
+         plot = .,
+         height = 8,
+         width = 15,
+         device = 'png',
+         dpi = 350)
+
+```
+
+
+```{r save_results}
+saveRDS(res, file = 'methods_predictions.RDS')
+saveRDS(accuracy.sim, file = 'methods_accuracy.RDS')
+saveRDS(accuracy.all, file = 'methods_accuracy_longTable.RDS')
+```
