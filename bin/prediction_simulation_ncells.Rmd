@@ -14,9 +14,9 @@ suppressMessages(library('scPrediction'))
 suppressWarnings(suppressMessages(library('splatter')))
 suppressMessages(library('foreach'))
 suppressMessages(library('doParallel'))
-library(tidyverse)
-library(cowplot)
-library(RColorBrewer)
+library("tidyverse")
+library("cowplot")
+library("RColorBrewer")
 ```
 
 # Simulate datasets
@@ -51,6 +51,7 @@ names(sim) <- paste0("nc-", sim.params$cells, ".", "ng-", sim.params$genes)
 ```
 
 
+
 ```{r plotPCA}
 sim %>%
   lapply(plotPCA, colour_by = "Group") %>%
@@ -60,15 +61,19 @@ sim %>%
     n.genes <- unlist(strsplit(label[2], "-"))[2]
     return(x + ggtitle(paste('Cells =',n.cells, "|", "Genes =", n.genes)))},
     .,
-    names(sim), SIMPLIFY = FALSE) %>% 
-  plot_grid(plotlist = ., ncol = length(n.cells)) %>%
-  ggsave(filename = paste0('simulation_100_cells_variable-nGenes.png'),
-         plot = ., width = 12, height = 14,
-         device = 'png',
-         dpi = 350)
+    names(sim), SIMPLIFY = FALSE) -> pca.plots
+```
+
+```{r save_PCAplots_RDS}
+saveRDS(pca.plots, file = "pca_simulation_plots.RDS")
 ```
 
 
+```{r save_PCAplots_pdf}
+pdf(file = file.path(".","PCA_simulations.pdf"), onefile = TRUE)
+print(pca.plots)
+dev.off()
+```
 
 ```{r get_GEmatrix_pheno}
 sim.data.pheno <- lapply(sim, function(s){
@@ -225,8 +230,8 @@ accuracy.all <- mapply(function(sim, label){
     label <- unlist(strsplit(label, "\\."))
     n.cells <- unlist(strsplit(label[1], "-"))[2]
     n.genes <- unlist(strsplit(label[2], "-"))[2]
-    sim$cells <- n.cells
-    sim$genes <- n.genes
+    sim$cells <- as.integer(n.cells)
+    sim$genes <- as.integer(n.genes)
     
   sim
 }, accuracy.sim, names(accuracy.sim), SIMPLIFY = FALSE) %>% 
@@ -235,44 +240,83 @@ accuracy.all <- mapply(function(sim, label){
 accuracy.all$Model <- factor(accuracy.all$Model, levels = model.order)
 ```
 
+```{r fixes_class_and_gets_ratio}
+accuracy.all$genes <- factor(accuracy.all$genes, sort(unique(accuracy.all$genes)))
+```
 
-```{r plot_accuracy_per_model}
-PlotAccuracyAll <- function(model){
+```{r define_PlotAccuracyAll}
+PlotAccuracyAll <- function(model, min.acc = NULL){
+  
+  if(is.null(min.acc)){
+    min.acc <- min(model$Accuracy)
+  }
   
   model.label <- unique(model$Model)
   
   p <- ggplot(model, aes(x = genes, y = Accuracy)) +
-    geom_boxplot() +
+   geom_boxplot() +
     ggtitle(model.label) +
     xlab('') +
     ylab('') +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    stat_summary(fun.y = median, geom = "line", aes(group=1)) +
-    stat_summary(fun.y = median, geom = "point") +
-    facet_wrap(~cells, ncol = 4) +
-    scale_y_continuous(limits = c(min(model$Accuracy) - 0.01, 1))
+    stat_summary(fun.y = median, geom = "line", aes(group = 1), size = 0.3) +
+    stat_summary(fun.y = median, geom = "point", color = "red3", size = 0.5) +
+    scale_y_continuous(limits = c(min.acc - 0.01, 1)) +
+    theme_gray() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1), plot.title = element_text(face = "bold"))
   p
 }
+```
 
 
+```{r plot_accuracy_per_model}
 accuracy.all %>%
   split(accuracy.all$Model) %>%
-  lapply(PlotAccuracyAll) %>%
+  mapply(PlotAccuracyAll, ., min(accuracy.all$Accuracy), SIMPLIFY = FALSE) %>%
   plot_grid(plotlist = .) %>%
   add_sub('Accuracy ~ Number of genes', fontface = 'bold') %>%
   ggdraw() %>%
   ggsave(filename = paste0('simulation-accuracy_per_model.png'),
          plot = .,
          height = 8,
-         width = 15,
+         width = 18,
          device = 'png',
          dpi = 350)
 
 ```
 
+```{r PlotAccuracyAll_free_scale}
+accuracy.all %>%
+  split(accuracy.all$Model) %>%
+  lapply(PlotAccuracyAll) %>%
+  plot_grid(plotlist = .) %>%
+  add_sub('Accuracy ~ Number of genes', fontface = 'bold') %>%
+  ggdraw() %>%
+  ggsave(filename = paste0('simulation-accuracy_per_model_scale_free.png'),
+         plot = .,
+         height = 8,
+         width = 18,
+         device = 'png',
+         dpi = 350)
+
+```
+
+```{r get_results_size}
+cat("\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+cat("Output predictions size:", format(object.size(res), units = 'GB', digits = 2), "\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+```
 
 ```{r save_results}
-saveRDS(res, file = 'methods_predictions.RDS')
+cat("Saving results...\n")
 saveRDS(accuracy.sim, file = 'methods_accuracy.RDS')
 saveRDS(accuracy.all, file = 'methods_accuracy_longTable.RDS')
+cat("Accuracy results...DONE\n")
+saveRDS(res, file = 'methods_predictions.RDS')
+cat("Results saved...\n")
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
 ```
