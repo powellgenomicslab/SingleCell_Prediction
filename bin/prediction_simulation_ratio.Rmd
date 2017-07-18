@@ -328,7 +328,7 @@ cat("Saving results...\n")
 saveRDS(accuracy.sim, file = 'methods_accuracy.RDS')
 saveRDS(accuracy.all, file = 'methods_accuracy_longTable.RDS')
 cat("Accuracy results...DONE\n")
-saveRDS(res, file = 'methods_predictions.RDS')
+#saveRDS(res, file = 'methods_predictions.RDS')
 cat("Results saved...\n")
 ```
 
