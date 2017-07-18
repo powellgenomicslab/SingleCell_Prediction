@@ -1,0 +1,235 @@
+---
+title: "Atlas of human blood dendritic cells and monocytes"
+subtitle: "Exploratory analysis"
+author: "Jose Alquicira Hernandez"
+date: "17/07/2017"
+output:
+  html_document:
+    fig_caption: yes
+    highlight: zenburn
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
+---
+
+# Description
+
+This purpose of this analysis is to explore and describe the data from the [Atlas of human blood dentritic cells and monocytes](https://portals.broadinstitute.org/single_cell/study/atlas-of-human-blood-dendritic-cells-and-monocytes) and assess its potential as a dataset for cell type prediction. 
+
+
+```{r load_libraries}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(knitr)
+library(ggjoy)
+library(readxl)
+```
+
+
+
+```{r read_data}
+exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+```
+
+```{r process_matrix}
+row.names(exp.tpm) <- exp.tpm$GENE
+exp.tpm$GENE <- NULL
+```
+
+Dataset dimentions:
+
+- Number of genes : `r nrow(exp.tpm)`
+- Number of cells: `r ncol(exp.tpm)`
+
+```{r eda, echo=FALSE, eval=FALSE}
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+cat("Dataset overview", "\n")
+cat(paste0(rep("-", 3), collapse = ""), "\n")
+cat("Number of genes:", nrow(exp.tpm), "\n")
+cat("Number of cells:", ncol(exp.tpm), "\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+```
+
+
+```{r get_cell_type_freq}
+metadata %>%
+  group_by(group) %>% 
+  summarize(Frequency = n()) %>%
+  setNames(c("Cell type", "Frequency")) %>%
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+# Principal component analysis
+
+```{r pca}
+pca.file <- file.path("..", "results", "2017-07-17_blood_atlas_prediction", "pca.RDS")
+
+if(!file.exists(pca.file)){
+  exp.tpm.pca <- prcomp(exp.tpm, center = TRUE, scale. = TRUE)
+  saveRDS(exp.tpm.pca, file = pca.file)
+}else{
+  exp.tpm.pca <- readRDS(pca.file)
+}
+```
+
+```{r format_pca}
+exp.tpm.pca %>%
+  .[["rotation"]] %>% 
+  as.data.frame() %>% 
+  select(PC1, PC2, PC3) %>%
+  mutate(id = row.names(.), 
+         type = metadata[match(metadata$TYPE, row.names(.)), "group", drop = TRUE]) -> pca.2ev
+```
+
+```{r plot_pca}
+p12 <- ggplot(pca.2ev, aes(x = PC1, y = PC2, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set3")
+p13 <- ggplot(pca.2ev, aes(x = PC1, y = PC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set3")
+p23 <- ggplot(pca.2ev, aes(x = PC2, y = PC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set3")
+```
+
+```{r save_plot}
+p <- grid.arrange(p12, p13, p23,  ncol = 1)
+ggsave(file.path("..", "results", "2017-07-17_blood_atlas_prediction", "blood_atlas_pca.png"), p, height = 18)
+```
+
+
+# Analysis of discriminant genes
+
+The authors provide a list of discriminant genes to differentiate between cell types. Such list may be downloaded from [here](http://science.sciencemag.org/highwire/filestream/693401/field_highwire_adjunct_files/0/aah4573_Supplementary_Tables_1-16.xlsx).
+
+```{r read_dc_genes}
+f.path <- file.path("..", "data", "17-07-2017_blood_atlas", "RAW", "aah4573_Supplementary_Tables_1-16.xlsx")
+dc <- read_xlsx(f.path, sheet = 2, range = "B3:K1022", col_names = TRUE)
+dc %<>% 
+  names() %>% 
+  tolower() %>%
+  setNames(dc, .)
+```
+
+```{r read_mon_genes}
+mono <- read_xlsx(f.path, sheet = 5, range = "A3:J464", col_names = TRUE)
+mono %<>% 
+  names() %>% 
+  tolower() %>%
+  setNames(mono, .)
+```
+
+```{r merge_data}
+disc.genes <- rbind(dc, mono)
+disc.genes %<>%
+  names() %>%
+  make.names() %>%
+  gsub("\\.\\.", "\\.", .) %>%
+  gsub(".1$", "", .) %>%
+  gsub("2|5$", "", .) %>%
+  setNames(disc.genes, .)
+```
+
+The following table shows the number of discriminant genes proposed by the authors:
+
+```{r discriminant_genes_per_cell_type}
+disc.genes %>%
+  group_by(cluster.id) %>%
+  summarise(n = n()) %>%
+  setNames(c("Cell type", "Number of discriminant genes")) %>%
+  kable() %>% 
+  cat(sep = '\n')
+```
+
+```{r set_n_discriminant_genes}
+n.genes <- 10
+```
+
+
+For this exploratory analysis, only the top 5 of discriminant genes for each cell type will be considered. The genes with the best **p-values** were selected as the top 5.
+
+```{r get_top_n_genes}
+disc.genes %>%
+  group_by(cluster.id) %>%
+  top_n(n.genes, -p.value) -> top.n
+```
+
+
+```{r get_expression_data_top_n}
+exp.tpm %>%
+  .[row.names(.) %in% top.n$gene.id, ] %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  mutate(id = row.names(.), 
+         type = metadata[match(metadata$TYPE, row.names(.)), "group"]) %>%
+  gather(key = "gene", value = "exp", 1:length(unique(top.n$gene.id))) -> exp.top.n
+```
+
+Once these genes were extracted, the number of unique genes were `r length(unique(top.n$gene.id))`. `r 50 - length(unique(top.n$gene.id))` genes were shared for some cell types.
+
+
+In the following plot, the gene expression distribution for each discriminant gene is shown for every cell type.
+
+```{r plot_topn}
+p <- ggplot(exp.top.n, aes(x = exp, y = type, fill = type)) +
+  geom_joy(rel_min_height = 0.03) +
+  scale_fill_brewer(palette = "Set3") +
+  guides(fill = FALSE) +
+  facet_wrap(~gene) +
+  xlab("Transcripts per million (TPM)") +
+  ylab("Cell type")
+ggsave(file.path("..", "results", "2017-07-17_blood_atlas_prediction", paste0("top", n.genes,"_total_", length(unique(exp.top.n$gene)), "_discriminant_genes.png")), p, height = 14)
+```
+
+```{r}
+exp.tpm.top.n <- exp.tpm %>%
+  .[row.names(.) %in% exp.top.n$gene, ]
+```
+
+```{r}
+pca.top.n <- prcomp(exp.tpm.top.n, center = TRUE, scale. = TRUE)
+```
+
+
+```{r format_pca_top5}
+pca.top.n %>%
+  .[["rotation"]] %>% 
+  as.data.frame() %>% 
+  select(PC1, PC2, PC3, PC4) %>%
+  mutate(id = row.names(.), 
+         type = metadata[match(metadata$TYPE, row.names(.)), "group", drop = TRUE]) -> pca.topn.4ev
+```
+
+```{r plot_pca_top5}
+combn(1:4, 2) %>%
+  apply(2, function(x) paste0("PC", x)) %>% 
+  as.data.frame() %>% 
+  as.list() %>% 
+  lapply(as.character) -> pca.combs
+
+plotPCA <- function(pca, pair){
+  ggplot(pca, aes_string(x = pair[1], y = pair[2], color = "type")) +
+  geom_point() +
+  scale_color_brewer(palette = "Set3")
+}
+
+p <- mapply(plotPCA, list(pca.topn.4ev), pca.combs, SIMPLIFY = FALSE)
+```
+
+```{r save_plot}
+p <- do.call(grid.arrange, p)
+ggsave(file.path("..", "results", "2017-07-17_blood_atlas_prediction", paste0("pca_top", n.genes,"_total_", nrow(exp.tpm.top.n), "_discriminant_genes.png")), p, width = 8, height = 10)
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
