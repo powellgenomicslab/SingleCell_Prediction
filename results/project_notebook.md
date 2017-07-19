@@ -665,4 +665,25 @@ For this exploratory analysis, only the top 10 of discriminant genes for each ce
 ![](./2017-07-17_blood_atlas_prediction/top10_total_90_discriminant_genes.png)
 
 A PCA was performed again only using the top 10 discriminant genes of each cell type (in total **90 genes** as 10 are shared between cell types). Cell type information is still preserved in this components.
-![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)
+![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)# 19/07/19
+
+`prediction_simulation_ratio.Rmd` (see commit ([7d380f4](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/7d380f497b20b52a1a08ea9841d321b6e2851055/bin/prediction_simulation_ratio.Rmd)) was created to see the behaviour of prediction models depending on the proportion of cell between two groups. This script was run using the followin number of genes and sample sizes:
+
+```R
+n.genes <- c(2, 3, 4, 5, 10, 20, 30, 40, 50, 100)
+n.cells <- 10000
+cell.ratio <- seq(0.1, 0.4, 0.1)
+```
+
+PCA plots of simulated data may be found [here](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/master/results/2017-07-14_simulation_variable_ratio_and_genes/PCA_simulations.pdf).
+
+
+In the following plot, the accuracy is shown as a fuction of the number of genes. For each model, 4 subpanels are displayed indicating the proportion of cells between the simulated group 1 and 2. No appreciable differencre in performance is observed across all models. Some predictions of `rpart` fall to 70% of accuracy when the number of genes is 3 and the proportion of cells is 30/70.
+
+![](2017-07-14_simulation_variable_ratio_and_genes/simulation-accuracy_per_model.png)
+
+The following plot shows the same results but the scale is **independent** for each model. A **drop in accuracy is observable when 2 or 3 genes are used** as features.
+
+![](2017-07-14_simulation_variable_ratio_and_genes/simulation-accuracy_per_model_scale_free.png)
+
+Plots for all simulations may be found [here](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/tree/master/results/2017-07-14_simulation_variable_ratio_and_genes).
