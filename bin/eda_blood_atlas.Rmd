@@ -215,6 +215,8 @@ pca.top.n %>%
   select(PC1, PC2, PC3, PC4) %>%
   mutate(id = row.names(.), 
          type = metadata[match(metadata$TYPE, row.names(.)), "group", drop = TRUE]) -> pca.topn.4ev
+
+pc.var <- round((pca.top.n$sdev**2 / sum(pca.top.n$sdev**2))*100, 2)
 ```
 
 ```{r plot_pca_top5}
@@ -224,13 +226,18 @@ combn(1:4, 2) %>%
   as.list() %>% 
   lapply(as.character) -> pca.combs
 
-plotPCA <- function(pca, pair){
+plotPCA <- function(pca, pair, eigen.var){
+  pcx.i <- as.integer(sub("PC","", pair[1]))
+  pcy.i <- as.integer(sub("PC","", pair[2]))
+  
   ggplot(pca, aes_string(x = pair[1], y = pair[2], color = "type")) +
   geom_point() +
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3") +
+  xlab(paste0(pair[1], " (", eigen.var[pcx.i], "% variance explained)")) +
+  ylab(paste0(pair[2], " (", eigen.var[pcy.i], "% variance explained)"))
 }
 
-p <- mapply(plotPCA, list(pca.topn.4ev), pca.combs, SIMPLIFY = FALSE)
+p <- mapply(plotPCA, list(pca.topn.4ev), pca.combs, list(pc.var), SIMPLIFY = FALSE)
 ```
 
 ```{r save_plot}
