@@ -86,18 +86,27 @@ exp.tpm.pca %>%
   select(PC1, PC2, PC3) %>%
   mutate(id = row.names(.), 
          type = metadata[match(metadata$TYPE, row.names(.)), "group", drop = TRUE]) -> pca.2ev
+
+
+pc.var <- round((exp.tpm.pca$sdev**2 / sum(exp.tpm.pca$sdev**2))*100, 2)
 ```
 
 ```{r plot_pca}
 p12 <- ggplot(pca.2ev, aes(x = PC1, y = PC2, color = type)) +
   geom_point() +
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3") +
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
 p13 <- ggplot(pca.2ev, aes(x = PC1, y = PC3, color = type)) +
   geom_point() +
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3") +
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
 p23 <- ggplot(pca.2ev, aes(x = PC2, y = PC3, color = type)) +
   geom_point() +
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3") +
+  xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
 ```
 
 ```{r save_plot}
@@ -154,7 +163,7 @@ n.genes <- 10
 ```
 
 
-For this exploratory analysis, only the top 5 of discriminant genes for each cell type will be considered. The genes with the best **p-values** were selected as the top 5.
+For this exploratory analysis, only the top 10 of discriminant genes for each cell type will be considered. The genes with the best **p-values** were selected as the top 10.
 
 ```{r get_top_n_genes}
 disc.genes %>%
