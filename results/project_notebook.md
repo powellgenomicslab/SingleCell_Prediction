@@ -602,3 +602,67 @@ In a meeting with @joseph, we proposed the following tasks to do:
 
 - Build a predictor for the [Atlas of human blood dentritic cells and monocytes](https://portals.broadinstitute.org/single_cell/study/atlas-of-human-blood-dendritic-cells-and-monocytes)
 - Build a predictor using bulk RNA-seq data to predict tissue origin of single cells
+
+
+https://stackoverflow.com/questions/29995184/glmnet-error-for-logistic-regression-binomial
+
+```R
+one multinomial or binomial class has 1 or 0 observations; not allowed
+```
+
+https://stats.stackexchange.com/questions/232228/cross-validation-for-uneven-groups-using-cv-glmnet
+
+```R
+one multinomial or binomial class has fewer than 8  observations; dangerous ground
+```
+
+https://stats.stackexchange.com/questions/232228/cross-validation-for-uneven-groups-using-cv-glmnet
+
+# 18/07/17
+
+
+`eda_blood_atlas.Rmd` see commit ([7acc1c1](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/commit/7acc1c11ecdb944d4583a82fb05a80bd0d89ed2d?diff=unified)), was created to explore the data from the [Atlas of human blood dentritic cells and monocytes](https://portals.broadinstitute.org/single_cell/study/atlas-of-human-blood-dendritic-cells-and-monocytes). The following table shows the cell types and the number of cells in this dataset.
+
+|Cell type | Frequency|
+|:---------|---------:|
+|DC1       |       165|
+|DC2       |        94|
+|DC3       |       107|
+|DC4       |       173|
+|DC5       |        30|
+|DC6       |       173|
+|Mono1     |       163|
+|Mono2     |       122|
+|Mono3     |        31|
+|Mono4     |        20|
+
+- **Number of genes**: 26593 
+- **Number of cells**: 1078
+
+
+The authors also provide a list of *discriminant genes* to differentiate between cell types. The following table shows the number of discriminant genes for each cell type.
+
+|Cell type | Number of discriminant genes|
+|:---------|----------------------------:|
+|DC1       |                          112|
+|DC2       |                           31|
+|DC3       |                           59|
+|DC4       |                          342|
+|DC5       |                           85|
+|DC6       |                          390|
+|Mono1     |                          104|
+|Mono2     |                           22|
+|Mono3     |                          186|
+|Mono4     |                          149|
+
+
+A principal component analysis was performed using all genes included in the dataset. The following plot shows the first 3 components. Notice that PC2 and PC3 explain the separation of cell types and they account for 2.07 and 1.09 percent of the variance. This may suggest that only a small subset of genes may be necessary to predict cell type (e.g. discriminant genes proposed by the authors).
+
+![](./2017-07-17_blood_atlas_prediction/blood_atlas_pca.png)
+
+For this exploratory analysis, only the top 10 of discriminant genes for each cell type will be considered. The genes with the best **p-values** were selected as the top 10. In the following plot, the gene expression distribution for each discriminant gene is shown for every cell type. Some genes do explain only one cell type (e.g. **IL2RB** which is preferentially expressed in monocites 4). Other genes seem to separete monocites from dentritic cells such as **BC013828** and **LAIR2**
+
+![](./2017-07-17_blood_atlas_prediction/top10_total_90_discriminant_genes.png)
+
+A PCA was performed again only using the top 10 discriminant genes of each cell type (in total **90 genes** as 10 are shared between cell types). Cell type information is still preserved in this components.
+![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)
