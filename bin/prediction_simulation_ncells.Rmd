@@ -24,7 +24,7 @@ library("RColorBrewer")
 
 ```{r define_splatter_parameters}
 n.genes <- c(2, 3, 4, 5, 10, 20, 30, 40, 50, 100)
-n.cells <- c(100, 200, 300, 400, 500, 1000, 5000, 10000, 20000, 30000, 40000, 50000)
+n.cells <- c(100, 500, 1000, 5000, 10000, 50000)
 ```
 
 
@@ -92,7 +92,7 @@ registerDoParallel(cl)
 
 
 ```{r define_iterations}
-n <- 50
+n <- 8
 iter <- seq_len(n)
 ```
 
@@ -138,7 +138,8 @@ ApplyMethods <- function(sim.n){
                             'nnet',
                             'dnn'),
                  returnResamp = 'none',
-                 seed = 92)
+                 seed = 92,
+                 number = 3)
     
     
     i <- i + 1
