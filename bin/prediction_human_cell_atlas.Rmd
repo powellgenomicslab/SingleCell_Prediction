@@ -162,7 +162,7 @@ accuracy$Model <- factor(accuracy$Model, levels = model.order)
 p <- ggplot(accuracy, aes(x = Model, y = Accuracy, fill = Model)) +
   geom_boxplot() +
   theme_gray() +
-  ggtitle("Prediction of Dentritic cells vs. Monocytes") +
+  ggtitle(paste("Prediction of", positive.class,  "vs. other cell types")) +
   scale_fill_manual(values = getPalette(n.methods)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   guides(fill = FALSE) +
