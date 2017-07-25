@@ -169,7 +169,7 @@ p <- ggplot(accuracy, aes(x = Model, y = Accuracy, fill = Model)) +
   expand_limits(y = 1)
 
 
-ggsave(filename = "accuracy_per_model.png",
+ggsave(filename = paste0("accuracy_per_model_", positive.class,".png"),
        plot = p,
        width = 10,
        device = "png",
@@ -179,7 +179,7 @@ ggsave(filename = "accuracy_per_model.png",
 
 ```{r save_results}
 cat("Saving results...\n")
-saveRDS(accuracy, file = 'methods_accuracy.RDS')
+saveRDS(accuracy, file = paste0("methods_accuracy_", positive.class, ".RDS"))
 cat("Results saved...\n")
 ```
 
