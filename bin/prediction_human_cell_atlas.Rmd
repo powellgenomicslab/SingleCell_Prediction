@@ -10,19 +10,24 @@ output: html_document
 ```{r load_libraries, results='hide', message=FALSE, warning=FALSE}
 # module load R/3.4.0
 suppressMessages(library('scPrediction'))
-suppressMessages(library('foreach'))
-suppressMessages(library('doParallel'))
 library("tidyverse")
 library("cowplot")
 library("RColorBrewer")
 library("readxl")
 ```
 
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+positive.class <- argv[1]
+```
+
+
 # Read and process input data
 
 ```{r read_data}
-exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
-metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+exp.tpm <- read.table("../../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
 ```
 
 ```{r process_matrix}
@@ -31,7 +36,7 @@ exp.tpm$GENE <- NULL
 ```
 
 ```{r read_dc_genes}
-f.path <- file.path("..", "data", "17-07-2017_blood_atlas", "RAW", "aah4573_Supplementary_Tables_1-16.xlsx")
+f.path <- file.path("..", "..", "data", "17-07-2017_blood_atlas", "RAW", "aah4573_Supplementary_Tables_1-16.xlsx")
 dc <- read_xlsx(f.path, sheet = 2, range = "B3:K1022", col_names = TRUE)
 dc %<>% 
   names() %>% 
@@ -81,81 +86,45 @@ top.n %>%
 
 # Starts prediction
 
-
-```{r setup_cluster}
-n.cores <- 9
-cl <- makeCluster(n.cores, outfile = '')
-registerDoParallel(cl)
-```
-
-
-```{r define_iterations}
-n <- 10
-iter <- seq_len(n)
-```
-
-
-```{r message_bootstrap}
-cat("Bootstrapping starts...\n")
+```{r set_positive_class}
+groups <- ifelse(metadata$group == positive.class, as.character(metadata$group), "other")
 ```
 
 
 
-```{r function_ApplyMethods}
-ApplyMethods <- function(sim.n){
-  
-  features <- which(row.names(exp.tpm) %in% top.n$gene.id)
-  groups <- metadata$group %>% 
-    gsub('DC.*', "DC", .) %>% 
-    gsub("Mono.*", "Mono", .)
-  expression.data <- exp.tpm
-  
-  # seeds <- sample(1:50000, size = 100, replace = TRUE)
-  seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
-  
-  seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
-  
-  i <- 1
-  results <- foreach(i = iter,.packages = c("scPrediction")) %dopar% {
-    
-    cat('Bootstrap replicate:', i, "running....", "\n")
-    
-    
-    methods.predictions <- TrainPredict(groups = groups,
-                                        group.select = 'DC',
-                                        features = features,
-                                        expression.data = expression.data,
-                                        seed.select = seeds.select[i],
-                                        seed.compare = seeds.compare[i],
-                                        methods =c('glm',
-                                                   'bayesglm',
-                                                   'earth',
-                                                   'svmLinear', 'svmPoly',
-                                                   'rpart',
-                                                   'rf',
-                                                   'nb',
-                                                   'nnet',
-                                                   'dnn'),
-                                        returnResamp = 'none',
-                                        seed = 92,
-                                        number = 5)
-    
-    
-    i <- i + 1
-    
-    return(methods.predictions)
-  }
-  return(results)
-}
-```
+```{r set_params_TrainPredict}
+seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
 
-```{r run_predictions, results="hide"}
-res <- lapply(sim.data.pheno, ApplyMethods)
+seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+
+
+dataset.params <- list(groups = groups,
+                       positive.class = positive.class,
+                       features = which(row.names(exp.tpm) %in% top.n$gene.id),
+                       expression.data = exp.tpm,
+                       seed.select = seeds.select,
+                       seed.compare = seeds.compare)
+
+training.params <- list(method = 'cv',
+                        number = 5,
+                        seed = 92,
+                        returnResamp = 'none',
+                        returnData = FALSE)
+
+methods <- c('glm',
+             'bayesglm',
+             'earth',
+             'svmLinear', 'svmPoly',
+             'rpart',
+             'rf',
+             'nb',
+             'nnet',
+             'dnn')
 ```
 
 
-```{r stop_cluster}
-stopCluster(cl)
+```{r make_predictions}
+res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 2, n.cores = 2)
 ```
 
 
@@ -185,16 +154,20 @@ model.order <- c('glm',
 
 
 ```{r plot_accuracy}
+n.methods <- length(unique(accuracy$Model))
 getPalette <- colorRampPalette(brewer.pal(9, "Set1"))
 
 accuracy$Model <- factor(accuracy$Model, levels = model.order)
 
 p <- ggplot(accuracy, aes(x = Model, y = Accuracy, fill = Model)) +
   geom_boxplot() +
-  ggtitle("Prediction of Dentritic cells vs. Monocytes")
+  theme_gray() +
+  ggtitle("Prediction of Dentritic cells vs. Monocytes") +
   scale_fill_manual(values = getPalette(n.methods)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  guides(fill = FALSE)
+  guides(fill = FALSE) +
+  expand_limits(y = 1)
+
 
 ggsave(filename = "accuracy_per_model.png",
        plot = p,
