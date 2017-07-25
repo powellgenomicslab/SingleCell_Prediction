@@ -124,7 +124,7 @@ methods <- c('glm',
 
 
 ```{r make_predictions}
-res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 2, n.cores = 2)
+res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 50, n.cores = 9)
 ```
 
 
