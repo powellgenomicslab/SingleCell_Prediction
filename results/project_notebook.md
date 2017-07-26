@@ -665,7 +665,7 @@ For this exploratory analysis, only the top 10 of discriminant genes for each ce
 ![](./2017-07-17_blood_atlas_prediction/top10_total_90_discriminant_genes.png)
 
 A PCA was performed again only using the top 10 discriminant genes of each cell type (in total **90 genes** as 10 are shared between cell types). Cell type information is still preserved in this components.
-![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)# 19/07/19
+![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)# 19/07/17
 
 `prediction_simulation_ratio.Rmd` (see commit ([7d380f4](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/7d380f497b20b52a1a08ea9841d321b6e2851055/bin/prediction_simulation_ratio.Rmd)) was created to see the behaviour of prediction models depending on the proportion of cell between two groups. This script was run using the followin number of genes and sample sizes:
 
@@ -687,3 +687,53 @@ The following plot shows the same results but the scale is **independent** for e
 ![](2017-07-14_simulation_variable_ratio_and_genes/simulation-accuracy_per_model_scale_free.png)
 
 Plots for all simulations may be found [here](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/tree/master/results/2017-07-14_simulation_variable_ratio_and_genes).
+
+# 26/07/2017
+
+`prediction_human_cell_atlas.Rmd` (commit [a865cfd](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/a865cfd2dcce48385afcbb9f80531c25b4e93555/bin/prediction_human_cell_atlas.Rmd)) was run to predict all 10 cell types from the **human blood atlas of monocytes and dentritic cells**.
+
+
+The discriminant genes were selected based in the following criteria.
+
+For each cell type:
+
+- Genes were selected if the reported AUC value was greater than `0.7`. From those genes, the top `20` were considered for the prediction step.
+
+```R
+disc.genes %>%
+  group_by(cluster.id) %>%
+  filter(auc.value > 0.7) %>% 
+  top_n(n = 20, auc.value) -> top.n
+```
+
+The table below shows the number of genes considered as features:
+
+|Cell type  | Number genes    |
+|:----------|----------------:|
+|DC1        | 22              |
+|DC2        | 19              |
+|DC3        | 20              |
+|DC4        | 20              |
+|DC5        | 21              |
+|DC6        | 22              |
+|Mono1      | 20              |
+|Mono2      | 20              |
+|Mono3      | 20              |
+|Mono4      | 20              |
+
+The following plots how the acuraccy results obtained by prediction models for each cell type. 50 bootstrap replicates for each model for every cell type prediction were performed.
+
+
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC1.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC2.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC3.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC4.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC5.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_DC6.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_Mono1.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_Mono2.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_Mono3.png)
+![](../results/2017-07-25_blood_atlas_prediction/accuracy_per_model_Mono4.png)
+
+- In general, `svmPoly` (support vector machines with a polynomial kernel) performed better or roughly equal than the other models for all predictions
+- For the toughest classification tasks (DC2 and DC3 prediction), `dnn` (Stacked AutoEncoder Deep Neural Network) performs significantly better than for easier classifications when all models perform similar.
