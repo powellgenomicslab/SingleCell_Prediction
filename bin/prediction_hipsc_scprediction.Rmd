@@ -18,7 +18,8 @@ library("RColorBrewer")
 
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
-positive.class <- argv[1]
+f.path <- argv[1]
+positive.class <- argv[2]
 ```
 
 
