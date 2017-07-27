@@ -103,7 +103,7 @@ methods <- c('glm',
 
 
 ```{r make_predictions}
-res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 50, n.cores = 9)
+res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 10, n.cores = 10)
 ```
 
 
