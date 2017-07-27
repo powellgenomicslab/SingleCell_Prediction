@@ -737,3 +737,18 @@ The following plots how the acuraccy results obtained by prediction models for e
 
 - In general, `svmPoly` (support vector machines with a polynomial kernel) performed better or roughly equal than the other models for all predictions
 - For the toughest classification tasks (DC2 and DC3 prediction), `dnn` (Stacked AutoEncoder Deep Neural Network) performs significantly better than for easier classifications when all models perform similar.
+
+
+# 27/07/2017
+
+`prediction_simulation_ncells.Rmd` (commit [a6e8085](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/a6e808508441e438559e217874a1a06a882b15f8/bin/prediction_simulation_ncells.Rmd)) was run with the following parameters:
+
+```R
+n.genes <- c(2, 3, 4, 5, 10, 20, 30, 40, 50, 100)
+n.cells <- c(100, 500, 1000, 5000, 10000, 50000)
+```
+
+The following plot shows the accuraccy performance of all tested models as the number of genes included in each simulated dataset changes (omitting the number of cells).
+
+
+![](../results/2017-07-14_simulation_variable_cells_and_genes/simulation-accuracy_per_model.png)
