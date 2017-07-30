@@ -453,8 +453,14 @@ Code has been restructured into and R package. See [scPrediction](https://github
 
 The following methods have been incorporated for the prediction tasks:
 
-- Generalized linear model- Lasso *- Elastic Net *- Ridge *- MARS (Multivariate adaptive regression splines- Random Forests
-- Naïve Bayes- SVM (linear kernel)
+- Generalized linear model
+- Lasso *
+- Elastic Net *
+- Ridge *
+- MARS (Multivariate adaptive regression splines
+- Random Forests
+- Naïve Bayes
+- SVM (linear kernel)
 
 \* *Already incorporated*
 
@@ -486,7 +492,10 @@ This same analysis will be performed using a range of genes from 1 to 3000.
 ![](project_notebook_img/simulation_100_cells_ngenes-100.png)
 ![](project_notebook_img/simulation_100_cells_ngenes-500.png)
 ![](project_notebook_img/simulation_100_cells_ngenes-1000.png)
-![](project_notebook_img/simulation_100_cells_ngenes-2000.png)# 12/07/2017
+![](project_notebook_img/simulation_100_cells_ngenes-2000.png)
+
+
+# 12/07/2017
 
 `prediction_simulation.Rmd` (commit [e18d026](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/e18d026f4aabbf91f31cadfe3132fa59969c5c40/bin/prediction_simulation.Rmd)).
 
@@ -543,7 +552,8 @@ And from `caret` function `preProcess()`.
 
 ```R
 Warning in preProcess.default(thresh = 0.95, k = 5, freqCut = 19, uniqueCut = 10,  :
-  These variables have zero variances: Gene92, Gene127, Gene193, Gene279, Gene343, Gene457, Gene532, Gene543, Gene589, Gene593, Gene694, Gene739, Gene773, Gene842, Gene906, Gene910, Gene934, Gene976```
+  These variables have zero variances: Gene92, Gene127, Gene193, Gene279, Gene343, Gene457, Gene532, Gene543, Gene589, Gene593, Gene694, Gene739, Gene773, Gene842, Gene906, Gene910, Gene934, Gene976
+```
 
 This last warning happens when trying to center and scale the data prior to training the model.
 
@@ -586,7 +596,9 @@ As shown in the following plot, in general all curves (number of genes vs. accur
 
 ![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-2.png)
 ![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-3.png)
-![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-4.png)# 14/07/2017
+![](2017-07-13_simulation_variable_genenumber/simulation_100_cells_ngenes-4.png)
+
+# 14/07/2017
 
 In a meeting with @joseph, we proposed the following tasks to do:
 
@@ -665,7 +677,9 @@ For this exploratory analysis, only the top 10 of discriminant genes for each ce
 ![](./2017-07-17_blood_atlas_prediction/top10_total_90_discriminant_genes.png)
 
 A PCA was performed again only using the top 10 discriminant genes of each cell type (in total **90 genes** as 10 are shared between cell types). Cell type information is still preserved in this components.
-![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)# 19/07/17
+![](./2017-07-17_blood_atlas_prediction/pca_top10_total_90_discriminant_genes.png)
+
+# 19/07/17
 
 `prediction_simulation_ratio.Rmd` (see commit ([7d380f4](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/7d380f497b20b52a1a08ea9841d321b6e2851055/bin/prediction_simulation_ratio.Rmd)) was created to see the behaviour of prediction models depending on the proportion of cell between two groups. This script was run using the followin number of genes and sample sizes:
 
@@ -752,3 +766,12 @@ The following plot shows the accuraccy performance of all tested models as the n
 
 
 ![](../results/2017-07-14_simulation_variable_cells_and_genes/simulation-accuracy_per_model.png)
+
+# 28/07/2017
+
+`prediction_hipsc_scprediction.Rmd` (commit [8ee70f8](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/8ee70f815448cb671cfa6cd1203f472bb4c6318f/bin/prediction_hipsc_scprediction.Rmd) was run to predict cluster 1.
+
+The following plot shows the results obtained when predicting cluster 1 versus other clusters (2, 3 and 4). The accuracy is almost the same across all models.
+
+![](../results/2017-07-26_hiPSC_Analysis/accuracy_per_model_1.png)
+
