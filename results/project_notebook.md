@@ -769,7 +769,7 @@ The following plot shows the accuraccy performance of all tested models as the n
 
 # 28/07/2017
 
-`prediction_hipsc_scprediction.Rmd` (commit [8ee70f8](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/8ee70f815448cb671cfa6cd1203f472bb4c6318f/bin/prediction_hipsc_scprediction.Rmd) was run to predict cluster 1.
+`prediction_hipsc_scprediction.Rmd` (commit [8ee70f8](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/8ee70f815448cb671cfa6cd1203f472bb4c6318f/bin/prediction_hipsc_scprediction.Rmd)) was run to predict cluster 1.
 
 The following plot shows the results obtained when predicting cluster 1 versus other clusters (2, 3 and 4). The accuracy is almost the same across all models.
 
