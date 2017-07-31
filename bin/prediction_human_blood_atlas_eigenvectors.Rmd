@@ -38,8 +38,8 @@ positive.class <- argv[1]
 
 
 ```{r read_data}
-exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
-metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+exp.tpm <- read.table("../../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
 ```
 
 ```{r process_matrix}
