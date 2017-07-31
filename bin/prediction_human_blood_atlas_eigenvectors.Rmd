@@ -73,6 +73,11 @@ metadata %>%
 
 # Principal component analysis
 
+```{r}
+metadata$group <- factor(ifelse(positive.class ==  metadata$group, positive.class, "Other"), levels = c(positive.class, "Other"))
+```
+
+
 ```{r pca}
 exp.tpm.pca <- prcomp(exp.tpm, center = TRUE, scale. = TRUE)
 ```
@@ -85,7 +90,6 @@ exp.tpm.pca %>%
 
 pc.var <- round((exp.tpm.pca$sdev**2 / sum(exp.tpm.pca$sdev**2))*100, 2)
 names(pc.var) <- names(pca.format)[-ncol(pca.format)]
-pca.format$type <- factor(ifelse("DC2" ==  pca.format$type, "DC2", "Other"), levels = c("DC2", "Other"))
 ```
 
 ```{r plot_pca}
