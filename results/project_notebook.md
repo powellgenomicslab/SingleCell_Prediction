@@ -814,16 +814,16 @@ The following plots show the first three components for each cell type.
 ![](../results/2017-07-31_blood_atlas_prediction/pca_DC6.png)
 
 ### Mono1
-![](../results/2017-07-31_blood_atlas_prediction/pca_mono1.png)
+![](../results/2017-07-31_blood_atlas_prediction/pca_Mono1.png)
 
 ### Mono2
-![](../results/2017-07-31_blood_atlas_prediction/pca_mono2.png)
+![](../results/2017-07-31_blood_atlas_prediction/pca_Mono2.png)
 
 ### Mono3
-![](../results/2017-07-31_blood_atlas_prediction/pca_mono3.png)
+![](../results/2017-07-31_blood_atlas_prediction/pca_Mono3.png)
 
 ### Mono4
-![](../results/2017-07-31_blood_atlas_prediction/pca_mono4.png)
+![](../results/2017-07-31_blood_atlas_prediction/pca_Mono4.png)
 
 
 ## Prediction
@@ -839,10 +839,10 @@ The following plots show the accuracy results obtained using the significant com
 ![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC4.png)
 ![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC5.png)
 ![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC6.png)
-![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono1.png)
-![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono2.png)
-![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono3.png)
-![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono4.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_Mono1.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_Mono2.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_Mono3.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_Mono4.png)
 
 # 01/08/2017
 
