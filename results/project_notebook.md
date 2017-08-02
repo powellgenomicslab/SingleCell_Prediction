@@ -848,6 +848,10 @@ The following plots show the accuracy results obtained using the significant com
 
 Using the eigenvectors as features as in the previous analysis, the same approach was applied to the hiPSC dataset.
 
+`prediction_hipsc_eigenvectors.Rmd` (commit [a3bb4ab](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/a3bb4abefb1f0cf0d11b6e93b1e96e57c0ce408c/bin/prediction_hipsc_eigenvectors.Rmd)) was run.
+
+
+
 ## PCA
 
 ### Cluster 1
