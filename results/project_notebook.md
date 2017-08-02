@@ -775,3 +775,110 @@ The following plot shows the results obtained when predicting cluster 1 versus o
 
 ![](../results/2017-07-26_hiPSC_Analysis/accuracy_per_model_1.png)
 
+# 31/07/2017
+
+In a meeting with Joseph the following approach for prediction cell clusters was proposed:
+
+
+1. Classify data into two clusters: cluster of interest and other clusters (e.g. cluster 1 vs. cluster 2, 3 and 4)
+1. Perform a principal component analysis (PCA) using all genes
+2. For all eigenvectors, test if there is a significant difference between the values for the cluster of interest and the other clusters using a Mann-Whitney test
+3. Adjust p-values using a bonferroni correction
+4. Keep those eigenvectors with adjusted p-values below `0.05`
+5. Use significant eigenvectors as features for prediction
+
+
+`prediction_human_blood_atlas_eigenvectors.Rmd` (commit [62039f6](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/62039f609993ada1779702ac4da0f08ca9f90f14/bin/prediction_human_blood_atlas_eigenvectors.Rmd)) was run using the previous methodology.
+
+
+The following plots show the first three components for each cell type.
+
+## PCA
+
+### DC1
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC1.png)
+
+### DC2
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC2.png)
+
+### DC3
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC3.png)
+
+### DC4
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC4.png)
+
+### DC5
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC5.png)
+
+### DC6
+![](../results/2017-07-31_blood_atlas_prediction/pca_DC6.png)
+
+### Mono1
+![](../results/2017-07-31_blood_atlas_prediction/pca_mono1.png)
+
+### Mono2
+![](../results/2017-07-31_blood_atlas_prediction/pca_mono2.png)
+
+### Mono3
+![](../results/2017-07-31_blood_atlas_prediction/pca_mono3.png)
+
+### Mono4
+![](../results/2017-07-31_blood_atlas_prediction/pca_mono4.png)
+
+
+## Prediction
+
+The following plots show the accuracy results obtained using the significant components as features. In the right side, a table is shown with the selected **eigenvectors**, the **adjusted p-value** and the **percentage of variance** explained. 
+
+- 10 bootstrap replicates
+- 5 cross-validations per replicate
+
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC1.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC2.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC3.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC4.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC5.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_DC6.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono1.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono2.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono3.png)
+![](../results/2017-07-31_blood_atlas_prediction/accuracy_per_model_mono4.png)
+
+# 01/08/2017
+
+Using the eigenvectors as features as in the previous analysis, the same approach was applied to the hiPSC dataset.
+
+## PCA
+
+### Cluster 1
+![](../results/2017-08-01_hipsc_eigenvectors/pca_1.png)
+
+### Cluster 2
+![](../results/2017-08-01_hipsc_eigenvectors/pca_2.png)
+
+### Cluster 3
+![](../results/2017-08-01_hipsc_eigenvectors/pca_3.png)
+
+### Cluster 4
+![](../results/2017-08-01_hipsc_eigenvectors/pca_4.png)
+
+## Prediction
+
+The following plots show the accuracy results obtained using the significant components as features. In the right side, a table is shown with the selected **eigenvectors**, the **adjusted p-value** and the **percentage of variance** explained. 
+
+- 10 bootstrap replicates
+- 5 cross-validations per replicate
+
+### Cluster 1
+![](../results/2017-08-01_hipsc_eigenvectors/accuracy_per_model_1.png)
+
+### Cluster 2
+![](../results/2017-08-01_hipsc_eigenvectors/accuracy_per_model_2.png)
+
+### Cluster 3
+![](../results/2017-08-01_hipsc_eigenvectors/accuracy_per_model_3.png)
+
+### Cluster 4
+![](../results/2017-08-01_hipsc_eigenvectors/accuracy_per_model_4.png)
+
+
