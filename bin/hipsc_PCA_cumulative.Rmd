@@ -181,11 +181,10 @@ names(PC.datasets) <- seq_len(ncol(pca.filter))[-1]
 
 ```{r make_predictions}
 predict.all <- function(dataset){
-  TrainPredict(dataset$dataset.params, dataset$training.params, methods = 'rf', n.rep = 2, n.cores = 2)
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = 'rf', n.rep = 10, n.cores = 10)
 }
 
-res <- lapply(PC.datasets[1:2], predict.all)
-
+res <- lapply(PC.datasets, predict.all)
 ```
 
 ```{r get_accuracy}
