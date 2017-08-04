@@ -1,0 +1,53 @@
+---
+title: "PCA of HiPCS dataset"
+author: "Jose Alquicira Hernandez"
+date: "04/08/2017"
+output: html_document
+---
+
+```{r load_libraries}
+library('gmodels')
+```
+
+# Read and process input data
+
+```{r read_data}
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/04-08-2017_HiPSC/"
+f.path <- "../../data/2017-05-22_HiPSC/"
+
+hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
+
+expression.data <- as.matrix(hipsc[[1]])
+cell.sample.data <- hipsc[[2]]
+groups <- cell.sample.data$Cluster
+
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# groups <- readRDS(paste0(f.path,'my.clusters.RDS'))
+```
+
+
+- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
+- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
+
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```
+
+# Principal component analysis
+
+```{r pca}
+pca <- fast.prcomp(expression.data, center = TRUE, scale. = TRUE)
+```
+
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(pca, file = "methods_accuracy_.RDS")
+cat("Results saved...\n")
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
