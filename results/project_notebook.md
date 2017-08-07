@@ -886,3 +886,12 @@ The following plots show the accuracy results obtained using the significant com
 ![](../results/2017-08-01_hipsc_eigenvectors/accuracy_per_model_4.png)
 
 
+# 04/08/2017
+
+`hipsc_PCA_cumulative.Rmd` (commit [276aa90](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/276aa9039faec7de1c9200a665d15a6e29919e55/bin/hipsc_PCA_cumulative.Rmd)) was run to determine if the prediction accuracy "plateus" at a certain number of significant components used as features. Below four plots with the accuracy results of the HiPSC dataset are shown.
+
+
+![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_1.png)
+![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_2.png)
+![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_3.png)
+![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_4.png)
