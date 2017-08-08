@@ -1,0 +1,63 @@
+---
+title: "MDS of HiPCS dataset"
+author: "Jose Alquicira Hernandez"
+date: "08/08/2017"
+output: html_document
+---
+
+```{r load_libraries}
+library("magrittr")
+library("Matrix")
+```
+
+# Read and process input data
+
+```{r read_data}
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
+f.path <- "../../data/2017-05-22_HiPSC/"
+
+hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
+
+expression.data <- as.matrix(hipsc[[1]])
+cell.sample.data <- hipsc[[2]]
+groups <- cell.sample.data$Cluster
+
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# groups <- readRDS(paste0(f.path,'my.clusters.RDS'))
+
+# expression.data <- expression.data[,1:200]
+# groups <- groups[1:200]
+```
+
+
+- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
+- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
+
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```
+
+# Multidimentional scaling
+
+```{r get_euclidian_distance}
+expression.data %>% 
+  t() %>% 
+  dist() -> exp.data.dist
+
+saveRDS(exp.data.dist, file = "hipsc_dist.RDS")
+```
+
+```{r save_results}
+mds <- cmdscale(exp.data.dist, k = ncol(expression.data) - 1, eig = TRUE)
+
+cat("Number of eigenvectors with associated eigenvalues > 0: ",ncol(mds$points))
+
+saveRDS(exp.data.dist, file = "hipsc_mds.RDS")
+```
+
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
