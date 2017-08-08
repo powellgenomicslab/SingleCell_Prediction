@@ -1,31 +1,18 @@
 ---
 title: "Prediction based on eigenvectors from PCA"
-subtitle: "Atlas of human blood dendritic cells and monocytes"
+subtitle: "HiPSC"
 author: "Jose Alquicira Hernandez"
 date: "17/07/2017"
-output:
-html_document:
-fig_caption: yes
-highlight: zenburn
-number_sections: yes
-theme: flatly
-toc: yes
-toc_depth: 4
-toc_float: yes
-collapsed: false
-code_folding: show
+output: html_document
 ---
-
-# Description
-
-This purpose of this analysis is to explore and describe the data from the [Atlas of human blood dentritic cells and monocytes](https://portals.broadinstitute.org/single_cell/study/atlas-of-human-blood-dendritic-cells-and-monocytes) and assess its potential as a dataset for cell type prediction. 
-
 
 ```{r load_libraries}
 library("scPrediction")
 library("tidyverse")
 library("gridExtra")
 library("RColorBrewer")
+library("gmodels")
+library("knitr")
 ```
 
 ```{r command_line_args}
@@ -36,27 +23,35 @@ positive.class <- argv[1]
 
 # Read and process input data
 
-```{r read_data}
+```{r read_pca_data}
+f.path <- "../2017-08-04_hipsc_pca/"
+pca <- readRDS(paste0(f.path, "pca.RDS"))
+```
+
+
+```{r read_groups_info}
 # f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
 f.path <- "../../data/2017-05-22_HiPSC/"
 
 hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
-
-expression.data <- as.matrix(hipsc[[1]])
 cell.sample.data <- hipsc[[2]]
 groups <- cell.sample.data$Cluster
+
+# Remove unnecessary data from environment
+rm(hipsc)
 
 # expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
 # groups <- readRDS(paste0(f.path,'my.clusters.RDS'))
 ```
 
 
-- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
-- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
-
-
-```{r format_gene_names}
-rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```{r get_groups_summary}
+cat("Data group summary #############################################\n\n")
+table(groups) %>% 
+  as.data.frame() %>% 
+  kable() %>% 
+  cat(sep = "\n")
+cat("\n################################################################\n")
 ```
 
 ```{r set_negative_class}
@@ -64,11 +59,7 @@ negative.class <- paste0(sort(unique(groups)[!unique(groups) %in% positive.class
 groups <- factor(ifelse(positive.class == groups, positive.class, negative.class), levels = c(positive.class, negative.class))
 ```
 
-# Principal component analysis
-
-```{r pca}
-pca <- prcomp(expression.data, center = TRUE, scale. = TRUE)
-```
+# Format PCA
 
 ```{r format_pca}
 pca %>%
@@ -104,7 +95,6 @@ ggsave(paste0("pca_", positive.class, ".png"), p, height = 18)
 ```
 
 
-
 ```{r long_format_pca}
 pca.format.long <- gather(pca.format, "PC", "value", seq_len(ncol(pca.format) - 1))
 ```
@@ -126,7 +116,7 @@ p.vals$p.value <- p.adjust(p.vals$p.value, method = "bonferroni", n = length(p.v
 
 p.vals %>% 
   arrange(p.value) %>% 
-  filter(p.value < 0.05) -> p.vals.filter
+  slice(1:25) -> p.vals.filter
 ```
 
 
@@ -136,7 +126,7 @@ pca.filter <- pca.format[p.vals.filter$PC]
 
 
 ```{r get_eigenvector_indexes}
-PC.indexes <- lapply(seq_len(ncol(pca.filter))[-1], function(x) seq(1,x,1))
+PC.indexes <- lapply(seq_len(ncol(pca.filter))[-1], function(x) seq(1, x, 1))
 ```
 
 
@@ -153,7 +143,7 @@ getEigenvectors <- function(PCs.idx){
     select(PCs.idx) %>% 
     t() %>% 
     as.data.frame() %>% 
-    setNames(colnames(expression.data)) -> expression.data
+    setNames(rownames(pca$rotation)) -> expression.data
   
   dataset.params <- list(groups = pca.format$type,
                          positive.class = as.character(positive.class),
@@ -181,35 +171,39 @@ names(PC.datasets) <- seq_len(ncol(pca.filter))[-1]
 
 ```{r make_predictions}
 predict.all <- function(dataset){
-  TrainPredict(dataset$dataset.params, dataset$training.params, methods = 'rf', n.rep = 10, n.cores = 10)
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("rf", "lasso"), n.rep = 10, n.cores = 10)
 }
 
 res <- lapply(PC.datasets, predict.all)
 ```
 
 ```{r get_accuracy}
-getAccuracy <- function(dataset.res){
-dataset.res %>%
-  lapply(function(b.replicate){ # Iterates bootstrap replicate
-    lapply(b.replicate, function(model){ # Iterates model
-      model$conf.mat$overall["Accuracy"]
-    }) %>% as.data.frame %>% gather(key = 'Model', value = 'Accuracy')
-  }) %>% Reduce(rbind, .) -> accuracy
-  return(accuracy)
+getMetrics <- function(dataset.res){
+  dataset.res %>%
+    lapply(function(b.replicate){ # Iterates bootstrap replicate
+      mapply(function(model, model.name){ # Iterates model
+        data.frame(
+          Model = model.name,
+          Accuracy = model$conf.mat$overall["Accuracy"],
+          Sensitivity = model$conf.mat$byClass["Sensitivity"],
+          Specificity = model$conf.mat$byClass["Specificity"],
+          Kappa = model$conf.mat$overall["Kappa"]
+        )
+      }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
+    }) %>% Reduce(rbind, .)
 }
-```
 
-```{r get_accuracy_lasso}
-accuracy <- lapply(res, getAccuracy) %>% 
-  mapply(function(x, x.name) data.frame(Model = x$Model, Accuracy = x$Accuracy, n.pca = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
+lapply(res, getMetrics) %>% 
+  mapply(function(x, x.name) cbind(x, n.pca = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
   Reduce(rbind, .) %>% 
   filter(Model == "rf") %>% 
-  select(-Model)
+  select(-Model) -> accuracy
 ```
 
+
 ```{r save_results}
-cat("Saving results...\n")
-saveRDS(accuracy, file = paste0("methods_accuracy_", positive.class, ".RDS"))
+cat("Saving metrics...\n")
+saveRDS(accuracy, file = paste0("methods_accuracy_cluster", positive.class, ".RDS"))
 cat("Results saved...\n")
 ```
 
@@ -228,10 +222,36 @@ p.vals.filter$variance <- pc.var[p.vals.filter$PC]
 ```
 
 ```{r save_accuracy_plot}
-ggsave(filename = paste0("accuracy_per_model_", positive.class,".png"),
+ggsave(filename = paste0("accuracy_cluster_", positive.class,".png"),
        plot = grid.arrange(p, tableGrob(p.vals.filter), ncol = 2),
        width = 12,
        height = 7,
+       device = "png",
+       dpi = 350)
+```
+
+
+```{r gather_accuracy_data}
+metrics <- gather(data = accuracy, key = "Metric", value = "Value", 1:4)
+
+metrics %>% 
+  filter(Metric != "Kappa") -> metrics
+```
+
+
+```{r plot_metrics}
+p <- ggplot(metrics, aes(x = Metric, y = Value, fill = Metric)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(~n.pca) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_brewer(palette = "Set2")
+```
+
+```{r save_metrics_plot}
+ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
+       plot = p,
+       width = 15,
+       height = 15,
        device = "png",
        dpi = 350)
 ```
