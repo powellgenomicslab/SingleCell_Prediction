@@ -53,7 +53,7 @@ mds <- cmdscale(exp.data.dist, k = ncol(expression.data) - 1, eig = TRUE)
 
 cat("Number of eigenvectors with associated eigenvalues > 0: ",ncol(mds$points))
 
-saveRDS(exp.data.dist, file = "hipsc_mds.RDS")
+saveRDS(mds, file = "hipsc_mds.RDS")
 ```
 
 
