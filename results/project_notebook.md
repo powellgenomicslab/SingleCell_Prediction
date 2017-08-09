@@ -895,3 +895,12 @@ The following plots show the accuracy results obtained using the significant com
 ![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_2.png)
 ![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_3.png)
 ![](../results/2017-08-04_hipsc_eigenvectors/accuracy_per_model_4.png)
+
+# 08/08/2017
+
+`hipsc_PCA_cumulative.Rmd` (commit [16d23b3](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/16d23b30ccaf145922bd7bb0817777c03158f1af/bin/hipsc_PCA_cumulative.Rmd)) was run to observe how the accuracy flattens when the top 25 PCs -ranked by their p-value obtained from Mann-Whitney test comparing the PC-value distributions of the cluster evaluated (e.g cluster 1) and the remaining clusters (e.g. clusters 2, 3 and 4)-. In this analysis, the sensitivity and specificity were also included. Note that non-significant PCs are also included in the plots below as the top 25 were selected without taking into account an alpha value threshold.
+
+![](../results/2017-08-08_hipsc_eigenvectors/metrics_cluster_1.png)
+![](../results/2017-08-08_hipsc_eigenvectors/metrics_cluster_2.png)
+![](../results/2017-08-08_hipsc_eigenvectors/metrics_cluster_3.png)
+![](../results/2017-08-08_hipsc_eigenvectors/metrics_cluster_4.png)
