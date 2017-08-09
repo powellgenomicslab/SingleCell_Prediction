@@ -241,17 +241,18 @@ metrics %>%
 
 ```{r plot_metrics}
 p <- ggplot(metrics, aes(x = Metric, y = Value, fill = Metric)) +
-  geom_bar(stat = "identity", position = "dodge") +
+  geom_boxplot(position = "dodge") +
+  ggtitle("Performance metrics: accuracy, sensitivity and specificity", subtitle = "Each panel corresponds to the number of PCs used as features for predition. PCs are ranked by p-value.") +
   facet_grid(~n.pca) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_fill_brewer(palette = "Set2")
+  scale_fill_brewer(palette = "Set1")
 ```
 
 ```{r save_metrics_plot}
 ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
        plot = p,
        width = 15,
-       height = 15,
+       height = 7,
        device = "png",
        dpi = 350)
 ```
