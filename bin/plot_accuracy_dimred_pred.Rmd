@@ -1,0 +1,106 @@
+---
+title: "Compare feature selection methods"
+subtitle: "HiPSC dataset"
+author: "Jose Alquicira Hernandez"
+date: "11/08/2017"
+output: html_document
+---
+
+```{r import_libraries}
+library(tidyverse)
+```
+
+
+```{r read_MDS_accuracy}
+mds.acc <- lapply(1:4, function(cluster){
+  readRDS(paste0("../results/2017-08-09_hipsc_mds_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
+})
+names(mds.acc) <- paste0("cluster", 1:4)
+```
+
+```{r read_PCA_accuracy}
+pca.acc <- lapply(1:4, function(cluster){
+  readRDS(paste0("../results/2017-08-08_hipsc_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
+})
+names(pca.acc) <- paste0("cluster", 1:4)
+```
+
+```{r add_method_info}
+mds.acc <- lapply(mds.acc, function(cluster){
+  cluster$method <- "MDS"
+  cluster
+})
+
+pca.acc <- lapply(pca.acc, function(cluster){
+  cluster$method <- "PCA"
+  cluster
+})
+```
+
+
+```{r add_cluster_info}
+mds.acc <- mapply(function(cluster, cluster.name){
+  cluster$cluster <- cluster.name
+  cluster
+}, mds.acc, names(mds.acc), SIMPLIFY = FALSE) %>% reduce(rbind)
+
+pca.acc <- mapply(function(cluster, cluster.name){
+  cluster$cluster <- cluster.name
+  cluster
+}, pca.acc, names(pca.acc), SIMPLIFY = FALSE) %>% reduce(rbind)
+```
+
+
+```{r bind_datasets}
+pca.mds.acc <- rbind(pca.acc, mds.acc)
+```
+
+```{r gather_accuracy_data}
+mds.pca.metrics <- gather(data = pca.mds.acc , key = "Metric", value = "Value", 1:4)
+
+mds.pca.metrics %>% 
+  filter(Metric != "Kappa") -> mds.pca.metrics
+```
+
+
+```{r def_plot_func}
+plotAccMetrics <- function(group, metric){
+  mds.pca.metrics %>% 
+    filter(cluster == group, Metric == metric) %>% 
+    ggplot(aes(x = n.pca, y = Value, fill = method)) +
+    geom_boxplot(position = "dodge") +
+    ggtitle(group, subtitle = "Each panel corresponds to the number of EVs used as features for predition. EVs are ranked by p-value.") +
+    xlab("Number of eigenvectors") +
+    ylab(metric) +
+    facet_grid(~n.pca, scales = "free") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    scale_fill_brewer(palette = "Set1")
+}
+```
+
+```{r get_plots}
+accuracy <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Accuracy"), SIMPLIFY = FALSE)
+sensitivity <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Sensitivity"), SIMPLIFY = FALSE)
+specificity <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Specificity"), SIMPLIFY = FALSE)
+```
+
+
+```{r def_plot_saving_func}
+saveMetrics <- function(cluster, cluster.name, metric){
+  ggsave(filename = paste0("../results/2017-08-11_compare_feature_selection_methods/", metric, "_cluster_", cluster.name,".png"),
+         plot = cluster,
+         width = 15,
+         height = 7,
+         device = "png",
+         dpi = 350)
+  return(NULL)
+}
+```
+
+```{r save_metrics_plots}
+mapply(saveMetrics, accuracy, 1:4, list("accuracy"))
+mapply(saveMetrics, sensitivity, 1:4, list("sensitivity"))
+mapply(saveMetrics, specificity, 1:4, list("specificity"))
+```
+
+
