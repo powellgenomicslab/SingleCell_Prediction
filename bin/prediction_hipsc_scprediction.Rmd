@@ -90,15 +90,7 @@ training.params <- list(method = 'cv',
                         returnResamp = 'none',
                         returnData = FALSE)
 
-methods <- c('glm',
-             'bayesglm',
-             'earth',
-             'svmLinear', 'svmPoly',
-             'rpart',
-             'rf',
-             'nb',
-             'nnet',
-             'dnn')
+methods <- c('rf')
 ```
 
 
@@ -150,7 +142,7 @@ p <- ggplot(accuracy, aes(x = Model, y = Accuracy, fill = Model)) +
 
 ggsave(filename = paste0("accuracy_per_model_", positive.class,".png"),
        plot = p,
-       width = 10,
+       width = 5,
        device = "png",
        dpi = 350)
 
