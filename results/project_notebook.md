@@ -911,5 +911,52 @@ The following plots show the accuracy results obtained using the significant com
 
 ---
 
-`MDS_hipsc.Rmd` (commit [aebcda5](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/aebcda58725b567428dbb2cc687cb3eb737f0cce/bin/MDS_hipsc.Rmd)) was run to save the MDS results and avoid its computation for further analysis.
+`MDS_hipsc.Rmd` (commit [f4da492](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/f4da492498dd240b849ffb313e9436cc082a7790/bin/MDS_hipsc.Rmd)) was run to save the MDS results and avoid its computation for further analysis.
 
+
+# 09/08/2017
+
+## MDS
+
+`hipsc_MDS_cumulative.Rmd` (commit [01d1b0b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/01d1b0b8ecb29d166a520160db949832993ba3c6/bin/hipsc_MDS_cumulative.Rmd)) was run to predict cell types using eigenvectors as features.
+
+
+![](../results/2017-08-09_hipsc_mds_eigenvectors/accuracy_cluster_1.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/accuracy_cluster_2.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/accuracy_cluster_3.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/accuracy_cluster_4.png)
+
+
+![](../results/2017-08-09_hipsc_mds_eigenvectors/metrics_cluster_1.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/metrics_cluster_2.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/metrics_cluster_3.png)
+![](../results/2017-08-09_hipsc_mds_eigenvectors/metrics_cluster_4.png)
+
+# 10/08/2017
+
+`plot_accuracy_dimred_pred.Rmd` (commit [a11083f](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/a11083f6bf609362e9733fbb941cee4ce0fa18ab/bin/plot_accuracy_dimred_pred.Rmd)) was run to compare accuracy performance between MDS and PCA methods.
+
+**Random forests** algorithm was used to make the predictions using as features the eigenvectors from the MDS and PCA methods respectively.
+
+
+
+## Accuracy
+
+![](../results/2017-08-11_compare_feature_selection_methods/accuracy_cluster_1.png)
+![](../results/2017-08-11_compare_feature_selection_methods/accuracy_cluster_2.png)
+![](../results/2017-08-11_compare_feature_selection_methods/accuracy_cluster_3.png)
+![](../results/2017-08-11_compare_feature_selection_methods/accuracy_cluster_4.png)
+
+## Sensitivity
+
+![](../results/2017-08-11_compare_feature_selection_methods/sensitivity_cluster_1.png)
+![](../results/2017-08-11_compare_feature_selection_methods/sensitivity_cluster_2.png)
+![](../results/2017-08-11_compare_feature_selection_methods/sensitivity_cluster_3.png)
+![](../results/2017-08-11_compare_feature_selection_methods/sensitivity_cluster_4.png)
+
+## Specificity
+
+![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_1.png)
+![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_2.png)
+![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_3.png)
+![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_4.png)
