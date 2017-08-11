@@ -102,10 +102,22 @@ res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 
 ```{r get_accuracy}
 res %>%
   lapply(function(b.replicate){ # Iterates bootstrap replicate
-    lapply(b.replicate, function(model){ # Iterates model
-      model$conf.mat$overall["Accuracy"]
-    }) %>% as.data.frame %>% gather(key = 'Model', value = 'Accuracy')
-  }) %>% Reduce(rbind, .) -> accuracy
+    mapply(function(model, model.name){ # Iterates model
+      data.frame(
+          Model = model.name,
+          Accuracy = model$conf.mat$overall["Accuracy"],
+          Sensitivity = model$conf.mat$byClass["Sensitivity"],
+          Specificity = model$conf.mat$byClass["Specificity"],
+          Kappa = model$conf.mat$overall["Kappa"]
+        )
+    }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .) # Iterates model
+  }) %>% Reduce(rbind, .) -> accuracy # Iterates bootstrap replicate
+```
+
+```{r save_results}
+cat("Saving metrics...\n")
+saveRDS(accuracy, file = paste0("methods_accuracy_cluster", positive.class, ".RDS"))
+cat("Results saved...\n")
 ```
 
 
@@ -122,37 +134,31 @@ model.order <- c('glm',
                  'dnn')
 ```
 
+```{r gather_accuracy_data}
+metrics <- gather(data = accuracy, key = "Metric", value = "Value", 2:4)
 
+metrics %>% 
+  filter(Metric != "Kappa") -> metrics
+```
 
-```{r plot_accuracy}
-n.methods <- length(unique(accuracy$Model))
-getPalette <- colorRampPalette(brewer.pal(9, "Set1"))
-
-accuracy$Model <- factor(accuracy$Model, levels = model.order)
-
-p <- ggplot(accuracy, aes(x = Model, y = Accuracy, fill = Model)) +
-  geom_boxplot() +
-  theme_gray() +
-  ggtitle(paste("Prediction of", positive.class,  "vs. other cell types")) +
-  scale_fill_manual(values = getPalette(n.methods)) +
+```{r plot_metrics}
+p <- ggplot(metrics, aes(x = Metric, y = Value, fill = Metric)) +
+  geom_boxplot(position = "dodge") +
+  ggtitle("Performance metrics: accuracy, sensitivity and specificity", subtitle = paste("Cluster", positive.class)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  guides(fill = FALSE) +
-  expand_limits(y = 1)
+  scale_fill_brewer(palette = "Set1")
+```
 
 
-ggsave(filename = paste0("accuracy_per_model_", positive.class,".png"),
+```{r save_metrics_plot}
+ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
        plot = p,
-       width = 5,
+       width = 8,
+       height = 7,
        device = "png",
        dpi = 350)
-
 ```
 
-```{r save_results}
-cat("Saving results...\n")
-saveRDS(accuracy, file = paste0("methods_accuracy_", positive.class, ".RDS"))
-cat("Results saved...\n")
-```
 
 ```{r display_session_info}
 options(width = 120)
