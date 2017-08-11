@@ -171,7 +171,7 @@ names(PC.datasets) <- seq_len(ncol(pca.filter))[-1]
 
 ```{r make_predictions}
 predict.all <- function(dataset){
-  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("rf", "lasso"), n.rep = 10, n.cores = 10)
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("svmPoly"), n.rep = 10, n.cores = 10)
 }
 
 res <- lapply(PC.datasets, predict.all)
@@ -196,7 +196,7 @@ getMetrics <- function(dataset.res){
 lapply(res, getMetrics) %>% 
   mapply(function(x, x.name) cbind(x, n.pca = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
   Reduce(rbind, .) %>% 
-  filter(Model == "rf") %>% 
+  filter(Model == "svmPoly") %>% 
   select(-Model) -> accuracy
 ```
 
