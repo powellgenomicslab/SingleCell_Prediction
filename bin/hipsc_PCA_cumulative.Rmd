@@ -200,7 +200,7 @@ getMetrics <- function(dataset.res){
 lapply(res, getMetrics) %>% 
   mapply(function(x, x.name) cbind(x, n.pca = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
   Reduce(rbind, .) %>% 
-  filter(Model == "svmPoly") %>% 
+  filter(Model == "rf") %>% 
   select(-Model) -> accuracy
 ```
 
@@ -223,6 +223,7 @@ p <- ggplot(accuracy, aes(x = n.pca, y = Accuracy)) +
 
 ```{r build_table}
 p.vals.filter$variance <- pc.var[p.vals.filter$PC]
+write.table(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 ```
 
 ```{r save_accuracy_plot}
