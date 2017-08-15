@@ -170,8 +170,12 @@ names(PC.datasets) <- seq_len(ncol(pca.filter))[-1]
 
 
 ```{r make_predictions}
+# dataset.params <- PC.datasets$`2`$dataset.params
+# training.params <- PC.datasets$`2`$training.params
+# res <- TrainPredict(dataset.params, training.params, methods = c("rf"), n.rep = 2, n.cores = 2)
+
 predict.all <- function(dataset){
-  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("svmPoly"), n.rep = 10, n.cores = 10)
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("rf"), n.rep = 10, n.cores = 10)
 }
 
 res <- lapply(PC.datasets, predict.all)
