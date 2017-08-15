@@ -220,7 +220,7 @@ p <- ggplot(accuracy, aes(x = n.pca, y = Accuracy)) +
 
 ```{r build_table}
 p.vals.filter$variance <- mds.var[p.vals.filter$EV]
-saveRDS(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".png"))
+write.table(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 ```
 
 ```{r save_accuracy_plot}
