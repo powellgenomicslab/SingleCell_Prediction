@@ -22,7 +22,7 @@ names(pca.eigen) <- paste0("cluster", 1:4)
 ```
 
 ```{r read_MDS}
-mds <- readRDS("../2017-08-04_hipsc_mds/hipsc_mds.RDS")
+mds <- readRDS("../2017-08-08_hipsc_mds/hipsc_mds.RDS")
 mds.points <- as.data.frame(mds$points)
 names(mds.points) <- paste0("V", seq_len(ncol(mds.points)))
 ```
