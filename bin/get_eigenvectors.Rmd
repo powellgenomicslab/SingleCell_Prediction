@@ -9,14 +9,14 @@ output: html_document
 
 ```{r read_mds_eigen}
 mds.eigen <- lapply(1:4, function(cluster){
-  read.delim(paste0("../results/2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+  read.delim(paste0("../2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
 })
 names(mds.eigen) <- paste0("cluster", 1:4)
 ```
 
 ```{r read_pca_eigen}
 pca.eigen <- lapply(1:4, function(cluster){
-  read.delim(paste0("../results/2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+  read.delim(paste0("../2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
 })
 names(pca.eigen) <- paste0("cluster", 1:4)
 ```
