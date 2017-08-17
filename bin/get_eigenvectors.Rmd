@@ -15,7 +15,6 @@ saveRDS(cell.sample.data , "hispc_cluster_info.RDS")
 ```
 
 
-
 ```{r read_mds_eigen}
 mds.eigen <- lapply(1:4, function(cluster){
   read.delim(paste0("../2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
@@ -44,9 +43,9 @@ pca.rotation <- as.data.frame(pca$rotation)
 
 ```{r define_subsetting_functions}
 getMDSEigen <- function(cluster){
-  EV.list <- mds.eigen[[cluster]]$EV
+  EV.list <- as.vector(mds.eigen[[cluster]]$EV)
   mds.evs <- mds.points[EV.list]
-  mds.evs <- mds.evs[order(match(names(mds.evs), EV.list))]
+  # mds.evs <- mds.evs[order(match(names(mds.evs), EV.list))]
   return(mds.evs)
 }
 
