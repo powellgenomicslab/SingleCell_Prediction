@@ -1,0 +1,66 @@
+---
+title: "Get significant eigenvectors"
+subtitle: "PCA and MDS"
+author: "Jose Alquicira Hernandez"
+date: "17/08/2017"
+output: html_document
+---
+
+
+```{r read_mds_eigen}
+mds.eigen <- lapply(1:4, function(cluster){
+  read.delim(paste0("../results/2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+})
+names(mds.eigen) <- paste0("cluster", 1:4)
+```
+
+```{r read_pca_eigen}
+pca.eigen <- lapply(1:4, function(cluster){
+  read.delim(paste0("../results/2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+})
+names(pca.eigen) <- paste0("cluster", 1:4)
+```
+
+```{r read_MDS}
+mds <- readRDS("../2017-08-04_hipsc_mds/hipsc_mds.RDS")
+mds.points <- as.data.frame(mds$points)
+names(mds.points) <- paste0("V", seq_len(ncol(mds.points)))
+```
+
+
+```{r read_PCA}
+pca <- readRDS("../2017-08-04_hipsc_pca/PCA.RDS")
+pca.rotation <- as.data.frame(pca$rotation)
+```
+
+```{r define_subsetting_functions}
+getMDSEigen <- function(cluster){
+  EV.list <- mds.eigen[[cluster]]$EV
+  mds.evs <- mds.points[EV.list]
+  mds.evs <- mds.evs[order(match(names(mds.evs), EV.list))]
+  return(mds.evs)
+}
+
+
+getPCAEigen <- function(cluster){
+  PC.list <- as.vector(pca.eigen[[cluster]]$PC)
+  pca.pcs <- pca.rotation[PC.list]
+  return(pca.pcs)
+}
+```
+
+```{r get_EVs}
+mds.eigen.data <- lapply(paste0("cluster", 1:4), getMDSEigen)
+names(mds.eigen.data) <- paste0("cluster", 1:4)
+```
+
+```{r get_PCs}
+pca.eigen.data <- lapply(paste0("cluster", 1:4), getPCAEigen)
+names(pca.eigen.data) <- paste0("cluster", 1:4)
+```
+
+```{r save_data}
+saveRDS(mds.eigen.data, "mds_eigen_data_top25.RDS")
+saveRDS(pca.eigen.data, "pca_eigen_data_top25.RDS")
+```
+
