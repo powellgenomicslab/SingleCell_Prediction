@@ -29,7 +29,7 @@ names(mds.points) <- paste0("V", seq_len(ncol(mds.points)))
 
 
 ```{r read_PCA}
-pca <- readRDS("../2017-08-04_hipsc_pca/PCA.RDS")
+pca <- readRDS("../2017-08-04_hipsc_pca/pca.RDS")
 pca.rotation <- as.data.frame(pca$rotation)
 ```
 
