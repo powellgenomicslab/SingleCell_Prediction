@@ -1,0 +1,18 @@
+## PBS SETTINGS
+#PBS -q normal
+#PBS -S /bin/bash
+#PBS -r y
+#PBS -l select=1:ncpus=2:mem=350GB
+
+
+## ADJUSTABLE SETTINGS
+#PBS -l walltime=150:00:00
+#PBS -N get_eigen
+
+cd $PBS_O_WORKDIR
+
+script_dir=../../bin/
+
+module load R/3.4.0
+
+Rscript ${script_dir}/get_eigenvectors.R
