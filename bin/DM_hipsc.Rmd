@@ -1,0 +1,88 @@
+---
+title: "PCA of HiPCS dataset"
+author: "Jose Alquicira Hernandez"
+date: "04/08/2017"
+output: html_document
+---
+
+```{r load_libraries}
+library("tidyverse")
+library("destiny")
+library("gridExtra")
+```
+
+# Read and process input data
+
+```{r read_data}
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
+f.path <- "../../data/2017-05-22_HiPSC/"
+
+hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
+
+expression.data <- as.matrix(hipsc[[1]])
+cell.sample.data <- hipsc[[2]]
+groups <- cell.sample.data$Cluster
+
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# groups <- readRDS(paste0(f.path,'my.clusters.RDS'))
+```
+
+
+- `expression.data` corresponds to a gene expression matrix. Rows are *genes* and columns are *cells*
+- `cell.clusters` is a vector. Each value corresponds to one cluster. The length of the vector is the total of cell
+
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+# expression.data <- expression.data[,1:500]
+# groups <- groups[1:500]
+```
+
+```{r convert_to_ExpressionSet}
+expression.data %>% 
+  as.matrix() %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  as.ExpressionSet() -> expression.data.expset
+```
+
+
+# Diffusion pseudotime analysis
+
+```{r pca}
+dm.hipsc <- DiffusionMap(expression.data.expset)
+```
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(dm.hipsc, file = "diffusion_hipsc.RDS")
+cat("Results saved...\n")
+```
+
+```{r dm_subset}
+dm <- data.frame(eigenvectors(dm.hipsc)[,c("DC1", "DC2", "DC3")], groups = as.factor(groups))
+```
+
+```{r plot_eigenvectors}
+plotEigen <- function(dc){
+ggplot(dm, aes_string(x = dc[1], y = dc[2], color = "groups")) +
+  geom_point(alpha = 0.5) +
+  scale_color_brewer(palette = "Set1")
+}
+
+combn(paste0("DC",1:3),2) %>% 
+  as.data.frame() %>% 
+  as.list() %>% 
+  lapply(as.vector) %>% 
+  lapply(plotEigen) -> plots
+```
+
+```{r save_dm_plots}
+p <- grid.arrange(grobs = plots,  ncol = 1)
+ggsave("diffussion_hipsc_plot.png", p, height = 18)
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
