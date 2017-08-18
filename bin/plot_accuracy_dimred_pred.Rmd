@@ -1,31 +1,104 @@
 ---
-title: "Compare feature selection methods"
+title: "High-dimension reduction methods as predictors of cell types using scRNA-seq data"
 subtitle: "HiPSC dataset"
 author: "Jose Alquicira Hernandez"
-date: "11/08/2017"
-output: html_document
+date: "14/08/2017"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 1
+    code_folding: show
+    theme: cerulean
 ---
+
+# Introduction
+
+Phenotype prediction has been performed using differentially expressed genes (DE genes) between different conditions or cell types. Here we present a method to predict cell types based on dimension reduction of gene expression data from single cells.
+
+# HiPSC dataset
+
+## Data summary
+
+|groups | Freq|
+|:------|----:|
+|1      | 9083|
+|2      | 8977|
+|3      |  526|
+|4      |  201|
+
+
+
+# Methodology
+
+1. Classify data into two clusters: cluster of interest and other clusters (e.g. cluster 1 vs. cluster 2, 3 and 4)
+1. Perform a principal component analysis (PCA) or multidimensional scaling (MDS) using all genes
+2. For all eigenvectors, test if there is a significant difference between the values for the cluster of interest and the other clusters using a Mann-Whitney test
+3. Adjust p-values using a bonferroni correction
+4. Keep those eigenvectors with adjusted p-values below `0.05`
+5. Use significant eigenvectors as features for prediction
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE)
+```
+
 
 ```{r import_libraries}
 library(tidyverse)
+library(ggjoy)
+library(knitr)
+library(gridExtra)
+library(grDevices)
+library(RColorBrewer)
+```
+
+```{r read_DE_accuracy}
+de.acc <- lapply(1:4, function(cluster){
+  readRDS(paste0("../results/2017-08-10_hiPSC_Analysis/methods_accuracy_cluster",cluster,".RDS"))
+})
+names(de.acc) <- paste0("cluster", 1:4)
 ```
 
 
 ```{r read_MDS_accuracy}
 mds.acc <- lapply(1:4, function(cluster){
-  readRDS(paste0("../results/2017-08-09_hipsc_mds_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
+  readRDS(paste0("../results/2017-08-14_hipsc_mds_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
 })
 names(mds.acc) <- paste0("cluster", 1:4)
+
+mds.eigen <- lapply(1:4, function(cluster){
+  read.delim(paste0("../results/2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+})
+names(mds.eigen) <- paste0("cluster", 1:4)
 ```
 
 ```{r read_PCA_accuracy}
 pca.acc <- lapply(1:4, function(cluster){
-  readRDS(paste0("../results/2017-08-08_hipsc_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
+  readRDS(paste0("../results/2017-08-14_hipsc_pca_eigenvectors/methods_accuracy_cluster",cluster,".RDS"))
 })
 names(pca.acc) <- paste0("cluster", 1:4)
+
+pca.eigen <- lapply(1:4, function(cluster){
+  read.delim(paste0("../results/2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+})
+names(pca.eigen) <- paste0("cluster", 1:4)
 ```
 
+
+```{r}
+mds.top25 <- readRDS("../results/2017-08-17_get_eigen_data_pca_mds_hipsc/mds_eigen_data_top25.RDS")
+pca.top25 <- readRDS("../results/2017-08-17_get_eigen_data_pca_mds_hipsc/pca_eigen_data_top25.RDS")
+cluster.info <- readRDS("../results//2017-08-17_get_eigen_data_pca_mds_hipsc/hispc_cluster_info.RDS")
+```
+
+
 ```{r add_method_info}
+de.acc <- lapply(de.acc, function(cluster){
+  cluster$method <- "DE"
+  cluster
+})
+
 mds.acc <- lapply(mds.acc, function(cluster){
   cluster$method <- "MDS"
   cluster
@@ -39,6 +112,11 @@ pca.acc <- lapply(pca.acc, function(cluster){
 
 
 ```{r add_cluster_info}
+de.acc <- mapply(function(cluster, cluster.name){
+  cluster$cluster <- cluster.name
+  cluster
+}, de.acc, names(de.acc), SIMPLIFY = FALSE) %>% reduce(rbind)
+
 mds.acc <- mapply(function(cluster, cluster.name){
   cluster$cluster <- cluster.name
   cluster
@@ -57,50 +135,226 @@ pca.mds.acc <- rbind(pca.acc, mds.acc)
 
 ```{r gather_accuracy_data}
 mds.pca.metrics <- gather(data = pca.mds.acc , key = "Metric", value = "Value", 1:4)
-
-mds.pca.metrics %>% 
-  filter(Metric != "Kappa") -> mds.pca.metrics
 ```
 
 
-```{r def_plot_func}
-plotAccMetrics <- function(group, metric){
+```{r plotMetrics_function}
+plotMetrics<- function(cl){
+  cl.name <- paste0("cluster", cl)
+  
+  de.acc %>% 
+    filter(cluster == cl.name) %>% 
+    select(Accuracy, Sensitivity, Specificity, Kappa) %>% 
+    map_df(median) %>% 
+    gather(key = "Metric", value = "median") -> de.metrics.median
+  
+    pca.eigen[[cl.name]] %>%
+    filter(p.value < 0.05) %>% 
+    summarise(method = "PCA", n.sig.eigen = n(), cum.var = sum(variance)) -> pca.info
+  
+    mds.eigen[[cl.name]] %>% 
+    filter(p.value < 0.05) %>% 
+    summarise(method = "MDS", n.sig.eigen = n(), cum.var = sum(variance)) -> mds.info
+    
+    dim.red.info <- rbind(mds.info, pca.info)
+  
   mds.pca.metrics %>% 
-    filter(cluster == group, Metric == metric) %>% 
+    filter(cluster == cl.name) %>% 
     ggplot(aes(x = n.pca, y = Value, fill = method)) +
-    geom_boxplot(position = "dodge") +
-    ggtitle(group, subtitle = "Each panel corresponds to the number of EVs used as features for predition. EVs are ranked by p-value.") +
+    geom_boxplot(position = position_dodge(1)) +
+    ggtitle("Performance of MDS, PCA and DE methods", subtitle = paste("Cluster", cl)) +
     xlab("Number of eigenvectors") +
-    ylab(metric) +
-    facet_grid(~n.pca, scales = "free") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    scale_fill_brewer(palette = "Set1")
+    geom_hline(data = de.metrics.median, aes(yintercept = median, color = "DE (median)"), alpha = 0.5) +
+    scale_color_manual("Single feature\nmethod", values = brewer.pal(3, "Set1")[2]) +
+    scale_fill_brewer("Dimension reduction\nmethod", palette = "Set2") +
+    facet_wrap(~Metric, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) -> p
+  
+  return(list(plot = p, dim.red.info = dim.red.info))
+  
 }
 ```
 
-```{r get_plots}
-accuracy <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Accuracy"), SIMPLIFY = FALSE)
-sensitivity <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Sensitivity"), SIMPLIFY = FALSE)
-specificity <- mapply(plotAccMetrics, paste0("cluster", 1:4), list("Specificity"), SIMPLIFY = FALSE)
+```{r plot_metrics, results='hide'}
+cluster.res <- lapply(1:4, plotMetrics)
 ```
 
 
-```{r def_plot_saving_func}
-saveMetrics <- function(cluster, cluster.name, metric){
-  ggsave(filename = paste0("../results/2017-08-11_compare_feature_selection_methods/", metric, "_cluster_", cluster.name,".png"),
-         plot = cluster,
-         width = 15,
-         height = 7,
-         device = "png",
-         dpi = 350)
-  return(NULL)
+```{r pca_data}
+pca.top25.cluster <- mapply(function(cluster, label){
+  
+  # Create labels for positive and negative classes
+  positive.class <- substr(label, nchar(label) , nchar(label))
+  negative.class <- paste0(sort(unique(cluster.info$Cluster[cluster.info$Cluster != positive.class])), collapse = "")
+  
+  cluster %>% 
+    mutate(cluster = factor(if_else(cluster.info$Cluster == positive.class, 
+                                    positive.class, 
+                                    negative.class)), 
+           original.cluster = factor(cluster.info$Cluster)) %>% 
+    gather(key = "PC", value = "value", seq_len(ncol(.) -2)) %>% 
+    mutate(PC = factor(PC, levels = as.vector(pca.eigen[[label]]$PC)))
+  
+}, pca.top25, names(pca.top25), SIMPLIFY = FALSE)
+```
+
+```{r plot_pca_distributions}
+joyPC <- function(cluster){
+ggplot(pca.top25.cluster[[cluster]], aes(x = value, y = PC, fill = cluster, color = cluster)) +
+  geom_joy(alpha = 0.5, rel_min_height = 0.00001) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_color_manual(values = adjustcolor(brewer.pal(3, "Set1"), alpha.f = 0.5)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(yintercept = length(which(pca.eigen[[cluster]]$p.value < 0.05)) + 1, linetype = "dashed")
 }
-```
-
-```{r save_metrics_plots}
-mapply(saveMetrics, accuracy, 1:4, list("accuracy"))
-mapply(saveMetrics, sensitivity, 1:4, list("sensitivity"))
-mapply(saveMetrics, specificity, 1:4, list("specificity"))
+PCs.distributions <- lapply(paste0("cluster", 1:4), joyPC)
+names(PCs.distributions) <- paste0("cluster", 1:4)
 ```
 
 
+```{r mds_data}
+mds.top25.cluster <- mapply(function(cluster, label){
+  
+  # Create labels for positive and negative classes
+  positive.class <- substr(label, nchar(label) , nchar(label))
+  negative.class <- paste0(sort(unique(cluster.info$Cluster[cluster.info$Cluster != positive.class])), collapse = "")
+  
+  cluster %>% 
+    mutate(cluster = factor(if_else(cluster.info$Cluster == positive.class, 
+                                    positive.class, 
+                                    negative.class)), 
+           original.cluster = factor(cluster.info$Cluster)) %>% 
+    gather(key = "EV", value = "value", seq_len(ncol(.) -2)) %>% 
+    mutate(EV = factor(EV, levels = as.vector(mds.eigen[[label]]$EV)))
+  
+}, mds.top25, names(mds.top25), SIMPLIFY = FALSE)
+```
+
+
+```{r plot_mds_distributions}
+joyMDS <- function(cluster){
+ggplot(mds.top25.cluster[[cluster]], aes(x = value, y = EV, fill = cluster, color = cluster)) +
+  geom_joy(alpha = 0.5, rel_min_height = 0.00001) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_color_manual(values = adjustcolor(brewer.pal(3, "Set1"), alpha.f = 0.5)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(yintercept = length(which(mds.eigen[[cluster]]$p.value < 0.05)) + 1, linetype = "dashed")
+}
+
+MDSs.distributions <- lapply(paste0("cluster", 1:4), joyMDS)
+names(MDSs.distributions) <- paste0("cluster", 1:4)
+```
+
+
+
+
+# Performance results {.tabset .tabset-fade}
+
+## Cluster 1 {.tabset .tabset-pills}
+
+### MDS distributions
+
+```{r pca_eigen_cluster1, fig.align='center', fig.height=9}
+kable(cluster.res[[1]]$dim.red.info[1,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+MDSs.distributions$cluster1
+```
+
+### PCA distributions
+
+```{r mds_eigen_cluster1, fig.align='center', fig.height=9}
+kable(cluster.res[[1]]$dim.red.info[2,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+PCs.distributions$cluster1
+```
+
+
+There seems to be no clear difference between the distributions of both clusters. This may explain why the prediction accuracy value is close to `0.5` (about `0.6`, see **Performance** section) as the probability of one cell belonging to one cluster or other is almost equal. The increase of `~ 0.1` accuraccy value may be due to **small regions of non-overlapped distributions which discriminate cluster identity**. This accuraccy increment is related to the increase of sensitivity due to enrichment of target cluster (see isolated and marginal red lines) as the number of eigenvectors considered for prediction increases.
+
+### Performance
+
+```{r plot_cluster1, fig.align='center', fig.width=10, fig.height=8}
+cluster.res[[1]]$plot
+```
+
+```{r methods_ranking_1, eval=FALSE}
+methods.c1.rank <- read.delim(text = "Method	Accuracy	Kappa	Sensitivity	Specificity
+DE	2	2	3	1
+MDS	1	1	2	2
+PCA	1	1	1	3")
+kable(methods.c1.rank)
+```
+
+
+Dimension reduction methods exhibit better accuracy, specificity and kappa values when compared to the prediction based on DE genes.
+
+## Cluster 2 {.tabset .tabset-pills}
+
+### MDS distributions
+
+```{r pca_eigen_cluster2, fig.align='center', fig.height=9}
+kable(cluster.res[[2]]$dim.red.info[1,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+MDSs.distributions$cluster2
+```
+
+### PCA distributions
+
+```{r mds_eigen_cluster2, fig.align='center', fig.height=9}
+kable(cluster.res[[2]]$dim.red.info[2,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+PCs.distributions$cluster2
+```
+
+Due to the abundance of isolated distributions of the negative class (cluster 134), the specificity increases (opposite to the behavior observed for cluster 1).
+
+### Performance
+
+```{r plot_cluster2, fig.align='center', fig.width=10, fig.height=8}
+cluster.res[[2]]$plot
+```
+
+Dimension reduction methods exhibit better accuracy, sensitivity and kappa values when compared to the prediction based on DE genes. 
+
+## Cluster 3 {.tabset .tabset-pills}
+
+### MDS distributions
+
+```{r pca_eigen_cluster3, fig.align='center', fig.height=9}
+kable(cluster.res[[3]]$dim.red.info[1,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+MDSs.distributions$cluster3
+```
+
+### PCA distributions
+
+```{r mds_eigen_cluster3, fig.align='center', fig.height=9}
+kable(cluster.res[[3]]$dim.red.info[2,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+PCs.distributions$cluster3
+```
+
+### Performance
+
+```{r plot_cluster3, fig.align='center', fig.width=10, fig.height=8}
+cluster.res[[3]]$plot
+```
+
+## Cluster 4 {.tabset .tabset-pills}
+
+### MDS distributions
+
+```{r pca_eigen_cluster4, fig.align='center', fig.height=9}
+kable(cluster.res[[4]]$dim.red.info[1,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+MDSs.distributions$cluster4
+```
+
+### PCA distributions
+
+```{r mds_eigen_cluster4, fig.align='center', fig.height=9}
+kable(cluster.res[[4]]$dim.red.info[2,], col.names = c("Method", "Significant eigenvectors", "Cumulative variance"), row.names = FALSE)
+PCs.distributions$cluster4
+```
+
+### Performance
+
+```{r plot_cluster4, fig.align='center', fig.width=10, fig.height=8}
+cluster.res[[4]]$plot
+```
