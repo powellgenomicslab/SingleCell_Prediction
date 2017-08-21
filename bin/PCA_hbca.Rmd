@@ -5,6 +5,11 @@ date: "21/08/2017"
 output: html_document
 ---
 
+```{r load_libraries}
+library("tidyverse")
+```
+
+
 # Read and process input data
 
 ```{r read_data}
