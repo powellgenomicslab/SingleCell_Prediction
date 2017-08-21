@@ -1,0 +1,93 @@
+---
+title: "Difussion map of human blood cell atlas dataset"
+author: "Jose Alquicira Hernandez"
+date: "21/08/2017"
+output: html_document
+---
+
+```{r load_libraries}
+library("tidyverse")
+library("destiny")
+library("gridExtra")
+```
+
+# Read and process input data
+
+```{r read_data}
+# exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+# metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+exp.tpm <- read.table("../../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+```
+
+```{r process_matrix}
+row.names(exp.tpm) <- exp.tpm$GENE
+exp.tpm$GENE <- NULL
+```
+
+```{r eda, echo=FALSE, eval=FALSE}
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+cat("Dataset overview", "\n")
+cat(paste0(rep("-", 3), collapse = ""), "\n")
+cat("Number of genes:", nrow(exp.tpm), "\n")
+cat("Number of cells:", ncol(exp.tpm), "\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+```
+
+
+```{r get_cell_type_freq}
+metadata %>%
+  group_by(group) %>% 
+  summarize(Frequency = n()) %>%
+  setNames(c("Cell type", "Frequency")) %>%
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+# Diffusion pseudotime analysis
+
+```{r convert_to_ExpressionSet}
+exp.tpm %>% 
+  as.matrix() %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  as.ExpressionSet() -> expression.data.expset
+```
+
+```{r pca}
+dm.hbca <- DiffusionMap(expression.data.expset)
+```
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(dm.hbca, file = "diffusion_hbca.RDS")
+cat("Results saved...\n")
+```
+
+```{r dm_subset}
+dm <- data.frame(eigenvectors(dm.hbca)[,c("DC1", "DC2", "DC3")], groups = metadata$group)
+```
+
+```{r plot_eigenvectors}
+plotEigen <- function(dc){
+ggplot(dm, aes_string(x = dc[1], y = dc[2], color = "groups")) +
+  geom_point(alpha = 0.5) +
+  scale_color_brewer(palette = "Set1")
+}
+
+combn(paste0("DC",1:3),2) %>% 
+  as.data.frame() %>% 
+  as.list() %>% 
+  lapply(as.vector) %>% 
+  lapply(plotEigen) -> plots
+```
+
+```{r save_dm_plots}
+p <- grid.arrange(grobs = plots,  ncol = 1)
+ggsave("diffussion_hbca_plot.png", p, height = 18)
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
