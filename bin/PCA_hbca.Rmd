@@ -1,0 +1,58 @@
+---
+title: "PCA of human blood cell atlas dataset"
+author: "Jose Alquicira Hernandez"
+date: "21/08/2017"
+output: html_document
+---
+
+# Read and process input data
+
+```{r read_data}
+# exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+# metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+exp.tpm <- read.table("../../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+```
+
+
+```{r process_matrix}
+row.names(exp.tpm) <- exp.tpm$GENE
+exp.tpm$GENE <- NULL
+```
+
+```{r eda, echo=FALSE, eval=FALSE}
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+cat("Dataset overview", "\n")
+cat(paste0(rep("-", 3), collapse = ""), "\n")
+cat("Number of genes:", nrow(exp.tpm), "\n")
+cat("Number of cells:", ncol(exp.tpm), "\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+```
+
+
+```{r get_cell_type_freq}
+metadata %>%
+  group_by(group) %>% 
+  summarize(Frequency = n()) %>%
+  setNames(c("Cell type", "Frequency")) %>%
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+# Principal component analysis
+
+```{r pca}
+pca <- prcomp(exp.tpm, center = TRUE, scale. = TRUE)
+```
+
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(pca, file = "methods_accuracy_.RDS")
+cat("Results saved...\n")
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
