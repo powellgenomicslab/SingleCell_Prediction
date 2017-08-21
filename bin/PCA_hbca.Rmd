@@ -54,7 +54,7 @@ pca <- prcomp(exp.tpm, center = TRUE, scale. = TRUE)
 
 ```{r save_results}
 cat("Saving results...\n")
-saveRDS(pca, file = "methods_accuracy_.RDS")
+saveRDS(pca, file = "pca_hbca.RDS")
 cat("Results saved...\n")
 ```
 
