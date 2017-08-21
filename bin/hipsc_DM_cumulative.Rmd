@@ -1,0 +1,286 @@
+---
+title: "Prediction based on eigenvectors from Diffusion Maps"
+subtitle: "HiPSC"
+author: "Jose Alquicira Hernandez"
+date: "21/08/2017"
+output: html_document
+---
+
+```{r load_libraries}
+library("scPrediction")
+library("tidyverse")
+library("gridExtra")
+library("RColorBrewer")
+library("knitr")
+```
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+positive.class <- argv[1]
+```
+
+
+# Read and process input data
+
+```{r read_pca_data}
+f.path <- "../2017-09-21_hipsc_dm/"
+dm <- readRDS(paste0(f.path, "diffusion_hipsc.RDS"))
+```
+
+
+```{r read_groups_info}
+# f.path <- "/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/results/2017-05-22_IPSCAnalysis/test/"
+
+f.path <- "../../data/2017-05-22_HiPSC/"
+
+hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
+cell.sample.data <- hipsc[[2]]
+groups <- cell.sample.data$Cluster
+cell.ids <- as.character(cell.sample.data$Cell_ID)
+
+# Remove unnecessary data from environment
+rm(hipsc)
+
+# expression.data <- readRDS(paste0(f.path,'ori_dat_sample.RDS'))
+# expression.data <- expression.data[,1:200]
+# groups <- readRDS(paste0(f.path,'my.clusters.RDS'))
+# groups <- groups[1:200]
+
+
+
+# hipsc <- readRDS("/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/04-08-2017_HiPSC/Expression_data_HiPSC_5day0Samples.RDS")
+# cell.sample.data <- hipsc[[2]]
+# groups <- cell.sample.data$Cluster[1:300]
+# cell.ids <- as.character(cell.sample.data$Cell_ID[1:300])
+```
+
+
+```{r set_row_names_eigenvectors}
+rownames(dm@eigenvectors) <- cell.ids
+```
+
+
+
+```{r get_groups_summary}
+cat("Data group summary #############################################\n\n")
+table(groups) %>% 
+  as.data.frame() %>% 
+  kable() %>% 
+  cat(sep = "\n")
+cat("\n################################################################\n")
+```
+
+```{r set_negative_class}
+negative.class <- paste0(sort(unique(groups)[!unique(groups) %in% positive.class]), collapse = "")
+groups <- factor(ifelse(positive.class == groups, positive.class, negative.class), levels = c(positive.class, negative.class))
+```
+
+# Format DM output
+
+```{r format_mds}
+dm %>%
+  eigenvectors() %>% 
+  as.data.frame() %>% 
+  mutate(type = groups) -> dm.format
+
+dm.var <- round((abs(eigenvalues(dm))/sum(abs(eigenvalues(dm))))*100, 2)
+names(dm.var) <- names(dm.format)[-ncol(dm.format)]
+```
+
+```{r plot_mds}
+p12 <- ggplot(dm.format, aes(x = DC1, y = DC2, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("DC1 (", dm.var[1], "% variance explained)")) +
+  ylab(paste0("DC2 (", dm.var[2], "% variance explained)"))
+p13 <- ggplot(dm.format, aes(x = DC1, y = DC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("DC1 (", dm.var[1], "% variance explained)")) +
+  ylab(paste0("DC3 (", dm.var[3], "% variance explained)"))
+p23 <- ggplot(dm.format, aes(x = DC2, y = DC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("DC2 (", dm.var[2], "% variance explained)")) +
+  ylab(paste0("DC3 (", dm.var[3], "% variance explained)"))
+```
+
+```{r save_mds_plot}
+p <- grid.arrange(p12, p13, p23,  ncol = 1)
+ggsave(paste0("dm_", positive.class, ".png"), p, height = 18)
+```
+
+
+```{r long_format_mds}
+dm.format.long <- gather(dm.format, "DC", "value", seq_len(ncol(dm.format) - 1))
+```
+
+
+```{r get_significant_eigen}
+dm.format.long %>% 
+  split(dm.format.long$DC) %>% 
+  lapply(function(ev) wilcox.test(value ~ type, ev)) -> dm.type.compare
+
+dm.type.compare %>% 
+  lapply('[[', "p.value") %>% 
+  as.data.frame() %>% 
+  gather(key = "DC", value = "p.value") -> p.vals
+```
+
+```{r bonferroni_correction}
+p.vals$p.value <- p.adjust(p.vals$p.value, method = "bonferroni", n = length(p.vals$p.value))
+
+p.vals %>% 
+  arrange(p.value) %>% 
+  slice(1:25) -> p.vals.filter
+```
+
+
+```{r get_significant_DCs}
+dm.filter <- dm.format[p.vals.filter$DC]
+```
+
+
+```{r get_eigenvector_indexes}
+dm.indexes <- lapply(seq_len(ncol(dm.filter))[-1], function(x) seq(1, x, 1))
+```
+
+
+
+```{r set_params_TrainPredict}
+getEigenvectors <- function(DCs.idx){
+  
+  seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
+  
+  seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+  
+  
+  dm.filter %>% 
+    select(DCs.idx) %>% 
+    t() %>% 
+    as.data.frame() %>% 
+    setNames(rownames(eigenvectors(dm))) -> expression.data
+  
+  dataset.params <- list(groups = dm.format$type,
+                         positive.class = as.character(positive.class),
+                         features = seq_len(nrow(expression.data)),
+                         expression.data = expression.data,
+                         seed.select = seeds.select,
+                         seed.compare = seeds.compare)
+  
+  training.params <- list(method = 'cv',
+                          number = 5,
+                          seed = 92,
+                          returnResamp = 'none',
+                          returnData = FALSE)
+  
+  return(list(dataset.params = dataset.params, training.params = training.params ))
+}
+```
+
+
+```{r get_dataset_eigenvectors}
+DC.datasets <- lapply(dm.indexes, getEigenvectors)
+names(DC.datasets) <- seq_len(ncol(dm.filter))[-1]
+```
+
+
+```{r make_predictions}
+predict.all <- function(dataset){
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = "rf", n.rep = 10, n.cores = 10)
+}
+
+res <- lapply(DC.datasets, predict.all)
+```
+
+```{r get_accuracy}
+getMetrics <- function(dataset.res){
+  dataset.res %>%
+    lapply(function(b.replicate){ # Iterates bootstrap replicate
+      mapply(function(model, model.name){ # Iterates model
+        data.frame(
+          Model = model.name,
+          Accuracy = model$conf.mat$overall["Accuracy"],
+          Sensitivity = model$conf.mat$byClass["Sensitivity"],
+          Specificity = model$conf.mat$byClass["Specificity"],
+          Kappa = model$conf.mat$overall["Kappa"]
+        )
+      }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
+    }) %>% Reduce(rbind, .)
+}
+
+lapply(res, getMetrics) %>% 
+  mapply(function(x, x.name) cbind(x, n.pca = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
+  Reduce(rbind, .) %>% 
+  filter(Model == "rf") %>% 
+  select(-Model) -> accuracy
+```
+
+
+```{r save_results}
+cat("Saving metrics...\n")
+saveRDS(accuracy, file = paste0("methods_accuracy_cluster", positive.class, ".RDS"))
+cat("Results saved...\n")
+```
+
+
+```{r plot_accuracy}
+p <- ggplot(accuracy, aes(x = n.pca, y = Accuracy)) +
+  geom_boxplot() +
+  expand_limits(y = 1) +
+  ggtitle(paste("Prediction of", positive.class,  "vs. other cell types"), 
+          subtitle = paste("x-axis: Number of most significant vectors used as features"))
+```
+
+
+```{r build_table}
+p.vals.filter$variance <- dm.var[p.vals.filter$DC]
+write.table(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
+```
+
+```{r save_accuracy_plot}
+resize.theme <- ttheme_default(
+    core = list(fg_params=list(cex = 0.7)),
+    colhead = list(fg_params=list(cex = 0.8)),
+    rowhead = list(fg_params=list(cex = 0.8)))
+
+ggsave(filename = paste0("accuracy_cluster_", positive.class,".png"),
+       plot = grid.arrange(p, tableGrob(p.vals.filter, theme = resize.theme), ncol = 2),
+       width = 12,
+       height = 7,
+       device = "png",
+       dpi = 350)
+```
+
+
+```{r gather_accuracy_data}
+metrics <- gather(data = accuracy, key = "Metric", value = "Value", 1:4)
+
+metrics %>% 
+  filter(Metric != "Kappa") -> metrics
+```
+
+
+```{r plot_metrics}
+p <- ggplot(metrics, aes(x = Metric, y = Value, fill = Metric)) +
+  geom_boxplot(position = "dodge") +
+  ggtitle("Performance metrics: accuracy, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for predition. EVs are ranked by p-value.") +
+  facet_grid(~n.pca) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r save_metrics_plot}
+ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
+       plot = p,
+       width = 15,
+       height = 7,
+       device = "png",
+       dpi = 350)
+```
+
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
