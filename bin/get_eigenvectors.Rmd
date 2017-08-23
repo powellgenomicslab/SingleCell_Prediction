@@ -35,7 +35,7 @@ saveRDS(cell.sample.data , "hispc_cluster_info.RDS")
 # names(pca.eigen) <- paste0("cluster", 1:4)
 ```
 
-```{r read_pca_eigen}
+```{r read_dm_eigen}
 dm.eigen <- lapply(1:4, function(cluster){
   read.delim(paste0("../2017-08-21_hipsc_dm_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
 })
@@ -95,7 +95,7 @@ getDMEigen <- function(cluster){
 # names(pca.eigen.data) <- paste0("cluster", 1:4)
 ```
 
-```{r get_PCs}
+```{r get_DCs}
 dm.eigen.data <- lapply(paste0("cluster", 1:4), getDMEigen)
 names(dm.eigen.data) <- paste0("cluster", 1:4)
 ```
