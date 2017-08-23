@@ -1,0 +1,39 @@
+Loading tidyverse: ggplot2
+Loading tidyverse: tibble
+Loading tidyverse: tidyr
+Loading tidyverse: readr
+Loading tidyverse: purrr
+Loading tidyverse: dplyr
+Conflicts with tidy packages ---------------------------------------------------
+filter(): dplyr, stats
+lag():    dplyr, stats
+Warning message:
+no function found corresponding to methods exports from 'destiny' for: 'show' 
+
+Attaching package: 'gridExtra'
+
+The following object is masked from 'package:dplyr':
+
+    combine
+
+Saving 7 x 18 in image
+Session info ----------------------------------------------------------------------------------------------------------
+Packages --------------------------------------------------------------------------------------------------------------
+########################### Job Execution History #############################
+JobId: 820931.delta
+UserName: j.alquicira
+GroupName: Group-Powell
+JobName: diff_map_hbca
+SessionId: 28569
+ResourcesRequested: mem=250gb,ncpus=2,nice=0,place=free,walltime=150:00:00
+ResourcesUsed: cpupercent=80,cput=00:02:36,mem=2147992kb,ncpus=2,vmem=2473628kb,walltime=00:02:40
+QueueUsed: normal
+Account: null
+ExitStatus: 0
+###############################################################################
+Efficiencies
+
+Walltime Efficiency:   0.0296 %
+CPU time Efficiency:  48.7500 %
+mem Efficiency:       0.8194 %
+#####################################
