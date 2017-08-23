@@ -7,68 +7,103 @@ output: html_document
 ---
 
 
+```{r import_libraries}
+library("destiny")
+```
+
+
 ```{r save_cluster_info}
 f.path <- "../../data/2017-05-22_HiPSC/"
 hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
 cell.sample.data <- hipsc[[2]]
+cell.ids <- as.character(cell.sample.data$Cell_ID)
 saveRDS(cell.sample.data , "hispc_cluster_info.RDS")
 ```
 
 
 ```{r read_mds_eigen}
-mds.eigen <- lapply(1:4, function(cluster){
-  read.delim(paste0("../2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
-})
-names(mds.eigen) <- paste0("cluster", 1:4)
+# mds.eigen <- lapply(1:4, function(cluster){
+#   read.delim(paste0("../2017-08-14_hipsc_mds_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+# })
+# names(mds.eigen) <- paste0("cluster", 1:4)
 ```
 
 ```{r read_pca_eigen}
-pca.eigen <- lapply(1:4, function(cluster){
-  read.delim(paste0("../2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
-})
-names(pca.eigen) <- paste0("cluster", 1:4)
+# pca.eigen <- lapply(1:4, function(cluster){
+#   read.delim(paste0("../2017-08-14_hipsc_pca_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+# })
+# names(pca.eigen) <- paste0("cluster", 1:4)
 ```
 
+```{r read_pca_eigen}
+dm.eigen <- lapply(1:4, function(cluster){
+  read.delim(paste0("../2017-08-21_hipsc_dm_eigenvectors/pvals_filter-cluster_",cluster,".txt"))
+})
+names(dm.eigen) <- paste0("cluster", 1:4)
+```
+
+
 ```{r read_MDS}
-mds <- readRDS("../2017-08-08_hipsc_mds/hipsc_mds.RDS")
-mds.points <- as.data.frame(mds$points)
-names(mds.points) <- paste0("V", seq_len(ncol(mds.points)))
+# mds <- readRDS("../2017-08-08_hipsc_mds/hipsc_mds.RDS")
+# mds.points <- as.data.frame(mds$points)
+# names(mds.points) <- paste0("V", seq_len(ncol(mds.points)))
 ```
 
 
 ```{r read_PCA}
-pca <- readRDS("../2017-08-04_hipsc_pca/pca.RDS")
-pca.rotation <- as.data.frame(pca$rotation)
+# pca <- readRDS("../2017-08-04_hipsc_pca/pca.RDS")
+# pca.rotation <- as.data.frame(pca$rotation)
 ```
 
+
+```{r read_DM}
+dm.hipsc <- readRDS("../2017-08-21_hbca_dm/diffusion_hbca.RDS")
+rownames(dm@eigenvectors) <- cell.ids
+dm <- as.data.frame(eigenvectors(dm.hipsc))
+```
+
+
 ```{r define_subsetting_functions}
-getMDSEigen <- function(cluster){
-  EV.list <- as.vector(mds.eigen[[cluster]]$EV)
-  mds.evs <- mds.points[EV.list]
-  # mds.evs <- mds.evs[order(match(names(mds.evs), EV.list))]
-  return(mds.evs)
-}
+# getMDSEigen <- function(cluster){
+#   EV.list <- as.vector(mds.eigen[[cluster]]$EV)
+#   mds.evs <- mds.points[EV.list]
+#   # mds.evs <- mds.evs[order(match(names(mds.evs), EV.list))]
+#   return(mds.evs)
+# }
+# 
+# 
+# getPCAEigen <- function(cluster){
+#   PC.list <- as.vector(pca.eigen[[cluster]]$PC)
+#   pca.pcs <- pca.rotation[PC.list]
+#   return(pca.pcs)
+# }
 
-
-getPCAEigen <- function(cluster){
-  PC.list <- as.vector(pca.eigen[[cluster]]$PC)
-  pca.pcs <- pca.rotation[PC.list]
-  return(pca.pcs)
+getDMEigen <- function(cluster){
+  DC.list <- as.vector(dm.eigen[[cluster]]$DC)
+  dm.pcs <- dm[DC.list]
+  return(dm.pcs)
 }
 ```
 
 ```{r get_EVs}
-mds.eigen.data <- lapply(paste0("cluster", 1:4), getMDSEigen)
-names(mds.eigen.data) <- paste0("cluster", 1:4)
+# mds.eigen.data <- lapply(paste0("cluster", 1:4), getMDSEigen)
+# names(mds.eigen.data) <- paste0("cluster", 1:4)
 ```
 
 ```{r get_PCs}
-pca.eigen.data <- lapply(paste0("cluster", 1:4), getPCAEigen)
-names(pca.eigen.data) <- paste0("cluster", 1:4)
+# pca.eigen.data <- lapply(paste0("cluster", 1:4), getPCAEigen)
+# names(pca.eigen.data) <- paste0("cluster", 1:4)
 ```
 
+```{r get_PCs}
+dm.eigen.data <- lapply(paste0("cluster", 1:4), getDMEigen)
+names(dm.eigen.data) <- paste0("cluster", 1:4)
+```
+
+
 ```{r save_data}
-saveRDS(mds.eigen.data, "mds_eigen_data_top25.RDS")
-saveRDS(pca.eigen.data, "pca_eigen_data_top25.RDS")
+# saveRDS(mds.eigen.data, "mds_eigen_data_top25.RDS")
+# saveRDS(pca.eigen.data, "pca_eigen_data_top25.RDS")
+saveRDS(dm.eigen.data, "dm_eigen_data_top25.RDS")
 ```
 
