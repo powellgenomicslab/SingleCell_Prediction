@@ -960,3 +960,82 @@ The following plots show the accuracy results obtained using the significant com
 ![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_2.png)
 ![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_3.png)
 ![](../results/2017-08-11_compare_feature_selection_methods/specificity_cluster_4.png)
+
+# 16/08/2017
+
+The following scripts were run to predict cluster identity for HiPSC dataset. A new version of the `scPrediction` (commit [c2368f8](https://github.com/IMB-Computational-Genomics-Lab/scPrediction/commit/c2368f805b1642037e4e1738a1f3561ea3eca401)) package was used to avoid possible miscalculations of sensitivity and specificity.
+
+`hipsc_PCA_cumulative.Rmd` (commit [1793caa](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/1793caac3058b965078f8d042bb84ad34044330f/bin/hipsc_PCA_cumulative.Rmd))
+
+`hipsc_MDS_cumulative.Rmd` (commit [7f7537b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/7f7537bdf4e84db7a15026228065c34f6ceb53b2/bin/hipsc_MDS_cumulative.Rmd))
+
+`prediction_hipsc_scprediction.Rmd` (commit [7b63e0c](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/7b63e0cda1dd5d532f95bd71006cc551c9c629c7/bin/prediction_hipsc_scprediction.Rmd))
+
+# 21/08/2017
+
+The following scripts were run to reduce the minesions of the HBCA dataset.
+
+`PCA_hbca.Rmd` (commit [6f8f661](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/6f8f6611e0389884a70b79c11e2d2d600b804e9f/bin/PCA_hbca.Rmd))
+
+`MDS_hbca.Rmd` (commit [8c503e8](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/8c503e8bf2cb93c1ce8df95ca2fdb17a89b3ccd8/bin/MDS_hbca.Rmd))
+
+`DM_hbca.Rmd` (commit [f5467d7](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/f5467d7b2895440f85358db4a6edc0ea720b4983/bin/DM_hbca.Rmd))
+
+# 22/08/2017
+
+`hipsc_DM_cumulative.Rmd` (commit [7f7537b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/ddb99842f5b5d242db408b807a95dd9b42f763c0/bin/hipsc_DM_cumulative.Rmd)) was run to predict clusters from the hipsc data using diffusion maps.
+
+## EDA
+
+### Cluster 1
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/dm_1.png)
+
+### Cluster 2
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/dm_2.png)
+
+### Cluster 3
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/dm_3.png)
+
+### Cluster 4
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/dm_4.png)
+
+## Accuracy results
+
+### Cluster 1
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/accuracy_cluster_1.png)
+
+### Cluster 2
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/accuracy_cluster_2.png)
+
+### Cluster 3
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/accuracy_cluster_3.png)
+
+### Cluster 4
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/accuracy_cluster_4.png)
+
+## Performance results
+
+### Cluster 1
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/metrics_cluster_1.png)
+
+### Cluster 2
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/metrics_cluster_2.png)
+
+### Cluster 3
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/metrics_cluster_3.png)
+
+### Cluster 4
+
+![](../results/2017-08-21_hipsc_dm_eigenvectors/metrics_cluster_4.png)
+
