@@ -55,9 +55,11 @@ exp.tpm %>%
   as.ExpressionSet() -> expression.data.expset
 ```
 
-```{r dm}
-dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset))
+```{r pca}
+# Make sure the number of eigenvectors is less than n - 1, where n is the number of cells
+dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset) - 2)
 ```
+
 
 ```{r save_results}
 cat("Saving results...\n")
