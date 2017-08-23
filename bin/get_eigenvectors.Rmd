@@ -58,7 +58,7 @@ names(dm.eigen) <- paste0("cluster", 1:4)
 
 ```{r read_DM}
 dm.hipsc <- readRDS("../2017-08-21_hbca_dm/diffusion_hbca.RDS")
-rownames(dm@eigenvectors) <- cell.ids
+rownames(dm.hipsc@eigenvectors) <- cell.ids
 dm <- as.data.frame(eigenvectors(dm.hipsc))
 ```
 
