@@ -17,7 +17,7 @@ f.path <- "../../data/2017-05-22_HiPSC/"
 hipsc <- readRDS(paste0(f.path, 'Expression_data_HiPSC_5day0Samples.RDS'))
 cell.sample.data <- hipsc[[2]]
 cell.ids <- as.character(cell.sample.data$Cell_ID)
-saveRDS(cell.sample.data , "hispc_cluster_info.RDS")
+# saveRDS(cell.sample.data , "hispc_cluster_info.RDS")
 ```
 
 
@@ -57,7 +57,7 @@ names(dm.eigen) <- paste0("cluster", 1:4)
 
 
 ```{r read_DM}
-dm.hipsc <- readRDS("../2017-08-21_hbca_dm/diffusion_hbca.RDS")
+dm.hipsc <- readRDS("../2017-08-21_hipsc_dm/diffusion_hipsc.RDS")
 rownames(dm.hipsc@eigenvectors) <- cell.ids
 dm <- as.data.frame(eigenvectors(dm.hipsc))
 ```
