@@ -55,8 +55,8 @@ exp.tpm %>%
   as.ExpressionSet() -> expression.data.expset
 ```
 
-```{r pca}
-dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = nrow(expression.data.expset))
+```{r dm}
+dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset))
 ```
 
 ```{r save_results}
