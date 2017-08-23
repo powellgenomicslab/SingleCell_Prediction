@@ -49,8 +49,9 @@ expression.data %>%
 
 # Diffusion pseudotime analysis
 
-```{r pca}
-dm.hipsc <- DiffusionMap(expression.data.expset, n_eigs = nrow(expression.data.expset))
+```{r dm}
+# Make sure the number of eigenvectors is less than n - 1, where n is the number of cells
+dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset) - 2)
 ```
 
 ```{r save_results}
