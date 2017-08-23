@@ -56,7 +56,7 @@ exp.tpm %>%
 ```
 
 ```{r pca}
-dm.hbca <- DiffusionMap(expression.data.expset)
+dm.hbca <- DiffusionMap(expression.data.expset, n_eigs = nrow(expression.data.expset))
 ```
 
 ```{r save_results}
