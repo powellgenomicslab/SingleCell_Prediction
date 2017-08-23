@@ -50,7 +50,7 @@ expression.data %>%
 # Diffusion pseudotime analysis
 
 ```{r pca}
-dm.hipsc <- DiffusionMap(expression.data.expset)
+dm.hipsc <- DiffusionMap(expression.data.expset, n_eigs = nrow(expression.data.expset))
 ```
 
 ```{r save_results}
