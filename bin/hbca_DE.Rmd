@@ -1,0 +1,219 @@
+---
+title: "Prediction of human blood dendritic cells and monocytes"
+author: "Jose Alquicira Hernandez"
+date: "24/08/2017"
+output: html_document
+---
+
+# Load libraries
+
+```{r load_libraries, results='hide', message=FALSE, warning=FALSE}
+# module load R/3.4.0
+library("scPrediction")
+library("tidyverse")
+library("gridExtra")
+library("knitr")
+library("readxl")
+library("RColorBrewer")
+```
+
+
+# Read and process input data
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+positive.class <- argv[1]
+```
+
+
+```{r read_data}
+# exp.tpm <- read.table("../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+# metadata <- read.table("../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+exp.tpm <- read.table("../../data/17-07-2017_blood_atlas/RAW/expression_matrix_tpm.txt", header = TRUE, sep = "\t")
+metadata <- read.table("../../data/17-07-2017_blood_atlas/RAW/metadata.txt", header = TRUE, sep = "\t", skip = 1)
+
+# exp.tpm <- exp.tpm[ 1:301]
+# metadata <- metadata[1:300, ]
+```
+
+```{r process_matrix}
+row.names(exp.tpm) <- exp.tpm$GENE
+exp.tpm$GENE <- NULL
+```
+
+Dataset dimensions:
+
+- Number of genes : `r nrow(exp.tpm)`
+- Number of cells: `r ncol(exp.tpm)`
+
+```{r eda, echo=FALSE, eval=FALSE}
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+cat("Dataset overview", "\n")
+cat(paste0(rep("-", 3), collapse = ""), "\n")
+cat("Number of genes:", nrow(exp.tpm), "\n")
+cat("Number of cells:", ncol(exp.tpm), "\n")
+cat(paste0(rep("-", 70), collapse = ""), "\n")
+```
+
+
+```{r get_cell_type_freq}
+metadata %>%
+  group_by(group) %>% 
+  summarize(Frequency = n()) %>%
+  setNames(c("Cell type", "Frequency")) %>%
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+```{r read_dc_genes}
+# f.path <- file.path( "..", "data", "17-07-2017_blood_atlas", "RAW", "aah4573_Supplementary_Tables_1-16.xlsx")
+f.path <- file.path("..", "..", "data", "17-07-2017_blood_atlas", "RAW", "aah4573_Supplementary_Tables_1-16.xlsx")
+dc <- read_xlsx(f.path, sheet = 2, range = "B3:K1022", col_names = TRUE)
+dc %<>% 
+  names() %>% 
+  tolower() %>%
+  setNames(dc, .)
+```
+
+```{r read_mon_genes}
+mono <- read_xlsx(f.path, sheet = 5, range = "A3:J464", col_names = TRUE)
+mono %<>% 
+  names() %>% 
+  tolower() %>%
+  setNames(mono, .)
+```
+
+```{r merge_data}
+disc.genes <- rbind(dc, mono)
+disc.genes %<>%
+  names() %>%
+  make.names() %>%
+  gsub("\\.\\.", "\\.", .) %>%
+  gsub(".1$", "", .) %>%
+  gsub("2|5$", "", .) %>%
+  setNames(disc.genes, .)
+```
+
+```{r set_n_discriminant_genes}
+n.genes <- 10
+```
+
+```{r get_top_n_genes}
+disc.genes %>%
+  group_by(cluster.id) %>%
+  filter(auc.value > 0.7) %>% 
+  top_n(n = 20, auc.value) -> top.n
+```
+
+```{r}
+cat("\nNumber of discriminant genes for prediction included for each cell type:\n\n")
+top.n %>% 
+  select(cluster.id) %>% 
+  count() %>% 
+  knitr::kable() %>% 
+  cat(sep = "\n")
+```
+
+
+# Starts prediction
+
+```{r set_positive_class}
+groups <- ifelse(metadata$group == positive.class, as.character(metadata$group), "other")
+```
+
+
+
+```{r set_params_TrainPredict}
+seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
+
+seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+
+
+dataset.params <- list(groups = groups,
+                       positive.class = positive.class,
+                       features = which(row.names(exp.tpm) %in% top.n$gene.id),
+                       expression.data = exp.tpm,
+                       seed.select = seeds.select,
+                       seed.compare = seeds.compare)
+
+training.params <- list(method = 'cv',
+                        number = 5,
+                        seed = 92,
+                        returnResamp = 'none',
+                        returnData = FALSE)
+
+methods <- c("glm", "elasticNet", "earth", "svmPoly", "rf")
+```
+
+
+```{r make_predictions}
+res <- TrainPredict(dataset.params, training.params, methods = methods, n.rep = 2, n.cores = 2)
+```
+
+
+```{r get_performance}
+res %>%
+  lapply(function(b.replicate){ # Iterates bootstrap replicate
+    mapply(function(model, model.name){ # Iterates model
+      data.frame(
+        Model = model.name,
+        Accuracy = model$conf.mat$overall["Accuracy"],
+        Sensitivity = model$conf.mat$byClass["Sensitivity"],
+        Specificity = model$conf.mat$byClass["Specificity"],
+        Kappa = model$conf.mat$overall["Kappa"]
+      )
+    }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
+  }) %>% Reduce(rbind, .) ->performance
+```
+
+```{r save_results}
+cat("Saving metrics...\n")
+saveRDS(performance, file = paste0("performance_cluster", positive.class, ".RDS"))
+cat("Results saved...\n")
+```
+
+```{r sets_model_plotting_order}
+model.order <- c('glm',
+                 'bayesglm', 
+                 'ridge', 'elasticNet', 'lasso',
+                 'earth', 
+                 'svmLinear', 'svmPoly', 
+                 'rpart', 
+                 'rf', 
+                 'nb', 
+                 'nnet',
+                 'dnn')
+```
+
+
+```{r gather_accuracy_data}
+metrics <- gather(data = performance, key = "Metric", value = "Value", 2:5)
+model.order <- model.order[model.order %in% metrics$Model]
+metrics$Model <- factor(metrics$Model, levels = model.order)
+```
+
+
+```{r plot_metrics}
+p <- ggplot(metrics, aes(x = Model, y = Value, fill = Model)) +
+  geom_boxplot(position = "dodge") +
+  ggtitle("Performance metrics: accuracy, kappa, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for prediction. EVs are ranked by p-value.") +
+  facet_wrap(~Metric, scales = "free") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r save_metrics_plot}
+ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
+       plot = p,
+       width = 15,
+       height = 7,
+       device = "png",
+       dpi = 350)
+```
+
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
