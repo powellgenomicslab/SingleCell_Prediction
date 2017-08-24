@@ -18,12 +18,6 @@ library("RColorBrewer")
 ```
 
 
-```{r command_line_args}
-argv <- commandArgs(TRUE)
-positive.class <- argv[1]
-```
-
-
 # Read and process input data
 
 ```{r command_line_args}
@@ -47,7 +41,7 @@ row.names(exp.tpm) <- exp.tpm$GENE
 exp.tpm$GENE <- NULL
 ```
 
-Dataset dimentions:
+Dataset dimensions:
 
 - Number of genes : `r nrow(exp.tpm)`
 - Number of cells: `r ncol(exp.tpm)`
