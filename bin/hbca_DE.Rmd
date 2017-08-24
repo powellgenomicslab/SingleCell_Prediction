@@ -196,7 +196,7 @@ metrics$Model <- factor(metrics$Model, levels = model.order)
 ```{r plot_metrics}
 p <- ggplot(metrics, aes(x = Model, y = Value, fill = Model)) +
   geom_boxplot(position = "dodge") +
-  ggtitle("Performance metrics: accuracy, kappa, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for prediction. EVs are ranked by p-value.") +
+  ggtitle("Performance metrics: accuracy, kappa, sensitivity and specificity") +
   facet_wrap(~Metric, scales = "free") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -206,7 +206,7 @@ p <- ggplot(metrics, aes(x = Model, y = Value, fill = Model)) +
 ```{r save_metrics_plot}
 ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
        plot = p,
-       width = 15,
+       width = 10,
        height = 7,
        device = "png",
        dpi = 350)
