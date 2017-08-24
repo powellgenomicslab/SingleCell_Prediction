@@ -1,0 +1,17 @@
+## PBS SETTINGS
+#PBS -q normal
+#PBS -S /bin/bash
+#PBS -r y
+#PBS -l select=1:ncpus=10:mem=180GB
+
+
+## ADJUSTABLE SETTINGS
+#PBS -l walltime=150:00:00
+
+cd $PBS_O_WORKDIR
+
+script_dir=../../bin/
+
+module load R/3.4.0
+
+Rscript ${script_dir}/hbca_MDS_cumulative.R ${CELL_TYPE}
