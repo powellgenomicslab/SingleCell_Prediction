@@ -84,7 +84,7 @@ metadata$group <- factor(ifelse(positive.class ==  metadata$group, positive.clas
 
 
 ```{r pca}
-exp.tpm.pca <- readRDS("../results/2017-08-21_hbca_pca/pca_hbca.RDS")
+exp.tpm.pca <- readRDS("../2017-08-21_hbca_pca/pca_hbca.RDS")
 # exp.tpm.pca <- prcomp(exp.tpm, center = TRUE, scale. = TRUE)
 ```
 
