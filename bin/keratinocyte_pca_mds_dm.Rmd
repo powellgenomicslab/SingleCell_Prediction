@@ -17,7 +17,6 @@ expression.data <- readRDS("../../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_e
 
 ```{r format_gene_names}
 rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
-expression.data <- expression.data[1:200,]
 ```
 
 # Principal component analysis
