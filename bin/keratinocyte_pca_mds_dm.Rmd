@@ -26,7 +26,7 @@ expression.data <- expression.data[1:200,]
 pca <- prcomp(expression.data, center = TRUE, scale. = TRUE)
 ```
 
-```{r save_results}
+```{r save_pca_results}
 cat("Saving results...\n")
 saveRDS(pca, file = "keratinocyte_pca.RDS")
 cat("Results saved...\n")
@@ -47,10 +47,13 @@ saveRDS(exp.data.dist, file = "keratinocyte_dist.RDS")
 mds <- cmdscale(exp.data.dist, k = ncol(expression.data) - 1, eig = TRUE)
 
 cat("Number of eigenvectors with associated eigenvalues > 0: ", ncol(mds$points))
-
-saveRDS(mds, file = "keratinocyte_mds.RDS")
 ```
 
+```{r save_mds_results}
+cat("Saving results...\n")
+saveRDS(mds, file = "keratinocyte_mds.RDS")
+cat("Results saved...\n")
+```
 
 # Diffusion pseudotime analysis
 
@@ -68,7 +71,7 @@ expression.data %>%
 dm <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset) - 2)
 ```
 
-```{r save_results}
+```{r save_dm_results}
 cat("Saving results...\n")
 saveRDS(dm, file = "keratinocyte_dm.RDS")
 cat("Results saved...\n")
