@@ -1,0 +1,80 @@
+---
+title: 'PCA, MDS and DM: Keratinocyte dataset'
+author: "Jose Alquicira Hernandez"
+date: "25/08/2017"
+output: html_document
+---
+
+```{r import_libraries}
+library(tidyverse)
+library(destiny)
+library(Biobase)
+```
+
+```{r read_data}
+expression.data <- readRDS("../data/25_08_2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+```
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+expression.data <- expression.data[1:200,]
+```
+
+# Principal component analysis
+
+```{r pca}
+pca <- prcomp(expression.data, center = TRUE, scale. = TRUE)
+```
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(pca, file = "keratinocyte_pca.RDS")
+cat("Results saved...\n")
+```
+
+
+# Multidimensional scaling
+
+```{r get_euclidian_distance}
+expression.data %>% 
+  t() %>% 
+  dist() -> exp.data.dist
+
+saveRDS(exp.data.dist, file = "keratinocyte_dist.RDS")
+```
+
+```{r mds}
+mds <- cmdscale(exp.data.dist, k = ncol(expression.data) - 1, eig = TRUE)
+
+cat("Number of eigenvectors with associated eigenvalues > 0: ", ncol(mds$points))
+
+saveRDS(mds, file = "keratinocyte_mds.RDS")
+```
+
+
+# Diffusion pseudotime analysis
+
+```{r convert_to_ExpressionSet}
+expression.data %>% 
+  as.matrix() %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  as.ExpressionSet() -> expression.data.expset
+```
+
+
+```{r dm}
+# Make sure the number of eigenvectors is less than n - 1, where n is the number of cells
+dm <- DiffusionMap(expression.data.expset, n_eigs = ncol(expression.data.expset) - 2)
+```
+
+```{r save_results}
+cat("Saving results...\n")
+saveRDS(dm, file = "keratinocyte_dm.RDS")
+cat("Results saved...\n")
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
