@@ -12,7 +12,7 @@ library(Biobase)
 ```
 
 ```{r read_data}
-expression.data <- readRDS("../data/25_08_2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+expression.data <- readRDS("../../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
 ```
 
 ```{r format_gene_names}
