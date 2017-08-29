@@ -1,0 +1,272 @@
+---
+title: "Untitled"
+author: "Jose Alquicira Hernandez"
+date: "25/08/2017"
+output: html_document
+---
+
+
+```{r load_libraries}
+library("scPrediction")
+library("tidyverse")
+library("gridExtra")
+library("RColorBrewer")
+library("gmodels")
+library("knitr")
+```
+
+
+
+# Read data
+
+```{r read_pca_data}
+f.path <- "../2017-08-25_keratinocyte_pca_mds_dm/"
+pca <- readRDS(paste0(f.path, "keratinocyte_pca.RDS"))
+```
+
+```{r read_expression_data}
+expression.data <- readRDS("../../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+
+# expression.data <- readRDS("../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+# expression.data<- expression.data[sample(x = seq_len(nrow(expression.data)), size = 300), 
+#                                   sample(x = seq_len(ncol(expression.data)), size = 200)]
+```
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+```
+
+```{r get_samples}
+expression.data %>% 
+  colnames() %>% 
+  strsplit("_") %>% 
+  lapply("[", 1) %>% 
+  unlist() -> samples
+```
+
+```{r get_sample_info}
+samples %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  setNames(c("Samples", "Frequency"))
+```
+
+```{r set_clusters}
+groups <- factor(ifelse(samples == 1 | samples == 3, "WT", "TG"))
+positive.class <- "TG"
+negative.class <- "WT"
+```
+
+```{r get_cluster_info}
+groups %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  setNames(c("Cluster", "Frequency"))
+```
+
+# Format PCA
+
+```{r format_pca}
+pca %>%
+  .[["rotation"]] %>% 
+  as.data.frame() %>% 
+  mutate(type = groups) -> pca.format
+
+pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
+names(pc.var) <- names(pca.format)[-ncol(pca.format)]
+```
+
+```{r plot_pca}
+p12 <- ggplot(pca.format, aes(x = PC1, y = PC2, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
+p13 <- ggplot(pca.format, aes(x = PC1, y = PC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+p23 <- ggplot(pca.format, aes(x = PC2, y = PC3, color = type)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+```
+
+```{r save_pca_plot}
+p <- grid.arrange(p12, p13, p23,  ncol = 1)
+ggsave(paste0("pca_", positive.class, ".png"), p, height = 18)
+```
+
+```{r long_format_pca}
+pca.format.long <- gather(pca.format, "PC", "value", seq_len(ncol(pca.format) - 1))
+```
+
+
+```{r get_significant_eigen}
+pca.format.long %>% 
+  split(pca.format.long$PC) %>% 
+  lapply(function(pc) wilcox.test(value ~ type, pc)) -> pca.type.compare
+
+pca.type.compare %>% 
+  lapply('[[', "p.value") %>% 
+  as.data.frame() %>% 
+  gather(key = "EV", value = "p.value") -> p.vals
+```
+
+```{r bonferroni_correction}
+p.vals$p.value <- p.adjust(p.vals$p.value, method = "bonferroni", n = length(p.vals$p.value))
+
+p.vals %>% 
+  arrange(p.value) %>% 
+  slice(1:25) -> p.vals.filter
+```
+
+
+```{r get_significant_PCs}
+pca.filter <- pca.format[p.vals.filter$EV]
+```
+
+```{r save_eigenvectors}
+cat("Saving eigenvectors...\n")
+saveRDS(pca.filter, file = paste0("eigenvectors_cluster", positive.class, ".RDS"))
+cat("Results saved...\n")
+```
+
+
+
+```{r get_eigenvector_indexes}
+PC.indexes <- lapply(seq_len(ncol(pca.filter))[-1], function(x) seq(1, x, 1))
+```
+
+
+```{r set_params_TrainPredict}
+getEigenvectors <- function(PCs.idx){
+  
+  seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
+  
+  seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
+  
+  
+  pca.filter %>% 
+    select(PCs.idx) %>% 
+    t() %>% 
+    as.data.frame() %>% 
+    setNames(rownames(pca$rotation)) -> data.set
+  
+  dataset.params <- list(groups = pca.format$type,
+                         positive.class = as.character(positive.class),
+                         features = seq_len(nrow(data.set)),
+                         expression.data = data.set,
+                         seed.select = seeds.select,
+                         seed.compare = seeds.compare)
+  
+  training.params <- list(method = 'cv',
+                          number = 5,
+                          seed = 92,
+                          returnResamp = 'none',
+                          returnData = FALSE)
+  
+  return(list(dataset.params = dataset.params, training.params = training.params ))
+}
+```
+
+
+```{r get_dataset_eigenvectors}
+PC.datasets <- lapply(PC.indexes, getEigenvectors)
+names(PC.datasets) <- seq_len(ncol(pca.filter))[-1]
+```
+
+```{r make_predictions}
+# dataset.params <- PC.datasets$`2`$dataset.params
+# training.params <- PC.datasets$`2`$training.params
+# res <- TrainPredict(dataset.params, training.params, methods = c("rf", "elasticNet"), n.rep = 2, n.cores = 2)
+
+predict.all <- function(dataset){
+  TrainPredict(dataset$dataset.params, dataset$training.params, methods = c("rf", "elasticNet"), n.rep = 2, n.cores = 2)
+}
+
+res <- lapply(PC.datasets, predict.all)
+```
+
+```{r get_performance}
+getMetrics <- function(dataset.res){
+  dataset.res %>%
+    lapply(function(b.replicate){ # Iterates bootstrap replicate
+      mapply(function(model, model.name){ # Iterates model
+        data.frame(
+          Model = model.name,
+          Accuracy = model$conf.mat$overall["Accuracy"],
+          Sensitivity = model$conf.mat$byClass["Sensitivity"],
+          Specificity = model$conf.mat$byClass["Specificity"],
+          Kappa = model$conf.mat$overall["Kappa"]
+        )
+      }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
+    }) %>% Reduce(rbind, .)
+}
+
+lapply(res, getMetrics) %>% 
+  mapply(function(x, x.name) cbind(x, n.ev = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
+  Reduce(rbind, .) -> performance
+```
+
+
+```{r save_results}
+cat("Saving metrics...\n")
+saveRDS(performance, file = paste0("performance_cluster", positive.class, ".RDS"))
+cat("Results saved...\n")
+```
+
+
+```{r build_table}
+p.vals.filter$variance <- pc.var[p.vals.filter$EV]
+write.table(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
+```
+
+
+```{r sets_model_plotting_order}
+model.order <- c('glm',
+                 'bayesglm', 
+                 'ridge', 'elasticNet', 'lasso',
+                 'earth', 
+                 'svmLinear', 'svmPoly', 
+                 'rpart', 
+                 'rf', 
+                 'nb', 
+                 'nnet',
+                 'dnn')
+```
+
+
+```{r gather_accuracy_data}
+metrics <- gather(data = performance, key = "Metric", value = "Value", 2:5)
+model.order <- model.order[model.order %in% metrics$Model]
+metrics$Model <- factor(metrics$Model, levels = model.order)
+```
+
+
+```{r plot_metrics}
+p <- ggplot(metrics, aes(x = n.ev, y = Value, fill = Model)) +
+  geom_boxplot(position = "dodge") +
+  ggtitle("Performance metrics: accuracy, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for prediction. EVs are ranked by p-value.") +
+  facet_wrap(~Metric, scales = "free") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r save_metrics_plot}
+ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
+       plot = p,
+       width = 15,
+       height = 7,
+       device = "png",
+       dpi = 350)
+```
+
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
