@@ -1,0 +1,407 @@
+  Samples Frequency
+1       1      3230
+2       2      2632
+3       3      1771
+4       4       907
+  Cluster Frequency
+1      TG      3539
+2      WT      5001
+# A tibble: 4 x 3
+# Groups:   status [2]
+        status samples     n
+        <fctr>  <fctr> <int>
+1     Infected       2   474
+2 Non-infected       2  2158
+3     Infected       4   252
+4 Non-infected       4   655
+# A tibble: 2 x 2
+        status     n
+        <fctr> <int>
+1     Infected   726
+2 Non-infected  2813
+[1] TRUE
+
+Saving pca results...
+
+PCA results saved...
+Saving eigenvectors...
+Results saved...
+starting worker pid=79122 on localhost:11384 at 15:49:30.823
+starting worker pid=79131 on localhost:11384 at 15:49:31.100
+starting worker pid=79140 on localhost:11384 at 15:49:31.420
+starting worker pid=79149 on localhost:11384 at 15:49:31.740
+starting worker pid=79158 on localhost:11384 at 15:49:32.031
+starting worker pid=79167 on localhost:11384 at 15:49:32.317
+starting worker pid=79176 on localhost:11384 at 15:49:32.603
+starting worker pid=79185 on localhost:11384 at 15:49:32.913
+starting worker pid=79194 on localhost:11384 at 15:49:33.201
+starting worker pid=79203 on localhost:11384 at 15:49:33.482
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+note: only 1 unique complexity parameters in default grid. Truncating the grid to 1 .
+
+starting worker pid=79222 on localhost:11384 at 15:50:00.498
+starting worker pid=79231 on localhost:11384 at 15:50:00.783
+starting worker pid=79240 on localhost:11384 at 15:50:01.061
+starting worker pid=79249 on localhost:11384 at 15:50:01.371
+starting worker pid=79258 on localhost:11384 at 15:50:01.653
+starting worker pid=79267 on localhost:11384 at 15:50:01.934
+starting worker pid=79280 on localhost:11384 at 15:50:02.207
+starting worker pid=79289 on localhost:11384 at 15:50:02.512
+starting worker pid=79298 on localhost:11384 at 15:50:02.786
+starting worker pid=79307 on localhost:11384 at 15:50:03.071
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+note: only 2 unique complexity parameters in default grid. Truncating the grid to 2 .
+
+starting worker pid=79326 on localhost:11384 at 15:50:34.431
+starting worker pid=79335 on localhost:11384 at 15:50:34.715
+starting worker pid=79344 on localhost:11384 at 15:50:35.004
+starting worker pid=79353 on localhost:11384 at 15:50:35.324
+starting worker pid=79362 on localhost:11384 at 15:50:35.617
+starting worker pid=79371 on localhost:11384 at 15:50:35.900
+starting worker pid=79380 on localhost:11384 at 15:50:36.189
+starting worker pid=79389 on localhost:11384 at 15:50:36.511
+starting worker pid=79398 on localhost:11384 at 15:50:36.803
+starting worker pid=79407 on localhost:11384 at 15:50:37.084
+starting worker pid=79426 on localhost:11384 at 15:51:11.464
+starting worker pid=79435 on localhost:11384 at 15:51:11.754
+starting worker pid=79444 on localhost:11384 at 15:51:12.039
+starting worker pid=79453 on localhost:11384 at 15:51:12.357
+starting worker pid=79462 on localhost:11384 at 15:51:12.645
+starting worker pid=79471 on localhost:11384 at 15:51:12.933
+starting worker pid=79480 on localhost:11384 at 15:51:13.224
+starting worker pid=79489 on localhost:11384 at 15:51:13.550
+starting worker pid=79498 on localhost:11384 at 15:51:13.841
+starting worker pid=79507 on localhost:11384 at 15:51:14.132
+starting worker pid=79526 on localhost:11384 at 15:51:51.776
+starting worker pid=79535 on localhost:11384 at 15:51:52.071
+starting worker pid=79544 on localhost:11384 at 15:51:52.361
+starting worker pid=79553 on localhost:11384 at 15:51:52.690
+starting worker pid=79562 on localhost:11384 at 15:51:52.988
+starting worker pid=79571 on localhost:11384 at 15:51:53.286
+starting worker pid=79580 on localhost:11384 at 15:51:53.587
+starting worker pid=79589 on localhost:11384 at 15:51:53.902
+starting worker pid=79598 on localhost:11384 at 15:51:54.198
+starting worker pid=79607 on localhost:11384 at 15:51:54.488
+starting worker pid=79626 on localhost:11384 at 15:52:32.923
+starting worker pid=79635 on localhost:11384 at 15:52:33.216
+starting worker pid=79644 on localhost:11384 at 15:52:33.517
+starting worker pid=79653 on localhost:11384 at 15:52:33.850
+starting worker pid=79662 on localhost:11384 at 15:52:34.158
+starting worker pid=79671 on localhost:11384 at 15:52:34.450
+starting worker pid=79680 on localhost:11384 at 15:52:34.753
+starting worker pid=79689 on localhost:11384 at 15:52:35.067
+starting worker pid=79698 on localhost:11384 at 15:52:35.365
+starting worker pid=79707 on localhost:11384 at 15:52:35.664
+starting worker pid=79727 on localhost:11384 at 15:53:15.271
+starting worker pid=79736 on localhost:11384 at 15:53:15.567
+starting worker pid=79745 on localhost:11384 at 15:53:15.861
+starting worker pid=79754 on localhost:11384 at 15:53:16.197
+starting worker pid=79763 on localhost:11384 at 15:53:16.503
+starting worker pid=79772 on localhost:11384 at 15:53:16.802
+starting worker pid=79781 on localhost:11384 at 15:53:17.108
+starting worker pid=79790 on localhost:11384 at 15:53:17.424
+starting worker pid=79799 on localhost:11384 at 15:53:17.723
+starting worker pid=79808 on localhost:11384 at 15:53:18.016
+starting worker pid=79827 on localhost:11384 at 15:54:00.184
+starting worker pid=79836 on localhost:11384 at 15:54:00.489
+starting worker pid=79845 on localhost:11384 at 15:54:00.785
+starting worker pid=79854 on localhost:11384 at 15:54:01.119
+starting worker pid=79863 on localhost:11384 at 15:54:01.421
+starting worker pid=79872 on localhost:11384 at 15:54:01.708
+starting worker pid=79881 on localhost:11384 at 15:54:02.009
+starting worker pid=79890 on localhost:11384 at 15:54:02.332
+starting worker pid=79899 on localhost:11384 at 15:54:02.629
+starting worker pid=79908 on localhost:11384 at 15:54:02.922
+starting worker pid=79927 on localhost:11384 at 15:54:46.175
+starting worker pid=79936 on localhost:11384 at 15:54:46.479
+starting worker pid=79945 on localhost:11384 at 15:54:46.781
+starting worker pid=79954 on localhost:11384 at 15:54:47.121
+starting worker pid=79963 on localhost:11384 at 15:54:47.423
+starting worker pid=79972 on localhost:11384 at 15:54:47.728
+starting worker pid=79981 on localhost:11384 at 15:54:48.030
+starting worker pid=79990 on localhost:11384 at 15:54:48.356
+starting worker pid=79999 on localhost:11384 at 15:54:48.653
+starting worker pid=80008 on localhost:11384 at 15:54:48.950
+starting worker pid=80027 on localhost:11384 at 15:55:33.799
+starting worker pid=80036 on localhost:11384 at 15:55:34.096
+starting worker pid=80045 on localhost:11384 at 15:55:34.394
+starting worker pid=80054 on localhost:11384 at 15:55:34.727
+starting worker pid=80063 on localhost:11384 at 15:55:35.034
+starting worker pid=80072 on localhost:11384 at 15:55:35.329
+starting worker pid=80081 on localhost:11384 at 15:55:35.637
+starting worker pid=80090 on localhost:11384 at 15:55:35.958
+starting worker pid=80099 on localhost:11384 at 15:55:36.258
+starting worker pid=80108 on localhost:11384 at 15:55:36.556
+starting worker pid=80127 on localhost:11384 at 15:56:21.579
+starting worker pid=80136 on localhost:11384 at 15:56:21.878
+starting worker pid=80145 on localhost:11384 at 15:56:22.180
+starting worker pid=80154 on localhost:11384 at 15:56:22.517
+starting worker pid=80163 on localhost:11384 at 15:56:22.815
+starting worker pid=80172 on localhost:11384 at 15:56:23.112
+starting worker pid=80181 on localhost:11384 at 15:56:23.422
+starting worker pid=80190 on localhost:11384 at 15:56:23.740
+starting worker pid=80199 on localhost:11384 at 15:56:24.039
+starting worker pid=80208 on localhost:11384 at 15:56:24.337
+starting worker pid=80227 on localhost:11384 at 15:57:11.383
+starting worker pid=80236 on localhost:11384 at 15:57:11.683
+starting worker pid=80245 on localhost:11384 at 15:57:11.980
+starting worker pid=80254 on localhost:11384 at 15:57:12.313
+starting worker pid=80263 on localhost:11384 at 15:57:12.621
+starting worker pid=80272 on localhost:11384 at 15:57:12.919
+starting worker pid=80281 on localhost:11384 at 15:57:13.224
+starting worker pid=80290 on localhost:11384 at 15:57:13.550
+starting worker pid=80299 on localhost:11384 at 15:57:13.850
+starting worker pid=80308 on localhost:11384 at 15:57:14.152
+starting worker pid=80328 on localhost:11384 at 15:58:01.872
+starting worker pid=80337 on localhost:11384 at 15:58:02.169
+starting worker pid=80346 on localhost:11384 at 15:58:02.462
+starting worker pid=80355 on localhost:11384 at 15:58:02.794
+starting worker pid=80364 on localhost:11384 at 15:58:03.096
+starting worker pid=80373 on localhost:11384 at 15:58:03.394
+starting worker pid=80382 on localhost:11384 at 15:58:03.699
+starting worker pid=80391 on localhost:11384 at 15:58:04.020
+starting worker pid=80400 on localhost:11384 at 15:58:04.322
+starting worker pid=80409 on localhost:11384 at 15:58:04.622
+starting worker pid=80428 on localhost:11384 at 15:58:53.339
+starting worker pid=80437 on localhost:11384 at 15:58:53.647
+starting worker pid=80446 on localhost:11384 at 15:58:53.946
+starting worker pid=80455 on localhost:11384 at 15:58:54.292
+starting worker pid=80464 on localhost:11384 at 15:58:54.605
+starting worker pid=80473 on localhost:11384 at 15:58:54.912
+starting worker pid=80482 on localhost:11384 at 15:58:55.227
+starting worker pid=80491 on localhost:11384 at 15:58:55.557
+starting worker pid=80500 on localhost:11384 at 15:58:55.860
+starting worker pid=80509 on localhost:11384 at 15:58:56.162
+starting worker pid=80528 on localhost:11384 at 15:59:46.507
+starting worker pid=80537 on localhost:11384 at 15:59:46.810
+starting worker pid=80546 on localhost:11384 at 15:59:47.110
+starting worker pid=80555 on localhost:11384 at 15:59:47.447
+starting worker pid=80564 on localhost:11384 at 15:59:47.754
+starting worker pid=80573 on localhost:11384 at 15:59:48.053
+starting worker pid=80582 on localhost:11384 at 15:59:48.362
+starting worker pid=80591 on localhost:11384 at 15:59:48.693
+starting worker pid=80600 on localhost:11384 at 15:59:49.006
+starting worker pid=80609 on localhost:11384 at 15:59:49.312
+starting worker pid=80632 on localhost:11384 at 16:00:41.826
+starting worker pid=80641 on localhost:11384 at 16:00:42.137
+starting worker pid=80650 on localhost:11384 at 16:00:42.440
+starting worker pid=80659 on localhost:11384 at 16:00:42.785
+starting worker pid=80668 on localhost:11384 at 16:00:43.097
+starting worker pid=80677 on localhost:11384 at 16:00:43.402
+starting worker pid=80686 on localhost:11384 at 16:00:43.719
+starting worker pid=80695 on localhost:11384 at 16:00:44.048
+starting worker pid=80704 on localhost:11384 at 16:00:44.356
+starting worker pid=80713 on localhost:11384 at 16:00:44.663
+starting worker pid=80743 on localhost:11384 at 16:01:37.339
+starting worker pid=80752 on localhost:11384 at 16:01:37.648
+starting worker pid=80761 on localhost:11384 at 16:01:37.958
+starting worker pid=80770 on localhost:11384 at 16:01:38.304
+starting worker pid=80779 on localhost:11384 at 16:01:38.615
+starting worker pid=80788 on localhost:11384 at 16:01:38.919
+starting worker pid=80797 on localhost:11384 at 16:01:39.243
+starting worker pid=80806 on localhost:11384 at 16:01:39.574
+starting worker pid=80815 on localhost:11384 at 16:01:39.880
+starting worker pid=80824 on localhost:11384 at 16:01:40.200
+starting worker pid=80843 on localhost:11384 at 16:02:34.906
+starting worker pid=80852 on localhost:11384 at 16:02:35.211
+starting worker pid=80861 on localhost:11384 at 16:02:35.515
+starting worker pid=80870 on localhost:11384 at 16:02:35.857
+starting worker pid=80879 on localhost:11384 at 16:02:36.166
+starting worker pid=80888 on localhost:11384 at 16:02:36.471
+starting worker pid=80897 on localhost:11384 at 16:02:36.788
+starting worker pid=80906 on localhost:11384 at 16:02:37.123
+starting worker pid=80915 on localhost:11384 at 16:02:37.432
+starting worker pid=80924 on localhost:11384 at 16:02:37.740
+starting worker pid=80944 on localhost:11384 at 16:03:34.212
+starting worker pid=80953 on localhost:11384 at 16:03:34.521
+starting worker pid=80962 on localhost:11384 at 16:03:34.834
+starting worker pid=80971 on localhost:11384 at 16:03:35.183
+starting worker pid=80980 on localhost:11384 at 16:03:35.494
+starting worker pid=80989 on localhost:11384 at 16:03:35.800
+starting worker pid=80998 on localhost:11384 at 16:03:36.120
+starting worker pid=81007 on localhost:11384 at 16:03:36.453
+starting worker pid=81016 on localhost:11384 at 16:03:36.761
+starting worker pid=81025 on localhost:11384 at 16:03:37.084
+starting worker pid=81044 on localhost:11384 at 16:04:34.926
+starting worker pid=81053 on localhost:11384 at 16:04:35.242
+starting worker pid=81062 on localhost:11384 at 16:04:35.557
+starting worker pid=81071 on localhost:11384 at 16:04:35.910
+starting worker pid=81080 on localhost:11384 at 16:04:36.232
+starting worker pid=81089 on localhost:11384 at 16:04:36.549
+starting worker pid=81098 on localhost:11384 at 16:04:36.883
+starting worker pid=81107 on localhost:11384 at 16:04:37.222
+starting worker pid=81116 on localhost:11384 at 16:04:37.545
+starting worker pid=81125 on localhost:11384 at 16:04:37.874
+starting worker pid=81144 on localhost:11384 at 16:05:37.704
+starting worker pid=81153 on localhost:11384 at 16:05:38.023
+starting worker pid=81162 on localhost:11384 at 16:05:38.344
+starting worker pid=81171 on localhost:11384 at 16:05:38.700
+starting worker pid=81180 on localhost:11384 at 16:05:39.025
+starting worker pid=81189 on localhost:11384 at 16:05:39.344
+starting worker pid=81198 on localhost:11384 at 16:05:39.684
+starting worker pid=81207 on localhost:11384 at 16:05:40.026
+starting worker pid=81216 on localhost:11384 at 16:05:40.344
+starting worker pid=81225 on localhost:11384 at 16:05:40.669
+starting worker pid=81244 on localhost:11384 at 16:06:42.393
+starting worker pid=81253 on localhost:11384 at 16:06:42.708
+starting worker pid=81262 on localhost:11384 at 16:06:43.023
+starting worker pid=81271 on localhost:11384 at 16:06:43.368
+starting worker pid=81280 on localhost:11384 at 16:06:43.685
+starting worker pid=81289 on localhost:11384 at 16:06:44.000
+starting worker pid=81298 on localhost:11384 at 16:06:44.328
+starting worker pid=81307 on localhost:11384 at 16:06:44.674
+starting worker pid=81316 on localhost:11384 at 16:06:44.994
+starting worker pid=81325 on localhost:11384 at 16:06:45.320
+starting worker pid=81344 on localhost:11384 at 16:07:48.331
+starting worker pid=81353 on localhost:11384 at 16:07:48.651
+starting worker pid=81362 on localhost:11384 at 16:07:48.967
+starting worker pid=81371 on localhost:11384 at 16:07:49.326
+starting worker pid=81380 on localhost:11384 at 16:07:49.644
+starting worker pid=81389 on localhost:11384 at 16:07:49.964
+starting worker pid=81398 on localhost:11384 at 16:07:50.297
+starting worker pid=81407 on localhost:11384 at 16:07:50.638
+starting worker pid=81416 on localhost:11384 at 16:07:50.957
+starting worker pid=81425 on localhost:11384 at 16:07:51.286
+starting worker pid=81445 on localhost:11384 at 16:08:54.640
+starting worker pid=81454 on localhost:11384 at 16:08:54.962
+starting worker pid=81463 on localhost:11384 at 16:08:55.279
+starting worker pid=81472 on localhost:11384 at 16:08:55.632
+starting worker pid=81481 on localhost:11384 at 16:08:55.952
+starting worker pid=81490 on localhost:11384 at 16:08:56.269
+starting worker pid=81499 on localhost:11384 at 16:08:56.600
+starting worker pid=81508 on localhost:11384 at 16:08:56.938
+starting worker pid=81517 on localhost:11384 at 16:08:57.261
+starting worker pid=81526 on localhost:11384 at 16:08:57.590
+Saving metrics...
+Results saved...
+ setting  value                       
+ version  R version 3.4.0 (2017-04-21)
+ system   x86_64, linux-gnu           
+ ui       X11                         
+ language (EN)                        
+ collate  C                           
+ tz       Australia/Brisbane          
+ date     2017-08-30                  
+
+ package      * version    date       source        
+ assertthat     0.2.0      2017-04-11 CRAN (R 3.4.0)
+ base         * 3.4.0      2017-06-15 local         
+ bindr          0.1        2016-11-13 CRAN (R 3.4.0)
+ bindrcpp     * 0.2        2017-06-17 CRAN (R 3.4.0)
+ broom          0.4.2      2017-02-13 CRAN (R 3.4.0)
+ car            2.1-5      2017-07-04 CRAN (R 3.4.0)
+ caret        * 6.0-76     2017-04-18 CRAN (R 3.4.0)
+ cellranger     1.1.0      2016-07-27 CRAN (R 3.4.0)
+ codetools      0.2-15     2016-10-05 CRAN (R 3.4.0)
+ colorspace     1.3-2      2016-12-14 CRAN (R 3.4.0)
+ compiler       3.4.0      2017-06-15 local         
+ datasets     * 3.4.0      2017-06-15 local         
+ devtools       1.13.2     2017-06-02 CRAN (R 3.4.0)
+ digest         0.6.12     2017-01-27 CRAN (R 3.4.0)
+ doParallel   * 1.0.10     2015-10-14 CRAN (R 3.4.0)
+ dplyr        * 0.7.2      2017-07-20 CRAN (R 3.4.0)
+ forcats        0.2.0      2017-01-23 CRAN (R 3.4.0)
+ foreach      * 1.4.3      2015-10-13 CRAN (R 3.4.0)
+ foreign        0.8-67     2016-09-13 CRAN (R 3.4.0)
+ gdata          2.18.0     2017-06-06 CRAN (R 3.4.0)
+ ggplot2      * 2.2.1      2016-12-30 CRAN (R 3.4.0)
+ glmnet       * 2.0-10     2017-05-06 CRAN (R 3.4.0)
+ glue           1.1.1      2017-06-21 CRAN (R 3.4.0)
+ gmodels      * 2.16.2     2015-07-22 CRAN (R 3.4.0)
+ graphics     * 3.4.0      2017-06-15 local         
+ grDevices    * 3.4.0      2017-06-15 local         
+ grid           3.4.0      2017-06-15 local         
+ gridExtra    * 2.2.1      2016-02-29 CRAN (R 3.4.0)
+ gtable         0.2.0      2016-02-26 CRAN (R 3.4.0)
+ gtools         3.5.0      2015-05-29 CRAN (R 3.4.0)
+ haven          1.0.0      2016-09-23 CRAN (R 3.4.0)
+ hms            0.3        2016-11-22 CRAN (R 3.4.0)
+ httr           1.2.1      2016-07-03 CRAN (R 3.4.0)
+ iterators    * 1.0.8      2015-10-13 CRAN (R 3.4.0)
+ jsonlite       1.5        2017-06-01 CRAN (R 3.4.0)
+ kernlab        0.9-25     2016-10-03 CRAN (R 3.4.0)
+ knitr        * 1.16       2017-05-18 CRAN (R 3.4.0)
+ labeling       0.3        2014-08-23 CRAN (R 3.4.0)
+ lattice      * 0.20-35    2017-03-25 CRAN (R 3.4.0)
+ lazyeval       0.2.0      2016-06-12 CRAN (R 3.4.0)
+ lme4           1.1-13     2017-04-19 CRAN (R 3.4.0)
+ lubridate      1.6.0      2016-09-13 CRAN (R 3.4.0)
+ magrittr       1.5        2014-11-22 CRAN (R 3.4.0)
+ MASS           7.3-47     2017-02-26 CRAN (R 3.4.0)
+ Matrix       * 1.2-9      2017-03-14 CRAN (R 3.4.0)
+ MatrixModels   0.4-1      2015-08-22 CRAN (R 3.4.0)
+ memoise        1.1.0      2017-04-21 CRAN (R 3.4.0)
+ methods        3.4.0      2017-06-15 local         
+ mgcv           1.8-17     2017-02-08 CRAN (R 3.4.0)
+ minqa          1.2.4      2014-10-09 CRAN (R 3.4.0)
+ mnormt         1.5-5      2016-10-15 CRAN (R 3.4.0)
+ ModelMetrics   1.1.0      2016-08-26 CRAN (R 3.4.0)
+ modelr         0.1.0      2016-08-31 CRAN (R 3.4.0)
+ munsell        0.4.3      2016-02-13 CRAN (R 3.4.0)
+ nlme           3.1-131    2017-02-06 CRAN (R 3.4.0)
+ nloptr         1.0.4      2014-08-04 CRAN (R 3.4.0)
+ nnet           7.3-12     2016-02-02 CRAN (R 3.4.0)
+ parallel     * 3.4.0      2017-06-15 local         
+ pbkrtest       0.4-7      2017-03-15 CRAN (R 3.4.0)
+ pkgconfig      2.0.1      2017-03-21 CRAN (R 3.4.0)
+ plyr           1.8.4      2016-06-08 CRAN (R 3.4.0)
+ psych          1.7.5      2017-05-03 CRAN (R 3.4.0)
+ purrr        * 0.2.2.2    2017-05-11 CRAN (R 3.4.0)
+ quantreg       5.33       2017-04-18 CRAN (R 3.4.0)
+ R6             2.2.2      2017-06-17 CRAN (R 3.4.0)
+ RColorBrewer * 1.1-2      2014-12-07 CRAN (R 3.4.0)
+ Rcpp           0.12.12    2017-07-15 CRAN (R 3.4.0)
+ readr        * 1.1.1      2017-05-16 CRAN (R 3.4.0)
+ readxl         1.0.0      2017-04-18 CRAN (R 3.4.0)
+ reshape2       1.4.2      2016-10-22 CRAN (R 3.4.0)
+ rlang          0.1.2      2017-08-09 CRAN (R 3.4.0)
+ rvest          0.3.2      2016-06-17 CRAN (R 3.4.0)
+ scales         0.4.1      2016-11-09 CRAN (R 3.4.0)
+ scPrediction * 0.0.0.9000 2017-08-15 git (@c2368f8)
+ SparseM        1.77       2017-04-23 CRAN (R 3.4.0)
+ splines        3.4.0      2017-06-15 local         
+ stats        * 3.4.0      2017-06-15 local         
+ stats4         3.4.0      2017-06-15 local         
+ stringi        1.1.5      2017-04-07 CRAN (R 3.4.0)
+ stringr        1.2.0      2017-02-18 CRAN (R 3.4.0)
+ tibble       * 1.3.3      2017-05-28 CRAN (R 3.4.0)
+ tidyr        * 0.6.3      2017-05-15 CRAN (R 3.4.0)
+ tidyverse    * 1.1.1      2017-01-27 CRAN (R 3.4.0)
+ tools          3.4.0      2017-06-15 local         
+ utils        * 3.4.0      2017-06-15 local         
+ withr          1.0.2      2016-06-20 CRAN (R 3.4.0)
+ xml2           1.1.1      2017-01-24 CRAN (R 3.4.0)
