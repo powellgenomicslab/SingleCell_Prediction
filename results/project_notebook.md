@@ -973,7 +973,7 @@ The following scripts were run to predict cluster identity for HiPSC dataset. A 
 
 # 21/08/2017
 
-The following scripts were run to reduce the minesions of the HBCA dataset.
+The following scripts were run to reduce the dimensions of the HBCA dataset.
 
 `PCA_hbca.Rmd` (commit [6f8f661](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/6f8f6611e0389884a70b79c11e2d2d600b804e9f/bin/PCA_hbca.Rmd))
 
@@ -1038,4 +1038,47 @@ The following scripts were run to reduce the minesions of the HBCA dataset.
 ### Cluster 4
 
 ![](../results/2017-08-21_hipsc_dm_eigenvectors/metrics_cluster_4.png)
+
+# 23/08/2017
+
+`get_eigenvectors.Rmd` (commit [49f6ef8](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/49f6ef8730dc2dac7ec164ce83a9e439fadc4bd4/bin/get_eigenvectors.Rmd)) was updated to get the top 25 eigenvectors from the diffusion map output of the HiPSC dataset.
+
+# 24/08/2017
+
+The following scripts were run to predict cell types from the HBCA dataset using eigenvectors calculated with PCA, MDS and Difussion map.
+
+`hbca_PCA_cumulative.Rmd` (commit [40863b3](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/40863b39c63774f5ef1dcbad5ee821b1ccda34fb/bin/hbca_PCA_cumulative.Rmd))
+
+`hbca_MDS_cumulative.Rmd` (commit [ed5734b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/ed5734bb215447c1a523bfd12d9b77d6176778d5/bin/hbca_MDS_cumulative.Rmd))
+
+`hbca_DM_cumulative.Rmd` (commit [6e09e00](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/6e09e003d912023f78fff488af8e46ad4c8ce05a/bin/hbca_DM_cumulative.Rmd))
+
+In order to compare dimension reduction methods with DE genes-based predictions, as script to determine the performance of predictions with DE genes was run:
+
+`hbca_DE.Rmd` (commit [22a489e](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/22a489e3ae66102c76f33372cf2ee38ab46b720a/bin/hbca_DE.Rmd))
+
+# 25/08/2017
+
+- keratinocyte data set was provided by @Sam.
+- `keratinocyte_pca_mds_dm.Rmd` (commit [337f09d](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/337f09dfa020f5fe99fb16408721a134eff9e3e8/bin/keratinocyte_pca_mds_dm.Rmd)) was run to perform PCA, MDS and DM calculations using the keratinocyte data set. Results may be found in *results/2017-08-25_keratinocyte_pca_mds_dm*.
+
+
+
+# 29/08/2017
+
+`keratinocyte_pca_cumulative.Rmd` (commit [0c1c208](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/0c1c20866c69a1a81d5cfa08fc873cff49df8b0c/bin/keratinocyte_pca_cumulative.Rmd)) was tun to predict TG cells versus WT cells.
+
+The following plot shows the first three principal components. Note that the second component explains most of the separation between TG and WT clusters.
+
+
+![](2017-08-29_keratinocyte_pca_eigenvectors/pca_TG.png)
+
+The following plot shows the performance results of the TG cells prediction.
+We can see thast with at least 5 components, the accuracy of the predictions is arodun 99.50% right. High values of sensitivity and specificity suggest that we can predict both clusters with high confidence.
+
+In order to identify wheater the variance which is explaining the cluster identity comes exclusively from the viral expressed genes (E7 and E6), we will predict cells with viral transcript detection versus others taking into account only transgenic samples. 
+
+
+![](2017-08-29_keratinocyte_pca_eigenvectors/metrics_cluster_TG.png)
+
 
