@@ -20,6 +20,10 @@ library("knitr")
 
 # Read data
 
+```{r read_pca_data}
+f.path <- "../2017-08-25_keratinocyte_pca_mds_dm/"
+pca <- readRDS(paste0(f.path, "keratinocyte_pca.RDS"))
+```
 
 ```{r read_expression_data}
 expression.data <- readRDS("../../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
