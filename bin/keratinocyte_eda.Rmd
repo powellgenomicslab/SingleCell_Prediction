@@ -1,0 +1,182 @@
+---
+title: "Exploratory data analysis of keratinocyte dataset"
+author: "Jose Alquicira Hernandez"
+date: "30/08/2017"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+```{r load_libraries}
+library("tidyverse")
+library("knitr")
+library("plotly")
+```
+
+# Import data
+
+
+```{r read_pca_top25_eigenvectors}
+eigenvectors <- readRDS("../results/2017-08-29_keratinocyte_pca_eigenvectors/eigenvectors_clusterTG.RDS")
+```
+
+
+```{r read_expression_data}
+# expression.data <- readRDS("../../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+expression.data <- readRDS("../data/25-08-2017_APC_E7_SCRNASEQ/keratinocyte_exp_matrix.RDS")
+```
+
+```{r format_gene_names}
+rownames(expression.data) <- gsub("_.*", '', rownames(expression.data))
+
+# keep.e7 <- which(rownames(expression.data) == "E7")
+# expression.data <- expression.data[c(keep.e7, sample(x = seq_len(nrow(expression.data)), size = 299)), sample(x = seq_len(ncol(expression.data)), size = 200)]
+```
+
+# Get summary statistics
+
+```{r get_samples}
+expression.data %>% 
+  colnames() %>% 
+  strsplit("_") %>% 
+  lapply("[", 1) %>% 
+  unlist() -> samples
+```
+
+## Number of cells per sample
+
+```{r get_sample_info}
+samples %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  setNames(c("Samples", "Frequency"))
+```
+
+
+```{r set_clusters}
+groups <- factor(ifelse(samples == 1 | samples == 3, "WT", "TG"))
+```
+
+
+## Number of cells per cluster ("Wild type" vs. "Transgenic")
+
+
+```{r get_cluster_info}
+groups %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  setNames(c("Cluster", "Frequency")) %>% 
+  kable()
+```
+
+
+```{r define_infected_cells}
+# Get row for E7 gene expression
+e7.idx <- which(rownames(expression.data) == "E7")
+
+# Create data frame with cell id, E7 expression, group and sample info
+viral.genes <- data.frame(cell.id = names(expression.data[e7.idx,]),
+                          e7 = expression.data[e7.idx,],
+                          groups = factor(groups),
+                          samples = factor(samples))
+
+# Assign if a cell is infected or not depending on gene expression threshold of E7 gene
+viral.genes %>% 
+  mutate(status = as.factor(if_else((samples == "2" | samples == "4") & e7 > 0, 
+                                    "Infected", 
+                                    "Non-infected")), 
+         cell.id = factor(cell.id)) -> infected.cells
+```
+
+## Number of cells depending on infection status
+
+```{r num_cells_infected}
+# Get number of cells infected 
+infected.cells %>% 
+  group_by(status) %>% 
+  summarise(n = n()) %>% 
+  kable()
+```
+
+
+## Number of cells depending on infection status (stratified by sample)
+
+
+```{r num_cells_infected_by_sample}
+# Get total number of cells infected stratified by sample inf
+infected.cells %>% 
+  group_by(status, samples) %>% 
+  summarise(n = n()) %>% 
+  arrange(samples) %>% 
+  kable()
+```
+
+
+
+
+```{r subset_gene_exp_matrix}
+transgenic.exp.data <- expression.data[,colnames(expression.data) %in% infected.cells$cell.id]
+
+
+e7.idx <- which(rownames(transgenic.exp.data) == "E7")
+
+transgenic.exp.data <- transgenic.exp.data[-e7.idx,]
+
+# Make sure all cells in new gene expression matrix are ordered according to infected.cells data frame
+# all(colnames(transgenic.exp.data) == infected.cells$cell.id)
+```
+
+
+```{r add_batch_info}
+keratinocytes <- as.tibble(cbind(eigenvectors, infected.cells))
+keratinocytes <- keratinocytes %>% 
+  mutate(batch = if_else(samples == 1 | samples == 2, "Batch1", "Batch2"))
+```
+
+
+# PCA plots {.tabset}
+
+## Sample origin
+
+```{r plot_pca_sample_info}
+plot_ly(keratinocytes, x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~samples, 
+        colors = "Set3",
+        marker = list(size = 2),
+        size = 10, replace = TRUE) 
+```
+
+## Cluster WT vs. TG
+
+```{r plot_pca_cluster_info}
+plot_ly(keratinocytes, x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~groups, 
+        colors = "Set1",
+        marker = list(size = 2)) 
+```
+
+## Detected viral transcripts
+
+```{r plot_pca_status_info}
+plot_ly(keratinocytes, x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~status, 
+        colors = "Set2",
+        marker = list(size = 2)) 
+```
+
+## Batch info
+
+```{r plot_pca_batch_info}
+plot_ly(keratinocytes, x = ~PC1, y = ~PC2, z = ~PC3, 
+        color = ~batch, 
+        colors = "Accent",
+        marker = list(size = 2)) 
+```
+
