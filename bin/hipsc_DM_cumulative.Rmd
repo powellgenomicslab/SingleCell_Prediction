@@ -23,7 +23,7 @@ positive.class <- argv[1]
 # Read and process input data
 
 ```{r read_pca_data}
-f.path <- "../2017-09-21_hipsc_dm/"
+f.path <- "../2017-08-21_hipsc_dm/"
 dm <- readRDS(paste0(f.path, "diffusion_hipsc.RDS"))
 ```
 
