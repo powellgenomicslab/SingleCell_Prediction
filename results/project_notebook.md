@@ -1066,7 +1066,7 @@ In order to compare dimension reduction methods with DE genes-based predictions,
 
 # 29/08/2017
 
-`keratinocyte_pca_cumulative.Rmd` (commit [0c1c208](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/0c1c20866c69a1a81d5cfa08fc873cff49df8b0c/bin/keratinocyte_pca_cumulative.Rmd)) was tun to predict TG cells versus WT cells.
+`keratinocyte_pca_cumulative.Rmd` (commit [0c1c208](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/0c1c20866c69a1a81d5cfa08fc873cff49df8b0c/bin/keratinocyte_pca_cumulative.Rmd)) was run to predict TG cells versus WT cells.
 
 The following plot shows the first three principal components. Note that the second component explains most of the separation between TG and WT clusters.
 
@@ -1076,9 +1076,37 @@ The following plot shows the first three principal components. Note that the sec
 The following plot shows the performance results of the TG cells prediction.
 We can see thast with at least 5 components, the accuracy of the predictions is arodun 99.50% right. High values of sensitivity and specificity suggest that we can predict both clusters with high confidence.
 
-In order to identify wheater the variance which is explaining the cluster identity comes exclusively from the viral expressed genes (E7 and E6), we will predict cells with viral transcript detection versus others taking into account only transgenic samples. 
+In order to identify whether the variance which is explaining the cluster identity comes exclusively from the viral expressed genes (E7 and E6), we will predict cells with viral transcript detection versus others taking into account only transgenic samples. 
 
 
 ![](2017-08-29_keratinocyte_pca_eigenvectors/metrics_cluster_TG.png)
 
 
+# 30/08/2017
+
+## Prediction of infected cells (E7 viral transcripts detected)
+
+The following steps were performed in order to predict cells considering E7 gene expression
+
+
+1. Take sample 2 and 4 (transgenic samples) and perform a PCA over all genes
+2. Make predictions using Elastic Net, SVM (Polynomial kernel) and Random Forests
+
+![](2017-08-30_keratinocyte_pca_eigenvectors_inf_vs_non_inf/pca_Infected.png)
+
+![](2017-08-30_keratinocyte_pca_eigenvectors_inf_vs_non_inf/metrics_cluster_Infected.png)
+
+## Prediction of infected cells (E7 viral transcripts detected) excluding E7 expression
+
+The following steps were performed in order to predict cells excluding E7 gene expression
+
+1. Take sample 2 and 4 (transgenic samples) and perform a PCA over all genes EXCEPT *E7*
+2. Make predictions using Elastic Net, SVM (Polynomial kernel) and Random Forests
+
+![](2017-08-30_keratinocyte_pca_eigenvectors_inf_vs_non_inf_no_e7/pca_Infected.png)
+
+![](2017-08-30_keratinocyte_pca_eigenvectors_inf_vs_non_inf_no_e7/metrics_cluster_Infected.png)
+
+# 31/08/2017
+
+`keratinocyte_eda.Rmd` ([603981b](https://github.com/IMB-Computational-Genomics-Lab/SingleCell_Prediction/blob/603981ba4c79529e717840afbb301e79a99db045/bin/keratinocyte_eda.Rmd)) was run to make an exploratory data analysis of the keratinocytes dataset. PCA plots to visualize sample origin, batches and cells with detected viral trancripts are included.
