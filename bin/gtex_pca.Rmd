@@ -1,0 +1,102 @@
+---
+title: "PCA of GTEx data"
+author: "Jose Alquicira Hernandez"
+date: "08/09/2017"
+output: html_document
+---
+
+```{r import_libraries}
+library("tidyverse")
+library("data.table")
+library("knitr")
+```
+
+
+```{r read_expression_data}
+rpkm <- fread("/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/13-09-2017_GTEx_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2)
+```
+
+```{r format_gene_names}
+rownames(rpkm) <- paste(rpkm$Name, rpkm$Description, sep = "_")
+rpkm$Name <- NULL
+rpkm$Description <- NULL
+```
+
+
+```{r read_sample_metadata}
+sample.metadata <- as.data.frame(fread("/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/13-09-2017_GTEx_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", "")))
+```
+
+```{r intersect_metadata_with_gene_expression_matrix_samples}
+sample.metadata <- sample.metadata[sample.metadata$SAMPID %in% names(rpkm),]
+```
+
+```{r get_sample_summary}
+sample.metadata %>% 
+  select(SMTS) %>% 
+  group_by(SMTS) %>% 
+  count() %>% 
+  arrange(-n) %>% 
+  kable()
+```
+
+
+```{r remove_samples_with_missing_SMTS_info}
+sample.metadata <- sample.metadata[!is.na(sample.metadata$SMTS), ]
+```
+
+
+```{r perform_pca}
+pca <- prcomp(rpkm, center = TRUE, scale. = TRUE)
+```
+
+
+```{r add_cluster_info}
+sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), "SMTS", drop = TRUE]
+sample.info <- factor(sample.info, levels = unique(sample.info))
+pca$clusters <- sample.info
+```
+
+```{r save_pca}
+cat("Saving results...\n")
+saveRDS(pca, file = "gtex_pca.RDS")
+cat("Results saved...\n")
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
+
+
+```{r format_pca}
+# sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), "SMTS", drop = TRUE]
+# sample.info <- factor(sample.info, levels = unique(sample.info))
+# 
+# pca %>%
+#   .[["rotation"]] %>% 
+#   as.data.frame() %>% 
+#   mutate(id = row.names(.), sample = sample.info) -> pca.format
+# 
+# pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
+# names(pc.var) <- names(pca.format)[-c(ncol(pca.format) -1, ncol(pca.format))]
+```
+
+```{r plot_pca}
+# p12 <- ggplot(pca.format, aes(x = PC1, y = PC2, color = sample)) +
+#   geom_point() +
+#   scale_color_brewer(palette = "Set1") +
+#   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+#   ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
+# p13 <- ggplot(pca.format, aes(x = PC1, y = PC3, color = sample)) +
+#   geom_point() +
+#   scale_color_brewer(palette = "Set1") +
+#   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+#   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+# p23 <- ggplot(pca.format, aes(x = PC2, y = PC3, color = sample)) +
+#   geom_point() +
+#   scale_color_brewer(palette = "Set1") +
+#   xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
+#   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+```
+
