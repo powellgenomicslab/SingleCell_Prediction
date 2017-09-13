@@ -13,7 +13,7 @@ library("knitr")
 
 
 ```{r read_expression_data}
-rpkm <- fread("/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/13-09-2017_GTEx_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2)
+rpkm <- fread("../../data/2017-09-13_gtex_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2)
 ```
 
 ```{r format_gene_names}
@@ -24,7 +24,7 @@ rpkm$Description <- NULL
 
 
 ```{r read_sample_metadata}
-sample.metadata <- as.data.frame(fread("/Users/j.alquicira/Documents/powell_lab/projects/SingleCell_Prediction/data/13-09-2017_GTEx_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", "")))
+sample.metadata <- as.data.frame(fread("/../../data/2017-09-13_gtex_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", "")))
 ```
 
 ```{r intersect_metadata_with_gene_expression_matrix_samples}
