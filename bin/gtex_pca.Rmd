@@ -43,6 +43,8 @@ sample.metadata %>%
 
 ```{r remove_samples_with_missing_SMTS_info}
 sample.metadata <- sample.metadata[!is.na(sample.metadata$SMTS), ]
+remove.samples <- sample.metadata[is.na(sample.metadata$SMTS), "SAMPID"]
+rpkm <- rpkm[,.SD, .SDcols=-remove.samples]
 ```
 
 
