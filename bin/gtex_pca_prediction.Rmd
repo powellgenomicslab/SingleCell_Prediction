@@ -28,8 +28,8 @@ pca <- readRDS(paste0(f.path, "gtex_pca.RDS"))
 ```
 
 ```{r get_positive_and_negative_classes}
-# positive.class <- "Blood"
-# negative.class <- "Heart"
+# positive.class <- "Heart"
+# negative.class <- "Blood"
 
 
 positive.class.idx <- pca$clusters == positive.class
@@ -151,7 +151,8 @@ getEigenvectors <- function(EVs.idx){
                           number = 5,
                           seed = 92,
                           returnResamp = 'none',
-                          returnData = FALSE)
+                          returnData = FALSE,
+                          classProbs =  TRUE)
   
   return(list(dataset.params = dataset.params, training.params = training.params ))
 }
@@ -172,8 +173,8 @@ predict.all <- function(dataset){
   TrainPredict(dataset.params = dataset$dataset.params, 
                training.params = dataset$training.params, 
                methods = c("glm", "elasticNet", "earth", "svmPoly", "rf"), 
-               n.rep = 2, 
-               n.cores = 2)
+               n.rep = 10, 
+               n.cores = 10)
 }
 
 res <- lapply(EV.datasets, predict.all)
@@ -189,7 +190,8 @@ getMetrics <- function(dataset.res){
           Accuracy = model$conf.mat$overall["Accuracy"],
           Sensitivity = model$conf.mat$byClass["Sensitivity"],
           Specificity = model$conf.mat$byClass["Specificity"],
-          Kappa = model$conf.mat$overall["Kappa"]
+          Kappa = model$conf.mat$overall["Kappa"],
+          AUC = model$roc.auc
         )
       }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
     }) %>% Reduce(rbind, .)
@@ -228,7 +230,7 @@ model.order <- c('glm',
 
 
 ```{r gather_accuracy_data}
-metrics <- gather(data = performance, key = "Metric", value = "Value", 2:5)
+metrics <- gather(data = performance, key = "Metric", value = "Value", 2:6)
 model.order <- model.order[model.order %in% metrics$Model]
 metrics$Model <- factor(metrics$Model, levels = model.order)
 ```
@@ -237,7 +239,8 @@ metrics$Model <- factor(metrics$Model, levels = model.order)
 p <- ggplot(metrics, aes(x = n.ev, y = Value, fill = Model)) +
   geom_boxplot(position = "dodge") +
   ggtitle("Performance metrics: accuracy, kappa, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for prediction. EVs are ranked by p-value.") +
-  facet_wrap(~Metric, scales = "free") +
+  xlab("Number of eigenvectors") +
+  facet_wrap(~Metric, scales = "free", nrow = 1) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_brewer(palette = "Set1")
@@ -246,8 +249,8 @@ p <- ggplot(metrics, aes(x = n.ev, y = Value, fill = Model)) +
 ```{r save_metrics_plot}
 ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
        plot = p,
-       width = 15,
-       height = 7,
+       width = 20,
+       height = 6,
        device = "png",
        dpi = 350)
 ```
