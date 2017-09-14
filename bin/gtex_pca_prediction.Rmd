@@ -32,13 +32,13 @@ pca <- readRDS(paste0(f.path, "gtex_pca.RDS"))
 # negative.class <- "Blood"
 
 
-positive.class.idx <- pca$clusters == positive.class
-negative.class.idx <- pca$clusters == negative.class
+positive.class.idx <- pca$clusters$SMTS == positive.class
+negative.class.idx <- pca$clusters$SMTS == negative.class
 
 classes.idx <- positive.class.idx | negative.class.idx
 
 pca.classes  <- pca$rotation[classes.idx,]
-pca.clusters <- pca$clusters[classes.idx]
+pca.clusters <- pca$clusters$SMTS[classes.idx]
 
 pca.clusters <- factor(pca.clusters, levels = unique(pca.clusters))
 ```
