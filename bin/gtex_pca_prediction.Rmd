@@ -23,7 +23,7 @@ negative.class <- argv[2]
 # Read and process input data
 
 ```{r read_pca_data}
-f.path <- "../2017-09-13_gtex_pca/"
+f.path <- "../2017-09-14_gtex_pca/"
 pca <- readRDS(paste0(f.path, "gtex_pca.RDS"))
 ```
 
