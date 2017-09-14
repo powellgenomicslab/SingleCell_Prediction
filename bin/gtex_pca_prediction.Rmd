@@ -16,7 +16,7 @@ library("knitr")
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
 positive.class <- argv[1]
-negative.class <- argv[1]
+negative.class <- argv[2]
 ```
 
 
