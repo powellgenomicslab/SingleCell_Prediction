@@ -13,7 +13,7 @@ library("knitr")
 
 
 ```{r read_expression_data}
-rpkm <- fread("../../data/2017-09-13_gtex_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2)
+rpkm <- fread("../../data/2017-09-13_gtex_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2, data.table = FALSE)
 ```
 
 ```{r format_gene_names}
@@ -24,11 +24,18 @@ rpkm$Description <- NULL
 
 
 ```{r read_sample_metadata}
-sample.metadata <- as.data.frame(fread("../../data/2017-09-13_gtex_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", "")))
+sample.metadata <- fread("../../data/2017-09-13_gtex_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", ""), data.table = FALSE)
 ```
 
 ```{r intersect_metadata_with_gene_expression_matrix_samples}
-sample.metadata <- sample.metadata[sample.metadata$SAMPID %in% names(rpkm),]
+intersection <- intersect(names(rpkm), sample.metadata$SAMPID)
+
+rpkm.samples.idx <- names(rpkm) %in% intersection
+sample.metadata.idx <- sample.metadata$SAMPID %in% intersection
+
+
+sample.metadata <- sample.metadata[sample.metadata.idx, ]
+rpkm <- rpkm[, rpkm.samples.idx]
 ```
 
 ```{r get_sample_summary}
@@ -42,9 +49,12 @@ sample.metadata %>%
 
 
 ```{r remove_samples_with_missing_SMTS_info}
-sample.metadata <- sample.metadata[!is.na(sample.metadata$SMTS), ]
-remove.samples <- sample.metadata[is.na(sample.metadata$SMTS), "SAMPID"]
-rpkm <- rpkm[,.SD, .SDcols=-remove.samples]
+
+remove.samples <- which(is.na(sample.metadata$SMTS))
+remove.samples.names <- sample.metadata[remove.samples, "SAMPID"]
+sample.metadata <- sample.metadata[-remove.samples, ]
+remove.samples.idx <- which(names(rpkm) %in% remove.samples.names)
+rpkm <- rpkm[,-remove.samples.idx]
 ```
 
 
@@ -54,8 +64,8 @@ pca <- prcomp(rpkm, center = TRUE, scale. = TRUE)
 
 
 ```{r add_cluster_info}
-sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), "SMTS", drop = TRUE]
-sample.info <- factor(sample.info, levels = unique(sample.info))
+sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), c("SAMPID", "SMTS"), drop = TRUE]
+sample.info$SMTS <- factor(sample.info$SMTS, levels = unique(sample.info$SMTS))
 pca$clusters <- sample.info
 ```
 
