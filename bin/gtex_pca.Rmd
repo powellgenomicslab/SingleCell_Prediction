@@ -64,7 +64,7 @@ pca <- prcomp(rpkm, center = TRUE, scale. = TRUE)
 
 
 ```{r add_cluster_info}
-sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), c("SAMPID", "SMTS"), drop = TRUE]
+sample.info <- sample.metadata[match(row.names(pca$rotation), sample.metadata$SAMPID), c("SAMPID", "SMTS"), drop = TRUE]
 sample.info$SMTS <- factor(sample.info$SMTS, levels = unique(sample.info$SMTS))
 pca$clusters <- sample.info
 ```
