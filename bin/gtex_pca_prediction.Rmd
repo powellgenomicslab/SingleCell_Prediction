@@ -17,70 +17,27 @@ library("knitr")
 argv <- commandArgs(TRUE)
 positive.class <- argv[1]
 negative.class <- argv[2]
+# positive.class <- "heart_left_ventricle"
+# negative.class <- "heart_atrial_appendage"
 ```
 
 
 # Read and process input data
 
 ```{r read_pca_data}
-f.path <- "../2017-09-14_gtex_pca/"
-pca <- readRDS(paste0(f.path, "gtex_pca.RDS"))
+pca <- readRDS(paste0("../results/2017-09-21_gtex_de_genes/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
 ```
 
-```{r get_positive_and_negative_classes}
-# positive.class <- "Heart"
-# negative.class <- "Blood"
-
-
-positive.class.idx <- pca$clusters$SMTS == positive.class
-negative.class.idx <- pca$clusters$SMTS == negative.class
-
-classes.idx <- positive.class.idx | negative.class.idx
-
-pca.classes  <- pca$rotation[classes.idx,]
-pca.clusters <- pca$clusters$SMTS[classes.idx]
-
-pca.clusters <- factor(pca.clusters, levels = unique(pca.clusters))
-```
-
-# Format PCA
-
-```{r format_pca}
-pca.classes %>%
-  as.data.frame() %>% 
-  mutate(type = pca.clusters) -> pca.format
-
-pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
-names(pc.var) <- names(pca.format)[-ncol(pca.format)]
-```
-
-```{r plot_pca}
-p12 <- ggplot(pca.format, aes(x = PC1, y = PC2, color = type)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-  ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
-
-p13 <- ggplot(pca.format, aes(x = PC1, y = PC3, color = type)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-
-p23 <- ggplot(pca.format, aes(x = PC2, y = PC3, color = type)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-```
-
-```{r save_pca_plot}
-p <- grid.arrange(p12, p13, p23,  ncol = 1)
-ggsave(paste0("pca_", positive.class, ".png"), p, height = 18)
-```
 
 ```{r long_format_pca}
-pca.format.long <- gather(pca.format, "EV", "value", seq_len(ncol(pca.format) - 1))
+rotation <- as.data.frame(pca$rotation)
+pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
+names(pc.var) <- names(rotation)
+pc.filter <- pc.var[pc.var > 0.01]
+
+rotation <- rotation[,names(pc.filter)]
+rotation$type <- pca$sample
+pca.format.long <- gather(rotation, "EV", "value", seq_len(ncol(rotation) - 1))
 ```
 
 
@@ -97,7 +54,7 @@ pca.type.compare %>%
 
 
 ```{r bonferroni_correction}
-p.vals$p.value <- p.adjust(p.vals$p.value, method = "bonferroni", n = length(p.vals$p.value))
+p.vals$p.value <- p.adjust(p.vals$p.value, method = "fdr", n = length(p.vals$p.value))
 ```
 
 
@@ -116,7 +73,7 @@ p.vals %>%
 ```
 
 ```{r get_significant_EVs}
-pca.filter <- pca.format[p.vals.filter$EV]
+pca.filter <- rotation[,p.vals.filter$EV]
 ```
 
 
@@ -136,10 +93,9 @@ getEigenvectors <- function(EVs.idx){
   pca.filter %>% 
     select(EVs.idx) %>% 
     t() %>% 
-    as.data.frame() %>% 
-    setNames(rownames(pca.classes)) -> expression.data
+    as.data.frame() -> expression.data
   
-  dataset.params <- list(groups = pca.format$type,
+  dataset.params <- list(groups = rotation$type,
                          positive.class = as.character(positive.class),
                          features = seq_len(nrow(expression.data)),
                          expression.data = expression.data,
