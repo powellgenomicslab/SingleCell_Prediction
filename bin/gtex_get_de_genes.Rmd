@@ -1,0 +1,119 @@
+---
+title: "Get DE genes from GTEx dataset"
+author: "Jose Alquicira Hernandez"
+date: "20/09/2017"
+output: html_document
+---
+
+```{r}
+library("edgeR")
+library("stringr")
+library("magrittr")
+library("knitr")
+library("dplyr")
+```
+
+
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+positive.class <- argv[1]
+negative.class <- argv[2]
+
+# positive.class <- "heart_left_ventricle"
+# negative.class <- "heart_atrial_appendage"
+```
+
+
+```{r read_gtex_data}
+gtex <- readRDS("../data/2017-09-13_gtex_data/gtex_clean.RDS")
+```
+
+```{r subset_data}
+samples.idx <- (gtex$metadata$subtissue == positive.class) | (gtex$metadata$subtissue == negative.class)
+metadata <- gtex$metadata[samples.idx, ]
+tpm <- gtex$tpm[,samples.idx]
+raw.counts <- gtex$counts[,samples.idx]
+```
+
+```{r}
+counts <- DGEList(raw.counts)
+counts$samples$group <- as.factor(metadata$subtissue)
+```
+
+
+
+# Normalize counts
+
+
+```{r calculate_norm_factors}
+counts.norm <- calcNormFactors(counts, method = "TMM")
+```
+
+```{r create_design_matrix}
+design <- model.matrix(~0 + group, data = counts.norm$samples)
+colnames(design) <- levels(counts.norm$samples$group)
+```
+
+
+```{r voom}
+voom.out <- voom(counts.norm, design, plot = TRUE)
+```
+
+
+```{r get_DE_genes}
+fit <- lmFit(voom.out)
+
+cont.matrix <- makeContrasts(cont = heart_left_ventricle - heart_atrial_appendage, 
+                             levels = design)
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+fit.cont <- eBayes(fit.cont)
+
+summa.fit <- decideTests(fit.cont)
+summary(summa.fit)
+```
+
+
+```{r plot_final_model}
+plotSA(fit.cont, main="Final model: Mean−variance trend")
+```
+
+
+```{r get_results}
+limma.res <- topTable(fit.cont, coef = 1, sort.by = "p", n = "Inf")
+```
+
+
+```{r show_results_top10}
+kable(topTable(fit.cont, coef = 1, sort.by = "p", n = 10))
+```
+
+```{r plot_DE_genes}
+plotMD(fit.cont, coef = 1, status = summa.fit[, "cont"], main = paste(positive.class, "vs.", negative.class))
+```
+
+```{r volcano_plot}
+volcanoplot(fit.cont, coef = 1, highlight = 100, 
+            names = unlist(lapply(strsplit(rownames(fit.cont$coefficients), "_"), "[", 2)),
+            main = paste(positive.class, "vs.", negative.class))
+```
+
+```{r get_significant_genes}
+#get significant DE genes
+limma.res %>% 
+  mutate(genes = rownames(.)) %>% 
+  filter(adj.P.Val < 0.05, abs(logFC) > 2) -> significant.genes
+```
+
+```{r save_results}
+write.csv(significant.genes, file = paste0("../results/2017-09-21_gtex_de_genes/", positive.class, "_vs_", negative.class, ".csv"), row.names = FALSE)
+```
+
+Number of dignificant genes: `r nrow(significant.genes)`
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
+
