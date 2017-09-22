@@ -1,0 +1,214 @@
+---
+title: "Preprocess GTEx data"
+author: "Jose Alquicira Hernandez"
+date: "15/09/2017"
+output: html_document
+---
+
+
+
+```{r import_libraries}
+library("tidyverse")
+library("data.table")
+library("edgeR")
+library("knitr")
+library("gridExtra")
+library("stringr")
+```
+
+# Read data
+
+```{r read_tpm}
+# Read gene expression matrix
+tpm <- fread("../data/2017-09-13_gtex_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct", sep = "\t", header = TRUE, skip = 2, data.table = FALSE)
+
+# Collapse gene ids and names into rownames attribute
+rownames(tpm) <- paste(tpm$Name, tpm$Description, sep = "_")
+tpm$Name <- NULL
+tpm$Description <- NULL
+
+names(tpm) <- make.names(names(tpm))
+```
+
+
+```{r read_gene_counts}
+counts <- fread("../data/2017-09-13_gtex_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct", sep = "\t", header = TRUE, skip = 2, data.table = FALSE)
+
+# Collapse gene ids and names into rownames attribute
+rownames(counts) <- paste(counts$Name, counts$Description, sep = "_")
+counts$Name <- NULL
+counts$Description <- NULL
+
+names(counts) <- make.names(names(counts))
+```
+
+```{r read_metadata}
+# Read sample metadata
+sample.metadata <- fread("../data/2017-09-13_gtex_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", ""), data.table = FALSE)
+
+pheno.metadata <- fread("../data/2017-09-13_gtex_data/GTEx_v7_Annotations_SubjectPhenotypesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", ""), data.table = FALSE)
+
+
+sample.metadata$SAMPID <- make.names(sample.metadata$SAMPID)
+pheno.metadata$SUBJID <- make.names(pheno.metadata$SUBJID)
+```
+
+
+
+```{r compare_counts_vs_tpm}
+# Make sure all sample names and genes are the equal and in the same order in both datasets
+cat("Are all samples equal and in the same order:", 
+    all(names(tpm) == names(counts)), "\n")
+
+cat("Are all genes equal and in the same order:", 
+    all(rownames(tpm) == rownames(counts)), "\n")
+```
+
+
+```{r print_data_summary}
+cat("TPM", dim(tpm), "\n")
+cat("Counts", dim(counts), "\n")
+cat("Sample metadata", dim(sample.metadata), "\n")
+cat("Phenotype metadata", dim(pheno.metadata), "\n")
+
+
+data.summary <- data.frame("TPM" = dim(tpm),
+"Counts" = dim(counts),
+"Sample metadata" = dim(sample.metadata),
+"Phenotype metadata" = dim(pheno.metadata)) 
+
+rownames(data.summary) <-  c("Rows", "Columns")
+
+kable(data.summary) %>% cat(sep = "\n")
+```
+
+
+
+
+# Match gene expression data with sample information
+
+```{r get_intersection_of_tpm_and_metadata}
+
+# Get only samples with associated metadata (matching by sample ID)
+tpm.idx.samples <- names(tpm) %in% sample.metadata$SAMPID
+tpm <- tpm[, tpm.idx.samples]
+counts <- counts[, tpm.idx.samples]
+
+# Subset sample metadata with only samples present in gene expression matrices
+sample.metadata.idx <- sample.metadata$SAMPID %in% names(tpm)
+sample.metadata <- sample.metadata[sample.metadata.idx, ]
+```
+
+```{r order_metadata}
+# Order metadata according to smaple order in gene expression matrix
+sample.info <- sample.metadata[match(colnames(tpm), sample.metadata$SAMPID), ]
+
+match.vector <- strsplit(sample.info$SAMPID, "\\.") %>% 
+  lapply("[", 1:2) %>% 
+  lapply(paste, collapse = ".") %>% 
+  unlist()
+
+pheno.metadata <- pheno.metadata[match(match.vector, pheno.metadata$SUBJID), ]
+
+metadata <- cbind(sample.info, pheno.metadata)
+```
+
+```{r print_data_validations}
+cat("Are samples in TPM and gene counts matrices equal and in the same order:", 
+    all(names(tpm) == names(counts)), "\n") 
+
+cat("Is metadata ordered?", all(colnames(tpm) == metadata$SAMPID), "\n")
+
+cat("Are genes in TPM and Counts matrices in the same order?", all(rownames(tpm) == rownames(counts)), "\n")
+
+```
+
+# Filter samples
+
+```{r keep_freeze_samples}
+# "These samples have been identified as those best suited for use in analysis with a specific focus on eQTL analysis"
+
+keep.freeze <- which(!is.na(metadata$SMAFRZE))
+
+metadata <- metadata[keep.freeze,]
+tpm <- tpm[,keep.freeze]
+counts <- counts[,keep.freeze]
+```
+
+> So far so good
+
+
+# Filter low-expressed genes
+
+Remove genes not expressed across all samples
+
+```{r remove_non_expressed_genes}
+# Remove genes not expressed across all samples
+tpm.non.zero <- apply(tpm, 1, function(x){any(x > 0)}) # 394 removed
+tpm <- tpm[tpm.non.zero, ]
+counts <- counts[tpm.non.zero, ]
+```
+
+Remove genes not expressed in at least 10% of the samples
+
+```{r remove_non-share_genes}
+# Remove genes expressed not expressed in at least 10% of the samples
+tpm.non.low.expressed <- rowSums(tpm > 0) >= round(ncol(tpm)*0.5) # 16325 removed
+tpm <- tpm[tpm.non.low.expressed,]
+counts <- counts[tpm.non.low.expressed,]
+```
+
+
+```{r order_metadata}
+metadata <- metadata[match(names(tpm), metadata$SAMPID),]
+```
+
+
+# Dataset summary
+
+```{r show_dataset_dimensions}
+cat("Total number of genes: ", nrow(tpm), "\n")
+cat("Total number of samples: ", ncol(tpm), "\n")
+```
+
+
+
+```{r get_subtissues}
+metadata %>% 
+  group_by(SMTSD) %>%
+  count() %>% 
+  arrange(-n) %>% 
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+```{r get_tissues}
+metadata %>% 
+  group_by(SMTS) %>%
+  count() %>% 
+  arrange(-n) %>% 
+  kable() %>% 
+  cat(sep = "\n")
+```
+
+```{r relabel_subtissues}
+metadata$subtissue <- metadata$SMTSD %>%
+  str_replace_all(" - ", "_") %>% 
+  str_replace_all(" ", "_") %>% 
+  str_replace("\\(", "_") %>% 
+  str_replace("\\)", "_") %>%
+  str_replace_all("\\-", "_") %>% 
+  str_replace_all("__", "_") %>% 
+  str_replace("_$", "") %>% 
+  str_to_lower()
+```
+
+
+```{r merge_final_datasets}
+clean.data <- list(tpm = tpm, counts = counts, metadata = metadata)
+```
+
+```{r save_results}
+saveRDS(clean.data, "../data/2017-09-13_gtex_data/gtex_clean.RDS")
+```
+
