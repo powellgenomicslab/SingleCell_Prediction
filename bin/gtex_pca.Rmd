@@ -7,108 +7,152 @@ output: html_document
 
 ```{r import_libraries}
 library("tidyverse")
-library("data.table")
 library("knitr")
 ```
 
-
-```{r read_expression_data}
-rpkm <- fread("../../data/2017-09-13_gtex_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct", sep = "\t", header = TRUE, skip = 2, data.table = FALSE)
-```
-
-```{r format_gene_names}
-rownames(rpkm) <- paste(rpkm$Name, rpkm$Description, sep = "_")
-rpkm$Name <- NULL
-rpkm$Description <- NULL
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+positive.class <- argv[1]
+negative.class <- argv[2]
+# positive.class <- "heart_left_ventricle"
+# negative.class <- "heart_atrial_appendage"
 ```
 
 
-```{r read_sample_metadata}
-sample.metadata <- fread("../../data/2017-09-13_gtex_data/GTEx_Data_V6_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t", na.strings = c("NA", ""), data.table = FALSE)
+```{r read_gtex_data}
+gtex <- readRDS("../data/2017-09-13_gtex_data/gtex_clean.RDS")
 ```
 
-```{r intersect_metadata_with_gene_expression_matrix_samples}
-intersection <- intersect(names(rpkm), sample.metadata$SAMPID)
 
-rpkm.samples.idx <- names(rpkm) %in% intersection
-sample.metadata.idx <- sample.metadata$SAMPID %in% intersection
-
-
-sample.metadata <- sample.metadata[sample.metadata.idx, ]
-rpkm <- rpkm[, rpkm.samples.idx]
+```{r subset_data}
+samples.idx <- (gtex$metadata$subtissue == positive.class) | (gtex$metadata$subtissue == negative.class)
+metadata <- gtex$metadata[samples.idx, ]
+tpm <- gtex$tpm[,samples.idx]
 ```
+
 
 ```{r get_sample_summary}
-sample.metadata %>% 
-  select(SMTS) %>% 
-  group_by(SMTS) %>% 
+metadata %>% 
+  group_by(SMTSD) %>% 
   count() %>% 
   arrange(-n) %>% 
   kable()
 ```
 
 
-```{r remove_samples_with_missing_SMTS_info}
-
-remove.samples <- which(is.na(sample.metadata$SMTS))
-remove.samples.names <- sample.metadata[remove.samples, "SAMPID"]
-sample.metadata <- sample.metadata[-remove.samples, ]
-remove.samples.idx <- which(names(rpkm) %in% remove.samples.names)
-rpkm <- rpkm[,-remove.samples.idx]
-```
-
 
 ```{r perform_pca}
-pca <- prcomp(rpkm, center = TRUE, scale. = TRUE)
+pca <- prcomp(log2(tpm + 1), center = TRUE, scale. = TRUE)
 ```
 
 
-```{r add_cluster_info}
-sample.info <- sample.metadata[match(row.names(pca$rotation), sample.metadata$SAMPID), c("SAMPID", "SMTS"), drop = TRUE]
-sample.info$SMTS <- factor(sample.info$SMTS, levels = unique(sample.info$SMTS))
-pca$clusters <- sample.info
+```{r extract_rotation}
+rotation <- as.data.frame(pca$rotation)
+
+pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
+names(pc.var) <- names(rotation)
+
+rotation$sample <- metadata$subtissue -> pca$sample
 ```
 
 ```{r save_pca}
 cat("Saving results...\n")
-saveRDS(pca, file = "gtex_pca.RDS")
+saveRDS(pca, file = paste0("../results/2017-09-21_gtex_de_genes/pca_", positive.class, "_vs_", negative.class, ".RDS"))
 cat("Results saved...\n")
+```
+
+
+
+```{r plot_pca}
+p12 <- ggplot(rotation, aes(x = PC1, y = PC2, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
+p13 <- ggplot(rotation, aes(x = PC1, y = PC3, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
+  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+p23 <- ggplot(rotation, aes(x = PC2, y = PC3, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
+  xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
+```
+
+
+```{r print_pcs}
+p12
+p13
+p23
+```
+
+
+
+```{r read_de_genes}
+de.genes <- read.csv("../results/2017-09-21_gtex_de_genes/heart_left_ventricle_vs_heart_atrial_appendage.csv")
+```
+
+
+```{r remove_de_genes}
+tpm.no.deg <- tpm[!(rownames(tpm) %in% de.genes$genes),]
+```
+
+
+```{r perform_pca_no_deg}
+pca.no.deg <- prcomp(log2(tpm.no.deg + 1), center = TRUE, scale. = TRUE)
+```
+
+
+```{r extract_rotation_no-deg}
+rotation.no.deg <- as.data.frame(pca.no.deg$rotation)
+
+pc.var.no.deg <- round((pca.no.deg$sdev**2 / sum(pca.no.deg$sdev**2))*100, 2)
+names(pc.var.no.deg) <- names(rotation.no.deg)
+
+rotation.no.deg$sample <- metadata$subtissue -> pca.no.deg$sample
+```
+
+```{r save_pca_no-deg}
+cat("Saving results...\n")
+saveRDS(pca.no.deg, file = paste0("../results/2017-09-21_gtex_de_genes/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
+cat("Results saved...\n")
+```
+
+
+```{r plot_pca_no-deg}
+p12 <- ggplot(rotation.no.deg, aes(x = PC1, y = PC2, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
+  xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
+  ylab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)"))
+p13 <- ggplot(rotation.no.deg, aes(x = PC1, y = PC3, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") +
+  xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
+p23 <- ggplot(rotation.no.deg, aes(x = PC2, y = PC3, color = sample)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
+  xlab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)")) +
+  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
+```
+
+```{r print_pcs_nodeg}
+p12
+p13
+p23
 ```
 
 ```{r display_session_info}
 options(width = 120)
 devtools::session_info()
-```
-
-
-```{r format_pca}
-# sample.info <- sample.metadata[match(sample.metadata$SAMPID, row.names(pca$rotation)), "SMTS", drop = TRUE]
-# sample.info <- factor(sample.info, levels = unique(sample.info))
-# 
-# pca %>%
-#   .[["rotation"]] %>% 
-#   as.data.frame() %>% 
-#   mutate(id = row.names(.), sample = sample.info) -> pca.format
-# 
-# pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
-# names(pc.var) <- names(pca.format)[-c(ncol(pca.format) -1, ncol(pca.format))]
-```
-
-```{r plot_pca}
-# p12 <- ggplot(pca.format, aes(x = PC1, y = PC2, color = sample)) +
-#   geom_point() +
-#   scale_color_brewer(palette = "Set1") +
-#   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-#   ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
-# p13 <- ggplot(pca.format, aes(x = PC1, y = PC3, color = sample)) +
-#   geom_point() +
-#   scale_color_brewer(palette = "Set1") +
-#   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-#   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-# p23 <- ggplot(pca.format, aes(x = PC2, y = PC3, color = sample)) +
-#   geom_point() +
-#   scale_color_brewer(palette = "Set1") +
-#   xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
-#   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
 ```
 
