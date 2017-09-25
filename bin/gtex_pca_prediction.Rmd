@@ -25,7 +25,7 @@ negative.class <- argv[2]
 # Read and process input data
 
 ```{r read_pca_data}
-pca <- readRDS(paste0("../results/2017-09-21_gtex_de_genes/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
+pca <- readRDS(paste0("../results/2017-09-21_gtex_pca/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
 ```
 
 
@@ -63,13 +63,13 @@ p.vals$p.value <- p.adjust(p.vals$p.value, method = "fdr", n = length(p.vals$p.v
 threshold <- 0.05
 
 # Filter eigenvectors
-p.vals %>% 
-  filter(p.value < threshold) -> p.vals.filter
+p.vals %>%
+  filter(p.value < threshold) -> p.vals.filter.significant
 
 
-# p.vals %>%
-#   arrange(p.value) %>%
-#   slice(1:5) -> p.vals.filter
+p.vals %>%
+  arrange(p.value) %>%
+  slice(1:25) -> p.vals.filter
 ```
 
 ```{r get_significant_EVs}
@@ -120,7 +120,7 @@ EV.datasets <- lapply(EV.indexes, getEigenvectors)
 names(EV.datasets) <- seq_len(ncol(pca.filter))[-1]
 ```
 
-```{r make_predictions}
+```{r make_predictions, message=FALSE, results='hide', warning=FALSE}
 # dataset.params <- EV.datasets$`2`$dataset.params
 # training.params <- EV.datasets$`2`$training.params
 # res <- TrainPredict(dataset.params, training.params, methods = c("rf", "svmPoly"), n.rep = 2, n.cores = 2)
@@ -161,13 +161,23 @@ lapply(res, getMetrics) %>%
 
 ```{r save_results}
 cat("Saving metrics...\n")
-saveRDS(performance, file = paste0("performance_cluster", positive.class, ".RDS"))
+saveRDS(performance, file = paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
 cat("Results saved...\n")
+
+# positive.class <- "skin_sun_exposed_lower_leg"
+# negative.class <- "skin_not_sun_exposed_suprapubic"
+# performance <- readRDS(paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
 ```
 
 ```{r build_table}
+# p.vals.filter <- read.table(paste0("../results/2017-09-14_gtex_pca_prediction/pvals_filter-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", header = TRUE)
+# threshold <- 0.05
+# p.vals.filter %>% filter(p.value < threshold) -> p.vals.filter.significant
 p.vals.filter$variance <- pc.var[p.vals.filter$EV]
-write.table(p.vals.filter, file = paste0("pvals_filter-cluster_", positive.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(p.vals.filter, file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_filter-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
+
+p.vals$variance <- pc.var[p.vals$EV]
+write.table(p.vals, file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_all-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 ```
 
 
@@ -186,24 +196,68 @@ model.order <- c('glm',
 
 
 ```{r gather_accuracy_data}
-metrics <- gather(data = performance, key = "Metric", value = "Value", 2:6)
+performance %>%
+  group_by(n.ev, Model) %>%
+  summarise_at(.vars = c("Accuracy", "Sensitivity", "Specificity", "Kappa", "AUC"),
+               .funs = funs(median)) %>%
+  ungroup(n.ev)-> performance.summary
+
+
+#performance -> performance.summary
+
+metrics <- gather(data = performance.summary, key = "Metric", value = "Value", 3:7)
+# metrics <- gather(data = performance.summary, key = "Metric", value = "Value", 2:6)
+
 model.order <- model.order[model.order %in% metrics$Model]
 metrics$Model <- factor(metrics$Model, levels = model.order)
 ```
 
-```{r plot_metrics}
-p <- ggplot(metrics, aes(x = n.ev, y = Value, fill = Model)) +
-  geom_boxplot(position = "dodge") +
-  ggtitle("Performance metrics: accuracy, kappa, sensitivity and specificity", subtitle = "Each panel corresponds to the number of EVs used as features for prediction. EVs are ranked by p-value.") +
-  xlab("Number of eigenvectors") +
-  facet_wrap(~Metric, scales = "free", nrow = 1) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_fill_brewer(palette = "Set1")
+```{r extract_metrics}
+metrics %>% 
+  filter(Metric == "Accuracy" | Metric == "AUC" | Metric == "Kappa") -> metrics
 ```
 
+```{r get_cumvar}
+cumvar <- cumsum(c(p.vals.filter$variance[1] + p.vals.filter$variance[2], p.vals.filter$variance[-c(1,2)]))
+names(cumvar) <- seq(2,length(p.vals.filter$EV), 1)
+```
+
+```{r match_metrics_with_cumvar}
+metrics %>% 
+  mutate(variance = cumvar[match(n.ev, names(cumvar))]) -> metrics
+```
+
+
+```{r plot_metrics}
+metrics %>% 
+  filter(Metric == "Accuracy", Model == "svmPoly") %>%
+  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> Accuracy
+
+  ggplot(Accuracy, aes(x = n.ev, y = Value)) +
+  geom_point(color = "#de2d26") +
+  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  xlab("Number of eigenvectors") +
+  ylab("Accuracy") +
+  facet_wrap(~Metric, scales = "free", nrow = 1) +
+  theme_bw(base_family = "Palatino") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_color_brewer(palette = "Set1") +
+  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
+  theme(axis.title.x = element_text(size = 15, face = "bold"),
+        axis.title.y = element_text(size = 15, face = "bold"),
+        strip.text.x = element_text(size = 14, face = "bold")) +
+  scale_y_continuous(sec.axis = sec_axis(~( (. - min(Accuracy$Value)) / (max(Accuracy$Value) - min(Accuracy$Value)) ) * (max(Accuracy$variance) - min(Accuracy$variance)) + min(Accuracy$variance), name = "Variance explained (%)"))
+
+```
+
+
+
+
 ```{r save_metrics_plot}
-ggsave(filename = paste0("metrics_cluster_", positive.class,".png"),
+ggsave(filename = paste0("../results/2017-09-14_gtex_pca_prediction/metrics_cluster_", positive.class, "-", negative.class,".png"),
        plot = p,
        width = 20,
        height = 6,
