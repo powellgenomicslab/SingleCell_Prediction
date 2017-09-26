@@ -11,14 +11,15 @@ library("tidyverse")
 library("gridExtra")
 library("RColorBrewer")
 library("knitr")
+library("cowplot")
 ```
 
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
 positive.class <- argv[1]
 negative.class <- argv[2]
-# positive.class <- "heart_left_ventricle"
-# negative.class <- "heart_atrial_appendage"
+# positive.class <- "skin_sun_exposed_lower_leg"
+# negative.class <- "skin_not_sun_exposed_suprapubic"
 ```
 
 
@@ -200,12 +201,9 @@ performance %>%
   group_by(n.ev, Model) %>%
   summarise_at(.vars = c("Accuracy", "Sensitivity", "Specificity", "Kappa", "AUC"),
                .funs = funs(median)) %>%
-  ungroup(n.ev)-> performance.summary
+  ungroup(n.ev)-> performance.median
 
-
-#performance -> performance.summary
-
-metrics <- gather(data = performance.summary, key = "Metric", value = "Value", 3:7)
+metrics <- gather(data = performance.median, key = "Metric", value = "Value", 3:7)
 # metrics <- gather(data = performance.summary, key = "Metric", value = "Value", 2:6)
 
 model.order <- model.order[model.order %in% metrics$Model]
@@ -228,39 +226,93 @@ metrics %>%
 ```
 
 
-```{r plot_metrics}
+```{r plot_accuracy}
 metrics %>% 
   filter(Metric == "Accuracy", Model == "svmPoly") %>%
-  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> Accuracy
+  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> accuracy.scaled
 
-  ggplot(Accuracy, aes(x = n.ev, y = Value)) +
+p.accuracy <- ggplot(accuracy.scaled, aes(x = n.ev, y = Value)) +
+  geom_point(color = "#de2d26") +
+  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  xlab("") +
+  ylab("Value") +
+  facet_wrap(~Metric, scales = "free", nrow = 1) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_color_brewer(palette = "Set1") +
+  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
+  theme(axis.title.x = element_text(size = 19, face = "bold"),
+        axis.title.y = element_text(size = 19, face = "bold"),
+        strip.text.x = element_text(size = 17, face = "bold"),
+        strip.background = element_rect(fill = "#fee6ce")) +
+  scale_y_continuous(sec.axis = sec_axis(~( (. - min( accuracy.scaled$Value)) / (max( accuracy.scaled$Value) - min( accuracy.scaled$Value)) ) * (max( accuracy.scaled$variance) - min( accuracy.scaled$variance)) + min( accuracy.scaled$variance)))
+```
+
+```{r plot_accuracy}
+metrics %>% 
+  filter(Metric == "AUC", Model == "svmPoly") %>%
+  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> auc.scaled
+
+p.auc <-  ggplot(auc.scaled, aes(x = n.ev, y = Value)) +
   geom_point(color = "#de2d26") +
   geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
   geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
   geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
   #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
   xlab("Number of eigenvectors") +
-  ylab("Accuracy") +
+  ylab("") +
   facet_wrap(~Metric, scales = "free", nrow = 1) +
-  theme_bw(base_family = "Palatino") +
+  theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_color_brewer(palette = "Set1") +
   geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
-  theme(axis.title.x = element_text(size = 15, face = "bold"),
-        axis.title.y = element_text(size = 15, face = "bold"),
-        strip.text.x = element_text(size = 14, face = "bold")) +
-  scale_y_continuous(sec.axis = sec_axis(~( (. - min(Accuracy$Value)) / (max(Accuracy$Value) - min(Accuracy$Value)) ) * (max(Accuracy$variance) - min(Accuracy$variance)) + min(Accuracy$variance), name = "Variance explained (%)"))
-
+  theme(axis.title.x = element_text(size = 19, face = "bold"),
+        axis.title.y = element_text(size = 19, face = "bold"),
+        strip.text.x = element_text(size = 17, face = "bold"),
+        strip.background = element_rect(fill = "#fee6ce")) +
+  scale_y_continuous(sec.axis = sec_axis(~( (. - min( auc.scaled$Value)) / (max( auc.scaled$Value) - min( auc.scaled$Value)) ) * (max( auc.scaled$variance) - min( auc.scaled$variance)) + min( auc.scaled$variance)))
 ```
 
 
+```{r}
+metrics %>% 
+  filter(Metric == "Kappa", Model == "svmPoly") %>%
+  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> kappa.scaled
+
+p.kappa <- ggplot(kappa.scaled, aes(x = n.ev, y = Value)) +
+  geom_point(color = "#de2d26") +
+  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
+  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
+  xlab("") +
+  ylab("") +
+  facet_wrap(~Metric, scales = "free", nrow = 1) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_color_brewer(palette = "Set1") +
+  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
+  theme(axis.title.x = element_text(size = 19, face = "bold"),
+        axis.title.y = element_text(size = 19, face = "bold"),
+        strip.text.x = element_text(size = 17, face = "bold"),
+        strip.background = element_rect(fill = "#fee6ce")) +
+ scale_y_continuous(sec.axis = sec_axis(~( (. - min( kappa.scaled$Value)) / (max( kappa.scaled$Value) - min( kappa.scaled$Value)) ) * (max( kappa.scaled$variance) - min( kappa.scaled$variance)) + min( kappa.scaled$variance), name = "Variance explained (%)"))
+```
+
+
+```{r}
+p <- plot_grid(p.accuracy, p.auc, p.kappa, labels = c("A", "B", "C"), nrow = 1)
+```
 
 
 ```{r save_metrics_plot}
 ggsave(filename = paste0("../results/2017-09-14_gtex_pca_prediction/metrics_cluster_", positive.class, "-", negative.class,".png"),
        plot = p,
        width = 20,
-       height = 6,
+       height = 4.5,
        device = "png",
        dpi = 350)
 ```
