@@ -42,41 +42,41 @@ metadata %>%
 
 
 ```{r perform_pca}
-pca <- prcomp(log2(tpm + 1), center = TRUE, scale. = TRUE)
+pca <- prcomp(log2(t(tpm) + 1), center = TRUE, scale. = TRUE)
 ```
 
 
 ```{r extract_rotation}
-rotation <- as.data.frame(pca$rotation)
+eigenvectors <- as.data.frame(pca$x)
 
 pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
-names(pc.var) <- names(rotation)
+names(pc.var) <- names(eigenvectors)
 
-rotation$sample <- metadata$subtissue -> pca$sample
+eigenvectors$sample <- metadata$subtissue -> pca$sample
 ```
 
 ```{r save_pca}
 cat("Saving results...\n")
-saveRDS(pca, file = paste0("../results/2017-09-21_gtex_de_genes/pca_", positive.class, "_vs_", negative.class, ".RDS"))
+saveRDS(pca, file = paste0("../results/2017-09-21_gtex_pca/pca_", positive.class, "_vs_", negative.class, ".RDS"))
 cat("Results saved...\n")
 ```
 
 
 
 ```{r plot_pca}
-p12 <- ggplot(rotation, aes(x = PC1, y = PC2, color = sample)) +
+p12 <- ggplot(eigenvectors, aes(x = PC1, y = PC2, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
   ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
-p13 <- ggplot(rotation, aes(x = PC1, y = PC3, color = sample)) +
+p13 <- ggplot(eigenvectors, aes(x = PC1, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-p23 <- ggplot(rotation, aes(x = PC2, y = PC3, color = sample)) +
+p23 <- ggplot(eigenvectors, aes(x = PC2, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
@@ -94,7 +94,7 @@ p23
 
 
 ```{r read_de_genes}
-de.genes <- read.csv("../results/2017-09-21_gtex_de_genes/heart_left_ventricle_vs_heart_atrial_appendage.csv")
+de.genes <- read.csv(paste0("../results/2017-09-21_gtex_de_genes/", positive.class, "_vs_", negative.class, ".csv"))
 ```
 
 
@@ -104,40 +104,40 @@ tpm.no.deg <- tpm[!(rownames(tpm) %in% de.genes$genes),]
 
 
 ```{r perform_pca_no_deg}
-pca.no.deg <- prcomp(log2(tpm.no.deg + 1), center = TRUE, scale. = TRUE)
+pca.no.deg <- prcomp(log2(t(tpm.no.deg) + 1), center = TRUE, scale. = TRUE)
 ```
 
 
 ```{r extract_rotation_no-deg}
-rotation.no.deg <- as.data.frame(pca.no.deg$rotation)
+eigenvectors.no.deg <- as.data.frame(pca.no.deg$x)
 
 pc.var.no.deg <- round((pca.no.deg$sdev**2 / sum(pca.no.deg$sdev**2))*100, 2)
-names(pc.var.no.deg) <- names(rotation.no.deg)
+names(pc.var.no.deg) <- names(eigenvectors.no.deg)
 
-rotation.no.deg$sample <- metadata$subtissue -> pca.no.deg$sample
+eigenvectors.no.deg$sample <- metadata$subtissue -> pca.no.deg$sample
 ```
 
 ```{r save_pca_no-deg}
 cat("Saving results...\n")
-saveRDS(pca.no.deg, file = paste0("../results/2017-09-21_gtex_de_genes/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
+saveRDS(pca.no.deg, file = paste0("../results/2017-09-21_gtex_pca/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
 cat("Results saved...\n")
 ```
 
 
 ```{r plot_pca_no-deg}
-p12 <- ggplot(rotation.no.deg, aes(x = PC1, y = PC2, color = sample)) +
+p12 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC2, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
   ylab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)"))
-p13 <- ggplot(rotation.no.deg, aes(x = PC1, y = PC3, color = sample)) +
+p13 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") +
   xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
   ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
-p23 <- ggplot(rotation.no.deg, aes(x = PC2, y = PC3, color = sample)) +
+p23 <- ggplot(eigenvectors.no.deg, aes(x = PC2, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
   ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
