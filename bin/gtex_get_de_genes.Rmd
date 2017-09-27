@@ -20,8 +20,8 @@ argv <- commandArgs(TRUE)
 positive.class <- argv[1]
 negative.class <- argv[2]
 
-# positive.class <- "heart_left_ventricle"
-# negative.class <- "heart_atrial_appendage"
+# positive.class <- "brain_frontal_cortex_ba9"
+# negative.class <- "brain_cortex"
 ```
 
 
@@ -64,7 +64,7 @@ voom.out <- voom(counts.norm, design, plot = TRUE)
 ```{r get_DE_genes}
 fit <- lmFit(voom.out)
 
-cont.matrix <- makeContrasts(cont = heart_left_ventricle - heart_atrial_appendage, 
+cont.matrix <- makeContrasts(contrasts = paste0(positive.class, " - ", negative.class), 
                              levels = design)
 
 fit.cont <- contrasts.fit(fit, cont.matrix)
@@ -90,7 +90,7 @@ kable(topTable(fit.cont, coef = 1, sort.by = "p", n = 10))
 ```
 
 ```{r plot_DE_genes}
-plotMD(fit.cont, coef = 1, status = summa.fit[, "cont"], main = paste(positive.class, "vs.", negative.class))
+plotMD(fit.cont, coef = 1, status = summa.fit[,1], main = paste(positive.class, "vs.", negative.class))
 ```
 
 ```{r volcano_plot}
