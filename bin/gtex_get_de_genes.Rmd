@@ -19,14 +19,15 @@ library("dplyr")
 argv <- commandArgs(TRUE)
 positive.class <- argv[1]
 negative.class <- argv[2]
-
+path.gtex.data <- argv[3]
+output.path <- arg[4]
 # positive.class <- "brain_frontal_cortex_ba9"
 # negative.class <- "brain_cortex"
 ```
 
 
 ```{r read_gtex_data}
-gtex <- readRDS("../data/2017-09-13_gtex_data/gtex_clean.RDS")
+gtex <- readRDS(path.gtex.data)
 ```
 
 ```{r subset_data}
@@ -107,7 +108,7 @@ limma.res %>%
 ```
 
 ```{r save_results}
-write.csv(significant.genes, file = paste0("../results/2017-09-21_gtex_de_genes/", positive.class, "_vs_", negative.class, ".csv"), row.names = FALSE)
+write.csv(significant.genes, file = paste0(output.path, positive.class, "_vs_", negative.class, ".csv"), row.names = FALSE)
 ```
 
 Number of dignificant genes: `r nrow(significant.genes)`
