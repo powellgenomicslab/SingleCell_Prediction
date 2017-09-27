@@ -8,16 +8,12 @@ output: html_document
 ```{r load_libraries}
 library("scPrediction")
 library("tidyverse")
-library("gridExtra")
-library("RColorBrewer")
-library("knitr")
-library("cowplot")
 ```
 
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
-positive.class <- argv[1]
-negative.class <- argv[2]
+positive.class <- as.character(argv[1])
+negative.class <- as.character(argv[2])
 # positive.class <- "skin_sun_exposed_lower_leg"
 # negative.class <- "skin_not_sun_exposed_suprapubic"
 ```
@@ -26,286 +22,62 @@ negative.class <- argv[2]
 # Read and process input data
 
 ```{r read_pca_data}
-pca <- readRDS(paste0("../results/2017-09-21_gtex_pca/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
+red <- readRDS(paste0("../results/2017-09-21_gtex_pca/pca_", positive.class, "_vs_", negative.class, ".RDS"))
+eigenvectors <- red$x
+groups <- red$sample
 ```
 
+# Get significant eigenvectors
 
-```{r long_format_pca}
-rotation <- as.data.frame(pca$rotation)
-pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
-names(pc.var) <- names(rotation)
-pc.filter <- pc.var[pc.var > 0.01]
-
-rotation <- rotation[,names(pc.filter)]
-rotation$type <- pca$sample
-pca.format.long <- gather(rotation, "EV", "value", seq_len(ncol(rotation) - 1))
+```{r}
+red.features <- getSignificantEigen(dim.red = red, groups = groups)
 ```
 
-
-```{r get_significant_eigen}
-pca.format.long %>% 
-  split(pca.format.long$EV) %>% 
-  lapply(function(pc) wilcox.test(value ~ type, pc)) -> pca.type.compare
-
-pca.type.compare %>% 
-  lapply('[[', "p.value") %>% 
-  as.data.frame() %>% 
-  gather(key = "EV", value = "p.value") -> p.vals
+```{r}
+performance <- predictEigen(eigenvectors = eigenvectors,
+                            groups = groups,
+                            positive.class = positive.class,
+                            significant.eigenvectors = red.features, 
+                            n.rep = 10,
+                            n.cores = 10)
 ```
 
-
-```{r bonferroni_correction}
-p.vals$p.value <- p.adjust(p.vals$p.value, method = "fdr", n = length(p.vals$p.value))
-```
-
-
-```{r filter_eigenvectors}
-# Define threshold
-threshold <- 0.05
-
-# Filter eigenvectors
-p.vals %>%
-  filter(p.value < threshold) -> p.vals.filter.significant
-
-
-p.vals %>%
-  arrange(p.value) %>%
-  slice(1:25) -> p.vals.filter
-```
-
-```{r get_significant_EVs}
-pca.filter <- rotation[,p.vals.filter$EV]
-```
-
-
-```{r get_eigenvector_indexes}
-EV.indexes <- lapply(seq_len(ncol(pca.filter))[-1], function(x) seq(1, x, 1))
-```
-
-
-```{r set_params_TrainPredict}
-getEigenvectors <- function(EVs.idx){
-  
-  seeds.select <- c(18963,11835,38268,4071,515,38489,43612,37577,24484,20562,28354,30815,29137,29246,23762,15286,33605,26739,22919,32596,14373,46398,46064,39920,24110,20294,41148,48654,34029,25359,3016,22720,43078,45935,7979,430,3033,27125,10152,38860,13293,4566,31483,12965,21939,31440,31397,2100,19793,15853,43780,40804,9741,44354,13126,40070,40929,21237,38687,8988,19795,44104,39181,49170,48984,39446,22446,37099,11091,47020,45130,16437,42807,42560,44595,33712,34490,38548,30927,47522,41510,4189,5421,36331,39808,16249,40572,41146,41607,11705,12381,4728,31350,25172,4763,4181,17638,46408,39838,16460)
-  
-  seeds.compare <- c(9351,26634,16496,4146,30796,47316,37798,2283,37324,12043,20234,28458,13545,5507,39962,2151,24861,36024,1727,4813,44701,32887,32101,38658,28058,4139,36523,24541,7204,46413,21999,9407,10986,13552,35608,1484,40106,18300,44515,32833,48557,19541,22954,32915,33148,9983,5081,28216,49692,20618,21360,30864,16166,35157,10310,25301,36652,44388,30874,10472,24462,36189,45468,19067,35199,29697,18077,7920,27799,37463,29394,6106,22739,10333,2933,30697,764,34893,27751,12255,28325,42947,31440,39348,48143,27205,341,31589,45188,111,759,5723,36586,36847,33712,47969,3351,23386,35620,40907)
-  
-  
-  pca.filter %>% 
-    select(EVs.idx) %>% 
-    t() %>% 
-    as.data.frame() -> expression.data
-  
-  dataset.params <- list(groups = rotation$type,
-                         positive.class = as.character(positive.class),
-                         features = seq_len(nrow(expression.data)),
-                         expression.data = expression.data,
-                         seed.select = seeds.select,
-                         seed.compare = seeds.compare,
-                         prob.cutoff = 0.5)
-  
-  training.params <- list(method = 'cv',
-                          number = 5,
-                          seed = 92,
-                          returnResamp = 'none',
-                          returnData = FALSE,
-                          classProbs =  TRUE)
-  
-  return(list(dataset.params = dataset.params, training.params = training.params ))
-}
-```
-
-
-```{r get_dataset_eigenvectors}
-EV.datasets <- lapply(EV.indexes, getEigenvectors)
-names(EV.datasets) <- seq_len(ncol(pca.filter))[-1]
-```
-
-```{r make_predictions, message=FALSE, results='hide', warning=FALSE}
-# dataset.params <- EV.datasets$`2`$dataset.params
-# training.params <- EV.datasets$`2`$training.params
-# res <- TrainPredict(dataset.params, training.params, methods = c("rf", "svmPoly"), n.rep = 2, n.cores = 2)
-
-predict.all <- function(dataset){
-  TrainPredict(dataset.params = dataset$dataset.params, 
-               training.params = dataset$training.params, 
-               methods = c("glm", "elasticNet", "earth", "svmPoly", "rf"), 
-               n.rep = 10, 
-               n.cores = 10)
-}
-
-res <- lapply(EV.datasets, predict.all)
-```
-
-```{r get_performance}
-getMetrics <- function(dataset.res){
-  dataset.res %>%
-    lapply(function(b.replicate){ # Iterates bootstrap replicate
-      mapply(function(model, model.name){ # Iterates model
-        data.frame(
-          Model = model.name,
-          Accuracy = model$conf.mat$overall["Accuracy"],
-          Sensitivity = model$conf.mat$byClass["Sensitivity"],
-          Specificity = model$conf.mat$byClass["Specificity"],
-          Kappa = model$conf.mat$overall["Kappa"],
-          AUC = model$roc.auc
-        )
-      }, b.replicate, names(b.replicate), SIMPLIFY = FALSE) %>% Reduce(rbind, .)
-    }) %>% Reduce(rbind, .)
-}
-
-lapply(res, getMetrics) %>% 
-  mapply(function(x, x.name) cbind(x, n.ev = x.name), ., names(.), SIMPLIFY = FALSE) %>% 
-  Reduce(rbind, .) -> performance
-```
 
 
 ```{r save_results}
-cat("Saving metrics...\n")
-saveRDS(performance, file = paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
-cat("Results saved...\n")
+cat("Saving prediction results...\n")
 
-# positive.class <- "skin_sun_exposed_lower_leg"
-# negative.class <- "skin_not_sun_exposed_suprapubic"
+# Save performance
 # performance <- readRDS(paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
+saveRDS(performance, file = paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
+
+# Save table of significant eigenvectors
+write.table(red.features$significant.eigenvectors, 
+            file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_significant-cluster_",
+                          positive.class,
+                          "-",
+                          negative.class,
+                          ".txt"),
+            sep = "\t",
+            row.names = FALSE,
+            quote = FALSE)
+
+# Save talbe of top N eigenvectors
+write.table(red.features$top.n.eigenvectors,
+            file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_all-cluster_",
+                          positive.class, "-",
+                          negative.class,".txt"),
+            sep = "\t",
+            row.names = FALSE,
+            quote = FALSE)
+
+cat("Results saved...\n")
 ```
-
-```{r build_table}
-# p.vals.filter <- read.table(paste0("../results/2017-09-14_gtex_pca_prediction/pvals_filter-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", header = TRUE)
-# threshold <- 0.05
-# p.vals.filter %>% filter(p.value < threshold) -> p.vals.filter.significant
-p.vals.filter$variance <- pc.var[p.vals.filter$EV]
-write.table(p.vals.filter, file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_filter-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
-
-p.vals$variance <- pc.var[p.vals$EV]
-write.table(p.vals, file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_all-cluster_", positive.class, "-", negative.class,".txt"), sep = "\t", row.names = FALSE, quote = FALSE)
-```
-
-
-```{r sets_model_plotting_order}
-model.order <- c('glm',
-                 'bayesglm', 
-                 'ridge', 'elasticNet', 'lasso',
-                 'earth', 
-                 'svmLinear', 'svmPoly', 
-                 'rpart', 
-                 'rf', 
-                 'nb', 
-                 'nnet',
-                 'dnn')
-```
-
-
-```{r gather_accuracy_data}
-performance %>%
-  group_by(n.ev, Model) %>%
-  summarise_at(.vars = c("Accuracy", "Sensitivity", "Specificity", "Kappa", "AUC"),
-               .funs = funs(median)) %>%
-  ungroup(n.ev)-> performance.median
-
-metrics <- gather(data = performance.median, key = "Metric", value = "Value", 3:7)
-# metrics <- gather(data = performance.summary, key = "Metric", value = "Value", 2:6)
-
-model.order <- model.order[model.order %in% metrics$Model]
-metrics$Model <- factor(metrics$Model, levels = model.order)
-```
-
-```{r extract_metrics}
-metrics %>% 
-  filter(Metric == "Accuracy" | Metric == "AUC" | Metric == "Kappa") -> metrics
-```
-
-```{r get_cumvar}
-cumvar <- cumsum(c(p.vals.filter$variance[1] + p.vals.filter$variance[2], p.vals.filter$variance[-c(1,2)]))
-names(cumvar) <- seq(2,length(p.vals.filter$EV), 1)
-```
-
-```{r match_metrics_with_cumvar}
-metrics %>% 
-  mutate(variance = cumvar[match(n.ev, names(cumvar))]) -> metrics
-```
-
-
-```{r plot_accuracy}
-metrics %>% 
-  filter(Metric == "Accuracy", Model == "svmPoly") %>%
-  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> accuracy.scaled
-
-p.accuracy <- ggplot(accuracy.scaled, aes(x = n.ev, y = Value)) +
-  geom_point(color = "#de2d26") +
-  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  xlab("") +
-  ylab("Value") +
-  facet_wrap(~Metric, scales = "free", nrow = 1) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_color_brewer(palette = "Set1") +
-  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
-  theme(axis.title.x = element_text(size = 19, face = "bold"),
-        axis.title.y = element_text(size = 19, face = "bold"),
-        strip.text.x = element_text(size = 17, face = "bold"),
-        strip.background = element_rect(fill = "#fee6ce")) +
-  scale_y_continuous(sec.axis = sec_axis(~( (. - min( accuracy.scaled$Value)) / (max( accuracy.scaled$Value) - min( accuracy.scaled$Value)) ) * (max( accuracy.scaled$variance) - min( accuracy.scaled$variance)) + min( accuracy.scaled$variance)))
-```
-
-```{r plot_accuracy}
-metrics %>% 
-  filter(Metric == "AUC", Model == "svmPoly") %>%
-  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> auc.scaled
-
-p.auc <-  ggplot(auc.scaled, aes(x = n.ev, y = Value)) +
-  geom_point(color = "#de2d26") +
-  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  xlab("Number of eigenvectors") +
-  ylab("") +
-  facet_wrap(~Metric, scales = "free", nrow = 1) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_color_brewer(palette = "Set1") +
-  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
-  theme(axis.title.x = element_text(size = 19, face = "bold"),
-        axis.title.y = element_text(size = 19, face = "bold"),
-        strip.text.x = element_text(size = 17, face = "bold"),
-        strip.background = element_rect(fill = "#fee6ce")) +
-  scale_y_continuous(sec.axis = sec_axis(~( (. - min( auc.scaled$Value)) / (max( auc.scaled$Value) - min( auc.scaled$Value)) ) * (max( auc.scaled$variance) - min( auc.scaled$variance)) + min( auc.scaled$variance)))
-```
-
 
 ```{r}
-metrics %>% 
-  filter(Metric == "Kappa", Model == "svmPoly") %>%
-  mutate(var.scale = ( (variance - min(variance)) / (max(variance) - min(variance)) ) * (max(Value) - min(Value)) + min(Value)) -> kappa.scaled
-
-p.kappa <- ggplot(kappa.scaled, aes(x = n.ev, y = Value)) +
-  geom_point(color = "#de2d26") +
-  geom_line(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  geom_point(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  geom_line(aes(x = as.numeric(n.ev), y = var.scale), color = "#636363", alpha = 0.5) +
-  #geom_pointrange(aes(x = as.numeric(n.ev)), color = "#de2d26") +
-  xlab("") +
-  ylab("") +
-  facet_wrap(~Metric, scales = "free", nrow = 1) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_color_brewer(palette = "Set1") +
-  geom_vline(xintercept = nrow(p.vals.filter.significant), linetype = "dashed", color = "#31a354") +
-  theme(axis.title.x = element_text(size = 19, face = "bold"),
-        axis.title.y = element_text(size = 19, face = "bold"),
-        strip.text.x = element_text(size = 17, face = "bold"),
-        strip.background = element_rect(fill = "#fee6ce")) +
- scale_y_continuous(sec.axis = sec_axis(~( (. - min( kappa.scaled$Value)) / (max( kappa.scaled$Value) - min( kappa.scaled$Value)) ) * (max( kappa.scaled$variance) - min( kappa.scaled$variance)) + min( kappa.scaled$variance), name = "Variance explained (%)"))
+p <- plotMetrics(performance, eigen.info =  red.features)
 ```
 
-
-```{r}
-p <- plot_grid(p.accuracy, p.auc, p.kappa, labels = c("A", "B", "C"), nrow = 1)
-```
 
 
 ```{r save_metrics_plot}
