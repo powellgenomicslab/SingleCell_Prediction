@@ -1,33 +1,91 @@
 ---
 title: "Get DE genes from GTEx dataset"
 author: "Jose Alquicira Hernandez"
-date: "20/09/2017"
-output: html_document
+date: "Last run: `r format(Sys.time(), '%b %d %Y')`"
+output:
+  html_document:
+    df_print: kable
+    fig_caption: yes
+    highlight: kate
+    number_sections: yes
+    theme: simplex
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
 ---
 
-```{r}
-library("edgeR")
-library("stringr")
-library("magrittr")
-library("knitr")
-library("dplyr")
+# Run example
+
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+script_dir=bin
+
+# Input files parameters ---
+
+gtex_path=results/2017-09-21_gtex_cleaning_data/gtex_clean.RDS
+
+# Output file parameters ---
+
+output_dir=results/${PWD##*/}
+
+# Set extra parameters -----
+
+sample_1=brain_frontal_cortex_ba9 
+sample_2=brain_cortex
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'gtex_get_de_genes.Rmd'), output_file = paste0('${sample_1}', '-', '${sample_2}', '.html'), output_dir = here('${output_dir}'))" ${gtex_path} ${output_dir} ${sample_1} ${sample_2}
 ```
 
 
 
+# Import libraries
+
+```{r import_primary_libraries}
+library("here")
+library("tidyverse")
+```
+
+
+
+```{r import_secondary_libraries}
+library("edgeR")
+library("stringr")
+library("knitr")
+```
+
+# Read command-line arguments
+
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
-positive.class <- argv[1]
-negative.class <- argv[2]
-path.gtex.data <- argv[3]
-output.path <- arg[4]
+
+# Set input parameters
+path.gtex.data <- argv[1]
+
+# Set output parameters
+output.path<- argv[2]
+
+# Set extra parameters
+positive.class <- argv[3]
+negative.class <- argv[4]
 # positive.class <- "brain_frontal_cortex_ba9"
 # negative.class <- "brain_cortex"
 ```
 
 
+# Analyzed groups
+
+- **Positive class**: `r positive.class`
+- **Negative class**: `r negative.class`
+
+
+# Read data
+
 ```{r read_gtex_data}
-gtex <- readRDS(path.gtex.data)
+gtex <- readRDS(here(path.gtex.data))
 ```
 
 ```{r subset_data}
@@ -61,6 +119,7 @@ colnames(design) <- levels(counts.norm$samples$group)
 voom.out <- voom(counts.norm, design, plot = TRUE)
 ```
 
+# Get differentially expressed genes
 
 ```{r get_DE_genes}
 fit <- lmFit(voom.out)
@@ -87,7 +146,7 @@ limma.res <- topTable(fit.cont, coef = 1, sort.by = "p", n = "Inf")
 
 
 ```{r show_results_top10}
-kable(topTable(fit.cont, coef = 1, sort.by = "p", n = 10))
+topTable(fit.cont, coef = 1, sort.by = "p", n = 10)
 ```
 
 ```{r plot_DE_genes}
@@ -108,10 +167,19 @@ limma.res %>%
 ```
 
 ```{r save_results}
-write.csv(significant.genes, file = paste0(output.path, positive.class, "_vs_", negative.class, ".csv"), row.names = FALSE)
+output.file.name <- paste0(positive.class, "_vs_", negative.class, ".csv")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+write.csv(significant.genes, file = output.file.name.path, row.names = FALSE)
 ```
 
-Number of dignificant genes: `r nrow(significant.genes)`
+
+# Number of significant genes
+
+After filtering by adjusted p-value using a threshold of `0.05` and an absolute fold-change of `2` the number of differentially expressed genes between `r positive.class` and `r negative.class` is:
+
+**`r nrow(significant.genes)`**
+
+# Session info
 
 ```{r display_session_info}
 options(width = 120)
