@@ -1,26 +1,90 @@
 ---
-title: "PCA of GTEx data"
+title: "Perform PCA of samples from GTEx dataset"
 author: "Jose Alquicira Hernandez"
-date: "08/09/2017"
-output: html_document
+date: "Last run: `r format(Sys.time(), '%b %d %Y')`"
+output:
+  html_document:
+    df_print: kable
+    fig_caption: yes
+    highlight: kate
+    number_sections: yes
+    theme: simplex
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
 ---
+# Run example
 
-```{r import_libraries}
-library("tidyverse")
-library("knitr")
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+script_dir=bin
+
+# Script parameters
+# Input files --------------
+
+gtex_path=results/2017-09-21_gtex_cleaning_data/gtex_clean.RDS
+path_deg_data=results/2017-09-27_gtex_de_genes_samples
+
+# Output file directory ----
+
+output_dir=results/${PWD##*/}
+
+# Set extra parameters -----
+
+sample_1=skin_sun_exposed_lower_leg
+sample_2=skin_not_sun_exposed_suprapubic
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'gtex_pca.Rmd'), output_file = paste0('${sample_1}', '-', '${sample_2}', '.html'), output_dir = here('${output_dir}'))" ${gtex_path} ${path_deg_data} ${output_dir} ${sample_1} ${sample_2}
 ```
+
+
+
+# Import libraries
+
+```{r import_primary_libraries}
+library("here")
+library("tidyverse")
+```
+
+
+```{r import_secondary_libraries}
+library("cowplot")
+```
+
+# Read command-line arguments
 
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
-positive.class <- argv[1]
-negative.class <- argv[2]
-# positive.class <- "heart_left_ventricle"
-# negative.class <- "heart_atrial_appendage"
+
+# Set input parameters
+path.gtex.data <- argv[1]
+path.deg.data <- argv[2]
+
+# Set output parameters
+output.path<- argv[3]
+
+# Set extra parameters
+positive.class <- argv[4]
+negative.class <- argv[5]
+# positive.class <- "skin_sun_exposed_lower_leg"
+# negative.class <- "skin_not_sun_exposed_suprapubic"
 ```
 
 
+# Analyzed groups
+
+- **Positive class**: `r positive.class`
+- **Negative class**: `r negative.class`
+
+# Read data
+
+
 ```{r read_gtex_data}
-gtex <- readRDS("../data/2017-09-13_gtex_data/gtex_clean.RDS")
+gtex <- readRDS(here(path.gtex.data))
 ```
 
 
@@ -30,21 +94,23 @@ metadata <- gtex$metadata[samples.idx, ]
 tpm <- gtex$tpm[,samples.idx]
 ```
 
+# Data summary
+
 
 ```{r get_sample_summary}
 metadata %>% 
   group_by(SMTSD) %>% 
   count() %>% 
-  arrange(-n) %>% 
-  kable()
+  arrange(-n)
 ```
 
-
+# Perform PCA (all genes)
 
 ```{r perform_pca}
 pca <- prcomp(log2(t(tpm) + 1), center = TRUE, scale. = TRUE)
 ```
 
+# Extract variance explained
 
 ```{r extract_rotation}
 eigenvectors <- as.data.frame(pca$x)
@@ -55,46 +121,63 @@ names(pc.var) <- names(eigenvectors)
 eigenvectors$sample <- metadata$subtissue -> pca$sample
 ```
 
+# Save results
+
 ```{r save_pca}
 cat("Saving results...\n")
-saveRDS(pca, file = paste0("../results/2017-09-21_gtex_pca/pca_", positive.class, "_vs_", negative.class, ".RDS"))
+output.file.name <- paste0("pca_",positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+saveRDS(pca, file = output.file.name.path)
 cat("Results saved...\n")
 ```
 
-
+# Plot PCA
 
 ```{r plot_pca}
 p12 <- ggplot(eigenvectors, aes(x = PC1, y = PC2, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
   ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
 p13 <- ggplot(eigenvectors, aes(x = PC1, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
 p23 <- ggplot(eigenvectors, aes(x = PC2, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
   ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
 ```
 
 
-```{r print_pcs}
+```{r print_eigen}
+all.p <- plot_grid(p12 + theme(legend.position = "none"), 
+             p13 + theme(legend.position = "none"),
+             p23 + theme(legend.position = "none"), nrow = 1)
+
+legend <- get_legend(p12)
+p <- plot_grid(all.p, legend, nrow = 1, rel_widths = c(11, 3))
 p12
 p13
 p23
 ```
 
 
+```{r save_pca_plot}
+output.file.name <- paste0("pca_all_genes_", positive.class, "_vs_", negative.class, ".png")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+ggsave(filename = output.file.name.path, plot = p, height = 4, width = 15.4, dpi = 350)
+```
+
+# Read DE genes information
+
 
 ```{r read_de_genes}
-de.genes <- read.csv(paste0("../results/2017-09-21_gtex_de_genes/", positive.class, "_vs_", negative.class, ".csv"))
+input.file <- paste0(positive.class, "_vs_", negative.class, ".csv")
+input.file.path <- file.path(here(path.deg.data), input.file)
+de.genes <- read.csv(input.file.path)
 ```
 
 
@@ -102,6 +185,7 @@ de.genes <- read.csv(paste0("../results/2017-09-21_gtex_de_genes/", positive.cla
 tpm.no.deg <- tpm[!(rownames(tpm) %in% de.genes$genes),]
 ```
 
+# Perform PCA (without DE genes)
 
 ```{r perform_pca_no_deg}
 pca.no.deg <- prcomp(log2(t(tpm.no.deg) + 1), center = TRUE, scale. = TRUE)
@@ -119,7 +203,9 @@ eigenvectors.no.deg$sample <- metadata$subtissue -> pca.no.deg$sample
 
 ```{r save_pca_no-deg}
 cat("Saving results...\n")
-saveRDS(pca.no.deg, file = paste0("../results/2017-09-21_gtex_pca/pca_nodeg_", positive.class, "_vs_", negative.class, ".RDS"))
+output.file.name <- paste0("pca_no-de_genes_",positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+saveRDS(pca, file = output.file.name.path)
 cat("Results saved...\n")
 ```
 
@@ -128,28 +214,39 @@ cat("Results saved...\n")
 p12 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC2, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
   ylab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)"))
 p13 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") +
   xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
+  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)")) 
 p23 <- ggplot(eigenvectors.no.deg, aes(x = PC2, y = PC3, color = sample)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  ggtitle(paste(positive.class, "vs.", negative.class), subtitle = "All genes") + 
   xlab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)")) +
   ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
 ```
 
-```{r print_pcs_nodeg}
+```{r print_eigen_nodeg}
+all.p <- plot_grid(p12 + theme(legend.position = "none"), 
+             p13 + theme(legend.position = "none"),
+             p23 + theme(legend.position = "none"), nrow = 1)
+
+legend <- get_legend(p12)
+p <- plot_grid(all.p, legend, nrow = 1, rel_widths = c(11, 3))
 p12
 p13
 p23
 ```
+
+```{r save_pca_plot_nodegs}
+output.file.name <- paste0("pca_no-de_genes_",positive.class, "_vs_", negative.class, ".png")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+ggsave(filename = output.file.name.path, plot = p, height = 4, width = 15.4)
+```
+
+
 
 ```{r display_session_info}
 options(width = 120)
