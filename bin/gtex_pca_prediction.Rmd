@@ -2,38 +2,98 @@
 title: "Sample origin prediction using GTEx dataset"
 author: "Jose Alquicira Hernandez"
 date: "13/09/2017"
-output: html_document
+output:
+  html_document:
+    df_print: kable
+    fig_caption: yes
+    highlight: kate
+    number_sections: yes
+    theme: simplex
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
 ---
 
-```{r load_libraries}
+# Run example
+
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+script_dir=bin
+
+# Script parameters
+
+# Set extra parameters -----
+
+sample_1=thyroid
+sample_2=whole_blood
+
+# Input files --------------
+
+gtex_data=results/2017-09-21_gtex_cleaning_data/gtex_clean.RDS
+red_data=results/2017-09-27_gtex_pca_samples/pca_${sample_1}_vs_${sample_2}.RDS
+deg_data=results/2017-09-27_gtex_de_genes_samples/${sample_1}_vs_${sample_2}.csv
+
+# Output file directory ----
+
+output_dir=results/${PWD##*/}
+
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'gtex_pca_prediction.Rmd'), output_file = paste0('${sample_1}', '-', '${sample_2}', '.html'), output_dir = here('${output_dir}'))" ${red_data} ${deg_data} ${gtex_data} ${output_dir} ${sample_1} ${sample_2}
+```
+
+```{r import_primary_libraries}
 library("scPrediction")
 library("tidyverse")
+library("here")
 ```
 
 ```{r command_line_args}
 argv <- commandArgs(TRUE)
-positive.class <- as.character(argv[1])
-negative.class <- as.character(argv[2])
+
+# Set input parameters
+
+red.data <- argv[1]
+deg.data <- argv[2]
+gtex.data <- argv[3]
+
+# Set output parameters
+
+output.path<- argv[4]
+
+# Set extra parameters
+
+positive.class <- argv[5]
+negative.class <- argv[6]
+
 # positive.class <- "skin_sun_exposed_lower_leg"
 # negative.class <- "skin_not_sun_exposed_suprapubic"
 ```
 
+# Groups prediction {.tabset}
 
-# Read and process input data
+## Predict groups using eigenvectors
+
+### Read and process input data
 
 ```{r read_pca_data}
-red <- readRDS(paste0("../results/2017-09-21_gtex_pca/pca_", positive.class, "_vs_", negative.class, ".RDS"))
+red <- readRDS(here(red.data))
 eigenvectors <- red$x
 groups <- red$sample
 ```
 
-# Get significant eigenvectors
+### Get significant eigenvectors
 
-```{r}
+```{r get_significant_eigen}
 red.features <- getSignificantEigen(dim.red = red, groups = groups)
 ```
 
-```{r}
+### Make predictions
+
+```{r make_predictions_eigen, results='hide', warning=FALSE, message=FALSE}
 performance <- predictEigen(eigenvectors = eigenvectors,
                             groups = groups,
                             positive.class = positive.class,
@@ -42,31 +102,31 @@ performance <- predictEigen(eigenvectors = eigenvectors,
                             n.cores = 10)
 ```
 
-
+### Save results
 
 ```{r save_results}
 cat("Saving prediction results...\n")
 
 # Save performance
-# performance <- readRDS(paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
-saveRDS(performance, file = paste0("../results/2017-09-14_gtex_pca_prediction/performance_cluster", positive.class, "-", negative.class, ".RDS"))
+output.file.name <- paste0("performance_", positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+saveRDS(performance, file = output.file.name.path)
 
 # Save table of significant eigenvectors
+output.file.name <- paste0("pvals_significant-group_", positive.class, "_vs_", negative.class, ".txt")
+output.file.name.path <- file.path(here(output.path), output.file.name)
 write.table(red.features$significant.eigenvectors, 
-            file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_significant-cluster_",
-                          positive.class,
-                          "-",
-                          negative.class,
-                          ".txt"),
+            file = output.file.name.path,
             sep = "\t",
             row.names = FALSE,
             quote = FALSE)
 
 # Save talbe of top N eigenvectors
+output.file.name <- paste0("pvals_all-group_", positive.class, "_vs_", negative.class, ".txt")
+output.file.name.path <- file.path(here(output.path), output.file.name)
 write.table(red.features$top.n.eigenvectors,
-            file = paste0("../results/2017-09-14_gtex_pca_prediction/pvals_all-cluster_",
-                          positive.class, "-",
-                          negative.class,".txt"),
+            file = output.file.name.path,
             sep = "\t",
             row.names = FALSE,
             quote = FALSE)
@@ -74,14 +134,106 @@ write.table(red.features$top.n.eigenvectors,
 cat("Results saved...\n")
 ```
 
-```{r}
-p <- plotMetrics(performance, eigen.info =  red.features)
+### Plot metrics
+
+```{r plot_metrics}
+plots <- plotMetrics(performance, eigen.info =  red.features)
 ```
 
 
 
+## Predict groups using DE genes
+
+
+### Read GTEx dataset
+
+```{r read_gtex_data}
+gtex <- readRDS(here(gtex.data))
+```
+
+```{r subset_data}
+samples.idx <- (gtex$metadata$subtissue == positive.class) | (gtex$metadata$subtissue == negative.class)
+metadata <- gtex$metadata[samples.idx, ]
+tpm <- gtex$tpm[,samples.idx]
+groups <- metadata$subtissue
+```
+
+### Read DE genes information
+
+
+```{r read_de_genes}
+de.genes <- read.csv(here(deg.data))
+```
+
+
+```{r extract_de_genes}
+tpm.deg <- tpm[rownames(tpm) %in% de.genes$genes,]
+```
+
+### Dataset summary
+
+Number of differentially expressed genes: `r nrow(tpm.deg)`
+Number of samples: `r ncol(tpm.deg)`
+
+
+```{r display_sample_info}
+metadata %>%
+  group_by(SMTSD) %>%
+  count()
+```
+
+### Make predictions
+
+```{r make_predictions, results='hide', warning=FALSE, message=FALSE}
+de.performance <- predictDEGenes(em = tpm.deg,
+                                 groups = groups,
+                                 positive.class = positive.class,
+                                 n.rep = 10,
+                                 n.cores = 10)
+```
+
+```{r save_results_deg}
+cat("Saving prediction results...\n")
+
+# Save performance
+output.file.name <- paste0("performance_deg_", positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+saveRDS(de.performance, file = output.file.name.path)
+cat("Results saved...\n")
+```
+
+```{r format_results}
+de.performance %>%
+  group_by(Model) %>%
+  summarise_at(.vars = c("Accuracy", "Sensitivity", "Specificity", "Kappa", "AUC"),
+               .funs = funs(median)) %>%
+  filter(Model == "svmPoly") %>%
+  ungroup(n.ev) %>%
+  as.data.frame()-> de.performance.median
+
+de.metrics <- gather(data = de.performance.median, key = "Metric", value = "Value", 2:6)
+```
+
+# Plot results
+
+```{r add_de_metrics_to_plot}
+p.accuracy <- plots$accuracy + geom_hline(yintercept = de.performance.median$Accuracy)
+p.kappa <- plots$kappa + geom_hline(yintercept = de.performance.median$Kappa)
+p.auc <- plots$auc + geom_hline(yintercept = de.performance.median$AUC)
+```
+
+```{r make_plor_grid, fig.height=4, fig.width=12}
+p <- plot_grid(p.accuracy, p.auc, p.kappa, nrow = 1)
+p
+```
+
+
 ```{r save_metrics_plot}
-ggsave(filename = paste0("../results/2017-09-14_gtex_pca_prediction/metrics_cluster_", positive.class, "-", negative.class,".png"),
+output.file.name <- paste0("metrics_", positive.class, "_vs_", negative.class, ".png")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+ggsave(filename = output.file.name.path,
        plot = p,
        width = 20,
        height = 4.5,
@@ -89,6 +241,7 @@ ggsave(filename = paste0("../results/2017-09-14_gtex_pca_prediction/metrics_clus
        dpi = 350)
 ```
 
+# Session information
 
 ```{r display_session_info}
 options(width = 120)
