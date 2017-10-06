@@ -1,0 +1,250 @@
+---
+title: "Prediction of normal cells vs. tumor cells from human colon"
+author: "Jose Alquicira Hernandez"
+date: "05/10/2017"
+output:
+  html_document:
+    df_print: kable
+    fig_caption: yes
+    highlight: kate
+    number_sections: yes
+    theme: simplex
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
+---
+
+# Run example
+
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+script_dir=bin
+
+# Script parameters
+
+# Set extra parameters -----
+
+positive_class=normal
+negative_class=tumor
+
+# Input files --------------
+
+exp_data=results/2017-10-05_colon_cancer_pca/coltumor_exp_data_processed.RDS
+red_data=results/2017-10-05_colon_cancer_pca/pca_all_nm_vs_all_tumor.RDS
+
+# Output file directory ----
+
+output_path=results/${PWD##*/}
+
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'coltumor_pca_prediction.Rmd'), output_file = paste0('${positive_class}', '-', '${negative_class}', '.html'), output_dir = here('${output_path}'))" ${red_data} ${exp_data} ${output_path} ${positive_class} ${negative_class}
+```
+
+```{r import_primary_libraries}
+library("scPrediction")
+library("tidyverse")
+library("here")
+library("stringr")
+```
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+
+# Set input parameters
+
+red.data <- argv[1]
+exp.data <- argv[2]
+
+# Set output parameters
+
+output.path<- argv[3]
+
+# Set extra parameters
+
+positive.class <- argv[4]
+negative.class <- argv[5]
+
+# positive.class <- "normal"
+# negative.class <- "tumor"
+```
+
+# Groups prediction {.tabset}
+
+## Predict groups using eigenvectors
+
+### Read and process input data
+
+```{r read_pca_data}
+red <- readRDS(here(red.data))
+eigenvectors <- red$x
+groups <- red$status
+```
+
+### Get significant eigenvectors
+
+```{r get_significant_eigen}
+red.features <- getSignificantEigen(dim.red = red, groups = groups)
+```
+
+### Make predictions
+
+```{r make_predictions_eigen, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
+performance <- predictEigen(eigenvectors = eigenvectors,
+                            groups = groups,
+                            positive.class = positive.class,
+                            significant.eigenvectors = red.features, 
+                            n.rep = 10,
+                            n.cores = 10)
+```
+
+### Save results
+
+```{r save_results}
+cat("Saving prediction results...\n")
+
+# Save performance
+output.file.name <- paste0("performance_", positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+saveRDS(performance, file = output.file.name.path)
+
+# Save table of significant eigenvectors
+output.file.name <- paste0("pvals_significant-group_", positive.class, "_vs_", negative.class, ".txt")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+write.table(red.features$significant.eigenvectors, 
+            file = output.file.name.path,
+            sep = "\t",
+            row.names = FALSE,
+            quote = FALSE)
+
+# Save talbe of top N eigenvectors
+output.file.name <- paste0("pvals_all-group_", positive.class, "_vs_", negative.class, ".txt")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+write.table(red.features$top.n.eigenvectors,
+            file = output.file.name.path,
+            sep = "\t",
+            row.names = FALSE,
+            quote = FALSE)
+
+cat("Results saved...\n")
+```
+
+### Plot metrics
+
+```{r plot_metrics}
+plots <- plotMetrics(performance, eigen.info =  red.features)
+```
+
+
+
+## Predict groups using DE genes
+
+
+### Read GTEx dataset
+
+```{r read_gtex_data}
+exp.metadata <- readRDS(here(exp.data))
+exp <- exp.metadata$exp.data
+metadata <- exp.metadata$metadata
+```
+
+
+### Read DE genes information
+
+
+```{r read_de_genes}
+de.genes <- c("PLA2G2A", "AGR2", "ATP5A1", "UQCR10", "C15orf48", "PRAC1", "LGALS4", "CKB", "PIGR", "MT1E", "MT1G", "MT2A", "C10orf99", "FABP1", "MT1X", "FXYD3", "WFDC2", "NDUFB1", "DBI", "SERF2", "TMSB10", "ATP5I", "MYL6", "S100A10", "B2M", "UBA52", "RPS29", "COX6C", "COX7C", "USMG5", "RPS23", "ATP5G1", "LGALS3", "SNORD13", "SNORD118", "S100P", "S100A11", "HNRNPH1", "ANKRD10", "SAT1", "RP11-1143G9.4", "LYZ", "HSPH1", "HSP90AA1", "HSPA8")
+```
+
+```{r extract_de_genes}
+exp %>% 
+  row.names() %>% 
+  str_split("_") %>% 
+  lapply("[", 2) %>% 
+  unlist() -> exp.data.gene.list
+
+exp.deg <- exp[match(de.genes, exp.data.gene.list),]
+```
+
+
+### Dataset summary
+
+Number of differentially expressed genes: `r nrow(exp.deg)`
+Number of samples: `r ncol(exp.deg)`
+
+
+```{r display_status_info}
+metadata %>%
+  group_by(status) %>%
+  count()
+```
+
+### Make predictions
+
+```{r make_predictions, results='hide', warning=FALSE, message=FALSE}
+de.performance <- predictDEGenes(em = exp.deg,
+                                 groups = groups,
+                                 positive.class = positive.class,
+                                 n.rep = 10,
+                                 n.cores = 10)
+```
+
+```{r save_results_deg}
+cat("Saving prediction results...\n")
+
+# Save performance
+output.file.name <- paste0("performance_deg_", positive.class, "_vs_", negative.class, ".RDS")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+saveRDS(de.performance, file = output.file.name.path)
+cat("Results saved...\n")
+```
+
+```{r format_results}
+de.performance %>%
+  group_by(Model) %>%
+  summarise_at(.vars = c("Accuracy", "Sensitivity", "Specificity", "Kappa", "AUC"),
+               .funs = funs(median)) %>%
+  filter(Model == "svmPoly") %>%
+  ungroup(n.ev) %>%
+  as.data.frame()-> de.performance.median
+
+de.metrics <- gather(data = de.performance.median, key = "Metric", value = "Value", 2:6)
+```
+
+# Plot results
+
+```{r add_de_metrics_to_plot}
+p.accuracy <- plots$accuracy + geom_hline(yintercept = de.performance.median$Accuracy)
+p.kappa <- plots$kappa + geom_hline(yintercept = de.performance.median$Kappa)
+p.auc <- plots$auc + geom_hline(yintercept = de.performance.median$AUC)
+```
+
+```{r make_plor_grid, fig.height=4, fig.width=12}
+p <- plot_grid(p.accuracy, p.auc, p.kappa, nrow = 1)
+p
+```
+
+
+```{r save_metrics_plot}
+output.file.name <- paste0("metrics_", positive.class, "_vs_", negative.class, ".png")
+output.file.name.path <- file.path(here(output.path), output.file.name)
+
+ggsave(filename = output.file.name.path,
+       plot = p,
+       width = 20,
+       height = 4.5,
+       device = "png",
+       dpi = 350)
+```
+
+# Session information
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
