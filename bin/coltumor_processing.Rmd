@@ -124,7 +124,7 @@ metadata$cellType <- fields[[2]]
 
 
 Are cell ids identical `r !any(duplicated(metadata$id))`
-Are loci identical `r !any(duplicated(row.names(exp.data)))`
+Are loci identical `r !any(duplicated(row.names(expData)))`
 
 
 ```{r shows_overall_summary}
@@ -197,7 +197,7 @@ expSet$status %>%
 
 
 ```{r save_results}
-saveRDS(expSet = expSet, 
+saveRDS(expSet, 
         file = file.path(here(output.path), "coltumor_exp_data_processed.RDS"))
 ```
 
