@@ -123,8 +123,8 @@ metadata$cellType <- fields[[2]]
 ```
 
 
-Are cell ids identical `r !any(duplicated(metadata$id))`
-Are loci identical `r !any(duplicated(row.names(expData)))`
+- Are cell ids identical `r !any(duplicated(metadata$id))`
+- Are loci identical `r !any(duplicated(row.names(expData)))`
 
 
 ```{r shows_overall_summary}
@@ -185,8 +185,8 @@ expSet <- expSet[,expSet$cellType == "stemTA"]
 
 # Final data summary
 
-Total number of regions/genes: **`r nrow(expSet)`**
-Total number of cells: **`r ncol(expSet)`**
+- Total number of regions/genes: **`r nrow(expSet)`**
+- Total number of cells: **`r ncol(expSet)`**
 
 ```{r final_summary}
 expSet$status %>% 
