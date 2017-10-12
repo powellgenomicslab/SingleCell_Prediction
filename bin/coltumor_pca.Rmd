@@ -42,8 +42,8 @@ Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'coltumor_p
 library(tidyverse)
 library(here)
 library(data.table)
+library(Biobase)
 library(stringr)
-library(cowplot)
 ```
 
 ```{r command_line_args}
@@ -60,6 +60,13 @@ output.path <- argv[3]
 ```
 
 # Read data
+
+
+```{r include=FALSE}
+tumor.path="data/2017-10-95_colon/GSE81861_CRC_tumor_epithelial_cells_FPKM.csv"
+normal.path="data/2017-10-95_colon/GSE81861_CRC_NM_epithelial_cells_FPKM.csv"
+```
+
 
 ```{r read_data}
 tumor <- fread(here(tumor.path),
@@ -82,7 +89,7 @@ normal$V1 <- NULL
 ```
 
 
-```{r get_summary}
+```{r get_summary} 
 list(tumor = tumor, normal = normal) %>% 
 lapply(dim) %>% 
   as.data.frame(row.names = c("Genes", "Cells"))
@@ -93,25 +100,26 @@ Are loci in both datasets the same and ordered : `r all(row.names(tumor) == row.
 
 
 ```{r merge_datasets}
-exp.data <- cbind(normal, tumor)
+expData <- cbind(normal, tumor)
 ```
 
 ```{r create_metadata}
-metadata <- data.frame(id = colnames(exp.data), status = c(rep("normal", ncol(normal)), rep("tumor", ncol(tumor))) )
+metadata <- data.frame(status = c(rep("normal", ncol(normal)), rep("tumor", ncol(tumor))), 
+                       row.names = colnames(expData))
 ```
 
 ```{r get_extra_metadata}
 getField <- function(i){
   metadata %>% 
-  pull(id) %>% 
+  row.names() %>% 
   str_split("__") %>%
   lapply("[", i) %>% 
   unlist()
 }
 
 fields <- lapply(1:2, getField)
-metadata$cell.id <- fields[[1]]
-metadata$cell.type <- fields[[2]]
+metadata$id <- fields[[1]]
+metadata$cellType <- fields[[2]]
 ```
 
 
@@ -119,13 +127,24 @@ Are cell ids identical `r !any(duplicated(metadata$id))`
 Are loci identical `r !any(duplicated(row.names(exp.data)))`
 
 
-```{r}
+```{r shows_overall_summary}
 metadata %>% 
-  group_by(status, cell.type) %>% 
+  group_by(status, cellType) %>% 
   count()
 ```
 
 
+
+```{r create_expressionSet}
+description <- data.frame(labelDescription= c("Malignancy status",
+                                              "Short cell id",
+                                              "Cell type"),
+                          row.names=c("status", "cellId", "cellType"))
+
+phenoData <- new("AnnotatedDataFrame", data = metadata, varMetadata = description)
+
+expSet <- ExpressionSet(assayData = as.matrix(expData), phenoData = phenoData)
+```
 
 
 # Data processing
@@ -136,12 +155,12 @@ metadata %>%
 
 
 ```{r remove_zero-count_genes}
-genes.zero <- apply(exp.data, 1, function(gene) all(gene == 0))
-exp.data <- exp.data[!genes.zero,]
+genesZero <- esApply(expSet, 1, function(gene) all(gene == 0))
+expSet <- expSet[!genesZero,]
 ```
 
 
-**`r sum(genes.zero)`** loci removed with all zero-values across all cells.
+**`r sum(genesZero)`** loci removed with all zero-values across all cells.
 
 
 
@@ -149,192 +168,38 @@ exp.data <- exp.data[!genes.zero,]
 
 
 ```{r remove_non-shared_genes}
-non.low.expressed <- rowSums(exp.data > 0) >= round(ncol(exp.data)*0.1) # 16325 removed
-exp.data <- exp.data[non.low.expressed,]
+nonLowExpressed <- rowSums(exprs(expSet) > 0) >= round(ncol(expSet) * 0.1)
+
+expSet <- expSet[nonLowExpressed,]
 ```
 
-**`r sum(non.low.expressed)`** loci removed with regions not expressed in at least 10% of cells
+**`r sum(nonLowExpressed)`** loci kept with regions not expressed in at least 10% of cells
 
 
 ### Extract stem/TA cells
 
 ```{r extract_stem-ta_cells}
-metadata %>% 
-  filter(cell.type == "stemTA") -> metadata
-
-exp.data <- exp.data[,match(metadata$id,colnames(exp.data))]
-
+expSet <- expSet[,expSet$cellType == "stemTA"]
 ```
 
 
 # Final data summary
 
-Total number of regions/genes: **`r nrow(exp.data)`**
-Total number of cells: **`r ncol(exp.data)`**
+Total number of regions/genes: **`r nrow(expSet)`**
+Total number of cells: **`r ncol(expSet)`**
 
 ```{r final_summary}
-metadata %>% 
-  group_by(status) %>% 
-  count()
+expSet$status %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  set_names(c("Status", "Number of cells"))
 ```
 
 
-```{r}
-saveRDS(list(exp.data = exp.data, metadata = metadata), 
+```{r save_results}
+saveRDS(expSet = expSet, 
         file = file.path(here(output.path), "coltumor_exp_data_processed.RDS"))
 ```
-
-
-# Principal component analysis
-
-```{r pca}
-pca <- prcomp(log2(t(exp.data) + 1), center = TRUE, scale. = TRUE)
-```
-
-```{r extract_pca}
-eigenvectors <- as.data.frame(pca$x)
-
-pc.var <- round((pca$sdev**2 / sum(pca$sdev**2))*100, 2)
-names(pc.var) <- names(eigenvectors)
-eigenvectors$status <- metadata$status -> pca$status
-eigenvectors$cell.type <- metadata$cell.type -> pca$cell.type
-```
-
-
-
-
-```{r plot_pca}
-p12 <- ggplot(eigenvectors, aes(x = PC1, y = PC2, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-  ylab(paste0("PC2 (", pc.var[2], "% variance explained)"))
-
-p13 <- ggplot(eigenvectors, aes(x = PC1, y = PC3, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var[1], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-p23 <- ggplot(eigenvectors, aes(x = PC2, y = PC3, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC2 (", pc.var[2], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var[3], "% variance explained)"))
-```
-
-
-
-```{r plot_grid}
-all.p <- plot_grid(p12 + theme(legend.position = "none"), 
-             p13 + theme(legend.position = "none"),
-             p23 + theme(legend.position = "none"), nrow = 1)
-
-legend <- get_legend(p12)
-p <- plot_grid(all.p, legend, nrow = 1, rel_widths = c(11, 3))
-p12
-p13
-p23
-```
-
-```{r save_pca_plot}
-output.file.name <- paste0("pca_all_genes_malignant_vs_normal.png")
-output.file.name.path <- file.path(here(output.path), output.file.name)
-ggsave(filename = output.file.name.path, plot = p, height = 4, width = 15.4, dpi = 350)
-```
-
-# Save results
-
-```{r save_pca}
-cat("Saving results...\n")
-output.file.name <- paste0("pca_all_nm_vs_all_tumor.RDS")
-output.file.name.path <- file.path(here(output.path), output.file.name)
-saveRDS(pca, file = output.file.name.path)
-cat("Results saved...\n")
-```
-
-
-
-
-# Read DE genes information
-
-
-```{r read_de_genes}
-de.genes <- c("PLA2G2A", "AGR2", "ATP5A1", "UQCR10", "C15orf48", "PRAC1", "LGALS4", "CKB", "PIGR", "MT1E", "MT1G", "MT2A", "C10orf99", "FABP1", "MT1X", "FXYD3", "WFDC2", "NDUFB1", "DBI", "SERF2", "TMSB10", "ATP5I", "MYL6", "S100A10", "B2M", "UBA52", "RPS29", "COX6C", "COX7C", "USMG5", "RPS23", "ATP5G1", "LGALS3", "SNORD13", "SNORD118", "S100P", "S100A11", "HNRNPH1", "ANKRD10", "SAT1", "RP11-1143G9.4", "LYZ", "HSPH1", "HSP90AA1", "HSPA8")
-```
-
-```{r remove_de_genes}
-exp.data %>% 
-  row.names() %>% 
-  str_split("_") %>% 
-  lapply("[", 2) %>% 
-  unlist() -> exp.data.gene.list
-
-exp.data.no.deg <- exp.data[-match(de.genes, exp.data.gene.list),]
-```
-
-
-
-# Perform PCA (without DE genes)
-
-```{r perform_pca_no_deg}
-pca.no.deg <- prcomp(log2(t(exp.data.no.deg) + 1), center = TRUE, scale. = TRUE)
-```
-
-
-```{r extract_rotation_no-deg}
-eigenvectors.no.deg <- as.data.frame(pca.no.deg$x)
-
-pc.var.no.deg <- round((pca.no.deg$sdev**2 / sum(pca.no.deg$sdev**2))*100, 2)
-names(pc.var.no.deg) <- names(eigenvectors.no.deg)
-
-eigenvectors.no.deg$status <- metadata$status -> pca.no.deg$status
-```
-
-```{r save_pca_no-deg}
-cat("Saving results...\n")
-output.file.name <- paste0("pca_no-de_genes_all_nm_vs_all_tumor.RDS")
-output.file.name.path <- file.path(here(output.path), output.file.name)
-saveRDS(pca.no.deg, file = output.file.name.path)
-cat("Results saved...\n")
-```
-
-
-```{r plot_pca_no-deg}
-p12 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC2, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
-  ylab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)"))
-p13 <- ggplot(eigenvectors.no.deg, aes(x = PC1, y = PC3, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC1 (", pc.var.no.deg[1], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)")) 
-p23 <- ggplot(eigenvectors.no.deg, aes(x = PC2, y = PC3, color = status)) +
-  geom_point() +
-  scale_color_brewer(palette = "Set1") +
-  xlab(paste0("PC2 (", pc.var.no.deg[2], "% variance explained)")) +
-  ylab(paste0("PC3 (", pc.var.no.deg[3], "% variance explained)"))
-```
-
-```{r print_eigen_nodeg}
-no.deg.p <- plot_grid(p12 + theme(legend.position = "none"), 
-             p13 + theme(legend.position = "none"),
-             p23 + theme(legend.position = "none"), nrow = 1)
-
-legend <- get_legend(p12)
-p <- plot_grid(no.deg.p, legend, nrow = 1, rel_widths = c(11, 3))
-p12
-p13
-p23
-```
-
-```{r save_pca_plot_nodegs}
-output.file.name <- paste0("pca_no-deg_genes_all_genes_malignant_vs_normal.png")
-output.file.name.path <- file.path(here(output.path), output.file.name)
-ggsave(filename = output.file.name.path, plot = no.deg.p, height = 4, width = 15.4)
-```
-
 
 ```{r display_session_info}
 options(width = 120)
