@@ -1,0 +1,146 @@
+---
+title: "Prediction of tumor cells vs.normal cells from human colon"
+author: "Jose Alquicira Hernandez"
+date: "22/11/2017"
+output: html_document
+---
+
+
+# Run example
+
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+scriptDir=bin
+
+# Script parameters
+
+# Input files --------------
+
+expDataDir=results/2017-10-14_colon_cancer_processing/coltumor_exp_data_processed_tpm.RDS
+expDataCountsDir=results/2017-10-14_colon_cancer_processing/coltumor_exp_data_processed_counts.RDS
+
+
+# Variables --------------
+
+positiveClass=tumor
+phenoVar=status
+
+# Output file directory ----
+
+outputDir=results/${PWD##*/}
+
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'coltumor_prediction.Rmd'), output_file = paste0('tumor', '-', 'normal', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${positiveClass} ${phenoVar} ${outputDir}
+```
+
+
+
+```{r import_primary_libraries}
+library("scPrediction")
+library("tidyverse")
+library("here")
+```
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+
+# Set input parameters
+
+expDataDir <- argv[1]
+
+# Set output parameters
+
+outputDir <- argv[2]
+phenoVar <- argv[4]
+
+# Set extra parameters
+
+positiveClass <- argv[4]
+```
+
+# Groups prediction {.tabset}
+
+## Predict groups using eigenvectors
+
+### Read and process input data
+
+```{r read_pca_data}
+expSet <- readRDS(here(expDataDir))
+```
+
+### Make predictions
+
+```{r}
+negativeClass <- levels(expSet[[phenoVar]])[levels(expSet[[phenoVar]]) != positiveClass]
+```
+
+```{r}
+set.seed(100)
+replicates <- sample(1:10000, 50)
+```
+
+
+```{r make_predictions_eigen, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
+predictClass <- function(seed){predictClassEigen(expData = expSet, 
+                               phenoVar = phenoVar, 
+                               positiveClass =  positiveClass, 
+                               seedPart = seed,
+                               probPart = 0.5,
+                               redMethod = "pca",
+                               mlMethod = "svmPoly")
+}
+
+
+
+
+res <- lapply(replicates, predictClass)
+```
+
+
+### Save results
+
+```{r save_results}
+cat("Saving prediction results...\n")
+# Save performance
+outputFileName <- paste0("performance_", positiveClass, "_vs_", negativeClass, ".RDS")
+outputFile <- file.path(here(outputDir), outputFileName)
+saveRDS(res, file = outputFile)
+
+```
+
+
+
+## Predict using DE genes
+
+```{r}
+expSetCounts <- readRDS(here(expDataCountsDir))
+```
+
+```{r}
+predictDE <- function(seed){
+  predictClassDE(expSetCounts, phenoVar, positiveClass, seedPart = seed, probPart = 0.5, log2FCFilter = 0.5, mlMethod = "svmPoly")
+}
+
+resDEG <- bplapply(replicates, predictDE, BPPARAM = MulticoreParam(workers = 2))
+
+```
+
+```{r save_results}
+cat("Saving prediction results...\n")
+
+# Save performance
+outputFileName <- paste0("performance_DEG_", positiveClass, "_vs_", negativeClass, ".RDS")
+outputFile <- file.path(here(outputDir), outputFileName)
+saveRDS(resDEG, file = outputFile)
+```
+
+
+# Session information
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
+
