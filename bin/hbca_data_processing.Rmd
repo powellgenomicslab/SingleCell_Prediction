@@ -36,7 +36,7 @@ outputDir=results/${PWD##*/}
 
 # Main ---------------------
 
-Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'blood_atlas_processing.Rmd'), output_file = paste0('blood_atlas', '.html'), output_dir = here('${output_path}'))" ${expDataDir} ${metaDataDir} ${outputDir}
+Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_data_processing.Rmd'), output_file = paste0('blood_atlas', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${metaDataDir} ${outputDir}
 ```
 
 ```{r import_libraries}
@@ -96,10 +96,10 @@ Do all cells from the metadata intersect with the cells in the gene expression m
 
 Order metadata according to gene expression matrix
 
-```{r}
+```{r order_metadata}
 metadata <- metadata[match(names(expDataMatrixFilter), metadata$TYPE), ]
-rownames(metadata) <- metadata$cellID
-metadata$cellID <- NULL
+rownames(metadata) <- metadata$TYPE
+metadata$TYPE <- NULL
 ```
 Are all cells from the metadata in the same order as in the gene expression matrix? : `r all(metadata$TYPE == names(expDataMatrixFilter))`
 
@@ -111,7 +111,7 @@ Are all cells from the metadata in the same order as in the gene expression matr
 
 ```{r shows_overall_summary}
 metadata %>% 
-  group_by(cellType) %>% 
+  group_by(group) %>% 
   count(sort = TRUE)
 ```
 
@@ -120,10 +120,11 @@ metadata %>%
 ```{r create_expressionSet}
 description <- data.frame(labelDescription= c("Cell type"),
                           row.names=c("cellType"))
+names(metadata) <- "cellType"
 
 phenoData <- new("AnnotatedDataFrame", data = metadata, varMetadata = description)
-expDataMatrixFilter <- as.matrix(round(expDataMatrixFilter))
 
+expDataMatrixFilter <- as.matrix(round(expDataMatrixFilter))
 expSet <- ExpressionSet(assayData = expDataMatrixFilter, phenoData = phenoData)
 ```
 
@@ -157,13 +158,6 @@ expSet <- expSet[nonLowExpressed,]
 **`r sum(nonLowExpressed)`** loci kept with regions not expressed in at least 10% of cells
 
 
-### Extract stem/TA cells
-
-```{r extract_stem-ta_cells}
-expSet <- expSet[,expSet$cellType == "stemTA"]
-```
-
-
 # Final data summary
 
 - Total number of regions/genes: **`r nrow(expSet)`**
@@ -173,7 +167,7 @@ expSet <- expSet[,expSet$cellType == "stemTA"]
 expSet$cellType %>% 
   table() %>% 
   as.data.frame() %>% 
-  set_names(c("Status", "Number of cells"))
+  set_names(c("Cell type", "Number of cells"))
 ```
 
 
@@ -186,13 +180,13 @@ exprs(expSetCPM) <- cpm
 
 ```{r save_results_counts}
 saveRDS(expSet, 
-        file = file.path(here(output.path), "hbca_exp_data_processed_counts.RDS"))
+        file = file.path(here(outputDir), "hbca_exp_data_processed_counts.RDS"))
 ```
 
 
 ```{r save_results_cpm}
 saveRDS(expSetCPM, 
-        file = file.path(here(output.path), "hbca_exp_data_processed_cpm.RDS"))
+        file = file.path(here(outputDir), "hbca_exp_data_processed_cpm.RDS"))
 ```
 
 ```{r display_session_info}
