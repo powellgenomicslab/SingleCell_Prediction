@@ -1,0 +1,201 @@
+---
+title: "Data processing of human monocytes and dendritic cells"
+author: "Jose Alquicira Hernandez"
+date: "24/11/2017"
+output:
+  html_document:
+    df_print: kable
+    fig_caption: yes
+    highlight: kate
+    number_sections: yes
+    theme: simplex
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    collapsed: false
+    code_folding: show
+---
+
+# Run example
+
+```{bash run_example, eval=FALSE}
+# Set scripts directory ----
+scriptDir=bin
+
+# Script parameters
+
+# Input files --------------
+
+expDataDir=data/2017-07-17_blood_atlas/RAW/raw_expression_matrix.txt
+metaDataDir=data/2017-07-17_blood_atlas/RAW/metadata.txt
+
+# Output file directory ----
+
+outputDir=results/${PWD##*/}
+
+
+# Main ---------------------
+
+Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'blood_atlas_processing.Rmd'), output_file = paste0('blood_atlas', '.html'), output_dir = here('${output_path}'))" ${expDataDir} ${metaDataDir} ${outputDir}
+```
+
+```{r import_libraries}
+library("tidyverse")
+library("here")
+library("data.table")
+library("Biobase")
+library("stringr")
+```
+
+```{r command_line_args}
+argv <- commandArgs(TRUE)
+
+# Set input parameters
+
+expDataDir<- argv[1]
+metaDataDir <- argv[2]
+
+# Set output parameters
+
+outputDir<- argv[3]
+```
+
+# Read data
+
+```{r read_data}
+expDataMatrix <- read.table(here(expDataDir),
+                 header = TRUE,
+                 sep = "\t")
+
+
+metadata <- read.table(here(metaDataDir),
+                       header = TRUE,
+                       sep = "\t",
+                       skip = 1)
+
+rownames(expDataMatrix) <- make.names(expDataMatrix$Gene.ID, unique = TRUE)
+expDataMatrix$Gene.ID <- NULL
+```
+
+
+
+```{r filter_cells_by_metadata}
+cellNames <- names(expDataMatrix) %>% 
+  str_split("_") %>% lapply(function(x) paste0(x[seq_len(length(x) - 1)], collapse = "_")) %>% 
+  unlist()
+
+names(expDataMatrix) <- cellNames
+expDataMatrixFilter <- expDataMatrix[, names(expDataMatrix) %in% metadata$TYPE]
+
+dim(expDataMatrix)
+dim(expDataMatrixFilter)
+```
+
+`r table(cellNames %in% metadata$TYPE)[1]` cells have no associated metadata. These cells were removed.
+Do all cells from the metadata intersect with the cells in the gene expression matrix? : `r all(metadata$TYPE %in% cellNames)`
+
+Order metadata according to gene expression matrix
+
+```{r}
+metadata <- metadata[match(names(expDataMatrixFilter), metadata$TYPE), ]
+rownames(metadata) <- metadata$cellID
+metadata$cellID <- NULL
+```
+Are all cells from the metadata in the same order as in the gene expression matrix? : `r all(metadata$TYPE == names(expDataMatrixFilter))`
+
+
+
+- Are cell ids identical `r !any(duplicated(metadata$TYPE))`
+- Are loci identical `r !any(duplicated(rownames(expDataMatrixFilter)))`
+
+
+```{r shows_overall_summary}
+metadata %>% 
+  group_by(cellType) %>% 
+  count(sort = TRUE)
+```
+
+
+
+```{r create_expressionSet}
+description <- data.frame(labelDescription= c("Cell type"),
+                          row.names=c("cellType"))
+
+phenoData <- new("AnnotatedDataFrame", data = metadata, varMetadata = description)
+expDataMatrixFilter <- as.matrix(round(expDataMatrixFilter))
+
+expSet <- ExpressionSet(assayData = expDataMatrixFilter, phenoData = phenoData)
+```
+
+
+# Data processing
+
+## Filtering
+
+### Remove regions with zero counts across all cells
+
+
+```{r remove_zero-count_genes}
+genesZero <- esApply(expSet, 1, function(gene) all(gene == 0))
+expSet <- expSet[!genesZero,]
+```
+
+
+**`r sum(genesZero)`** loci removed with all zero-values across all cells.
+
+
+
+### Remove loci not expressed in at least 10% of all cells
+
+
+```{r remove_non-shared_genes}
+nonLowExpressed <- rowSums(exprs(expSet) > 0) >= round(ncol(expSet) * 0.1)
+
+expSet <- expSet[nonLowExpressed,]
+```
+
+**`r sum(nonLowExpressed)`** loci kept with regions not expressed in at least 10% of cells
+
+
+### Extract stem/TA cells
+
+```{r extract_stem-ta_cells}
+expSet <- expSet[,expSet$cellType == "stemTA"]
+```
+
+
+# Final data summary
+
+- Total number of regions/genes: **`r nrow(expSet)`**
+- Total number of cells: **`r ncol(expSet)`**
+
+```{r final_summary}
+expSet$cellType %>% 
+  table() %>% 
+  as.data.frame() %>% 
+  set_names(c("Status", "Number of cells"))
+```
+
+
+```{r create_cpm_expressionSet}
+cpm  <- esApply(expSet, 2, function(x) (x/sum(x))*1000000)
+expSetCPM <- expSet
+exprs(expSetCPM) <- cpm
+```
+
+
+```{r save_results_counts}
+saveRDS(expSet, 
+        file = file.path(here(output.path), "hbca_exp_data_processed_counts.RDS"))
+```
+
+
+```{r save_results_cpm}
+saveRDS(expSetCPM, 
+        file = file.path(here(output.path), "hbca_exp_data_processed_cpm.RDS"))
+```
+
+```{r display_session_info}
+options(width = 120)
+devtools::session_info()
+```
