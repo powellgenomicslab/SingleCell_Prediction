@@ -32,7 +32,7 @@ outputDir=results/${PWD##*/}
 
 # Main ---------------------
 
-Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_prediction.Rmd'), output_file = paste0(${positiveClass}, '-', 'other', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${positiveClass} ${phenoVar} ${outputDir}
+Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_prediction.Rmd'), output_file = paste0('${positiveClass}', '-', 'other', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${positiveClass} ${phenoVar} ${outputDir}
 ```
 
 
