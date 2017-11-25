@@ -41,6 +41,8 @@ Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_predic
 library("scPrediction")
 library("tidyverse")
 library("here")
+library("BiocParallel")
+library("DESeq")
 ```
 
 ```{r command_line_args}
