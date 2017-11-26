@@ -32,7 +32,7 @@ outputDir=results/${PWD##*/}
 
 # Main ---------------------
 
-Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_prediction.Rmd'), output_file = paste0('${positiveClass}', '-', 'other', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${positiveClass} ${phenoVar} ${outputDir}
+Rscript -e "library('here'); rmarkdown::render(here('${scriptDir}', 'hbca_prediction.Rmd'), output_file = paste0('${positiveClass}', '-', 'other', '.html'), output_dir = here('${outputDir}'))" ${expDataDir} ${expDataCountsDir} ${positiveClass} ${phenoVar} ${outputDir}
 ```
 
 
@@ -51,15 +51,17 @@ argv <- commandArgs(TRUE)
 # Set input parameters
 
 expDataDir <- argv[1]
+expDataCountsDir <- argv[2]
+
 
 # Set extra parameters
 
-positiveClass <- argv[2]
-phenoVar <- argv[3]
+positiveClass <- argv[3]
+phenoVar <- argv[4]
 
 
 # Set output parameters
-outputDir <- argv[4]
+outputDir <- argv[5]
 
 ```
 
@@ -69,13 +71,13 @@ outputDir <- argv[4]
 
 ### Read and process input data
 
-```{r read_pca_data}
+```{r read_pca_data, eval=FALSE}
 expSet <- readRDS(here(expDataDir))
 ```
 
 ### Make predictions
 
-```{r set_classes}
+```{r set_classes, eval=FALSE}
 newPhenoVar <- ifelse(expSet[[phenoVar]] == positiveClass, as.character(expSet[[phenoVar]]), "other")
 expSet[[phenoVar]] <- factor(newPhenoVar, levels = c(positiveClass, "other"))
 ```
@@ -86,7 +88,7 @@ replicates <- sample(1:10000, 50)
 ```
 
 
-```{r make_predictions_eigen, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
+```{r make_predictions_eigen, eval=FALSE, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
 predictClass <- function(seed){predictClassEigen(expData = expSet, 
                                phenoVar = phenoVar, 
                                positiveClass =  positiveClass, 
@@ -106,7 +108,7 @@ res <- lapply(replicates, predictClass)
 
 ### Save results
 
-```{r save_results}
+```{r save_results, eval=FALSE}
 cat("Saving prediction results...\n")
 # Save performance
 outputFileName <- paste0("performance_", positiveClass, "_vs_", "other", ".RDS")
