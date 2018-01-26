@@ -1,0 +1,150 @@
+---
+title: "Plot prediction results of human colorectal cancer cells"
+author: "Jose Alquicira Hernandez"
+date: "15/01/2018"
+output: html_document
+---
+
+
+```{r import_libraries, message=FALSE}
+library("tidyverse")
+library("here")
+library("scPrediction")
+library("cowplot")
+library("knitr")
+```
+
+
+# Read data
+
+
+## Eigenpredictions
+
+```{r read_eigenPred}
+eigenPred <- readRDS(here("results/2017-11-22_colon_cancer_prediction/performance_tumor_vs_normal.RDS"))
+```
+
+
+## DEG predictions
+
+```{r read_degPred}
+degPred <- readRDS(here(paste0("results/2017-11-22_colon_cancer_prediction/performance_DEG_tumor_vs_normal.RDS")))
+```
+
+
+# Plot data
+
+
+
+```{r plotMetrics, eval=FALSE}
+accPlot <- plotMetrics(pred = eigenPred, predDEG = degPred, metric = "accuracy")
+rocPlot <- plotMetrics(pred = eigenPred, predDEG = degPred,  metric = "roc")
+diagnosticsPlots <- plotDiagnostics(pred = eigenPred,  metric = "roc")
+```
+
+
+```{r}
+accPlot
+rocPlot
+diagnosticsPlots$plotVarPval
+diagnosticsPlots$plotDeltaPerformance
+```
+
+
+
+
+Based on the diagnostic plots, the number of eigenvectors selected was `13`.
+
+
+```{r plotMetrics}
+n <- 13
+accPlot <- plotMetrics(pred = eigenPred, predDEG = degPred, n = n, metric = "accuracy")  + coord_cartesian(xlim  = c(1, 13))
+rocPlot <- plotMetrics(pred = eigenPred, predDEG = degPred,  n = n, metric = "roc")
+diagnosticsPlots <- plotDiagnostics(pred = eigenPred, n = n, metric = "roc")  + scale_x_continuous(c(1,13))
+```
+
+
+
+```{r}
+cancerControl <- plot_grid(rocPlot + xlab("") + theme(axis.text.x = element_text(angle = 90, hjust = 1)),
+          diagnosticsPlots$plotVarPval + xlab("") + theme(axis.text.x = element_text(angle = 90, hjust = 1)), 
+          diagnosticsPlots$plotDeltaPerformance +  theme(axis.text.x = element_text(angle = 90, hjust = 1)),
+          ncol = 1,
+          align = "v",
+          labels = LETTERS[1:3])
+```
+
+
+```{r}
+ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
+                              "performance_tumor_vs_normal", ".png")),
+       plot = cancerControl, width = 6, height = 8, dpi = 350)
+```
+
+# Extract results
+
+## Selected PCs
+
+```{r}
+rocNumEigen <-  lapply(eigenPred, function(x){
+    x$predictions[[n]]$roc.auc 
+  }) %>% unlist()
+```
+
+## DE genes
+
+```{r}
+degPred %>% 
+  lapply(function(x) x["roc.auc"]) %>%
+  unlist()  -> performanceDEG
+```
+
+
+## Exploratory plot
+
+
+Plot *area under the ROC curve* distributions stratified by cell types and methods (eigen predictions vs. DEG-based predictions)
+
+```{r}
+library(ggridges)
+library(RColorBrewer)
+
+colPalette <- brewer.pal(12, name = "Set3")
+colPalette <- colPalette[5:6]
+
+
+
+
+performanceAll <- data.frame(eigen = rocNumEigen, deg = performanceDEG)
+
+performanceAll %>% 
+  gather(key = "method", value = "Roc") %>% 
+  mutate(method = factor(method, levels = rev(unique(method)))) -> performanceAll
+
+
+p <- ggplot(performanceAll, aes(x = Roc, fill = method)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values  = colPalette, breaks = c("eigen","deg"), labels = c("PCs", "DEGs")) +
+  xlab("AUC ROC") +
+  ylab("Density") +
+  theme_bw()
+
+
+ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
+                              "predictions_comparisons", ".png")),
+       plot = p, width = 6, height = 5,
+       dpi = 350)
+```
+
+
+
+
+
+# Test for distribution differences
+
+```{r}
+testRest <- wilcox.test(rocNumEigen, performanceDEG[!is.na(performanceDEG)], alternative = "greater")
+
+testRest$p.value format(digits = "3")
+```
+
