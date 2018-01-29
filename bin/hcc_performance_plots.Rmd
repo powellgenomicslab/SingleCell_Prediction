@@ -145,6 +145,10 @@ ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
 ```{r}
 testRest <- wilcox.test(rocNumEigen, performanceDEG[!is.na(performanceDEG)], alternative = "greater")
 
-testRest$p.value format(digits = "3")
+testRest$p.value
 ```
+# Get median differences between groups
 
+```{r}
+median(rocNumEigen) - median(performanceDEG, na.rm = TRUE)
+```
