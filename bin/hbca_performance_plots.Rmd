@@ -134,7 +134,7 @@ DC1Plot <- plot_grid(cellType$roc + xlab("") + ylab("") + theme(axis.text.x = el
           cellType$deltaCumVarPval + xlab("") + ylab("") +  theme(axis.text.x = element_text(angle = 90, hjust = 1)), 
           cellType$deltaPerformance + xlab("") + ylab("") +  theme(axis.text.x = element_text(angle = 90, hjust = 1)),
           nrow = 1,
-          align = "v", labels = LETTERS[1:3])
+          align = "v")
 
 cellType <- performancePlots$Mono4
 cellType$deltaCumVarPval$theme$axis.title.y.right <- element_blank()
@@ -275,5 +275,16 @@ diffs %>%
   .["pValues"] %>% 
   format(digits = "3") %>% 
   as.vector()
+```
+
+# Get median differences between 
+
+```{r}
+getMedianDiff <- function(eigen, deg){
+ median(eigen) - median(deg, na.rm = TRUE)  
+}
+
+medianDiff <- mapply(getMedianDiff, 
+                     rocNumEigen, performanceDEG)
 ```
 
