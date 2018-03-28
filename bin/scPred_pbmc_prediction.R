@@ -85,6 +85,6 @@ saveRDS(predictions, file = file.path(newDir, "predictions.RDS"))
 # Measure prediction performance ------------------------------------------
 
 rocRes <-  roc(response = expTestMeta[[phenoVar]],
-               predictor = predictions[[positiveClass]],
+               predictor = predictions[[positiveClassFormat]],
                levels = trainedModel$levels)
 saveRDS(rocRes, file = file.path(newDir, "roc.RDS"))
