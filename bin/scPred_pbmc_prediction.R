@@ -45,7 +45,7 @@ phenoVar <- "cell.type"
 
 
 # Get expression data and metadata ----------------------------------------
-expData <- pbmc@scale.data %>% Matrix::t()
+expData <- pbmc$scale.data %>% Matrix::t()
 
 if(!all(rownames(expData) == rownames(expMetadata))){
   stop("Expression data and metadata are not ordered by cell id")
@@ -54,9 +54,6 @@ if(!all(rownames(expData) == rownames(expMetadata))){
 
 set.seed(seedPart)
 trainIndex <- createDataPartition(expMetadata[[phenoVar]], p = probPart,  list = FALSE, times = 1)
-
-expTrain <- expData[trainIndex, ]
-expTrainMeta <- expMetadata[trainIndex, ]
 
 expTest  <- expData[-trainIndex, ]
 expTestMeta <- expMetadata[-trainIndex, ]
