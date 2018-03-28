@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 seedPart <- args[1]
-positiveClass <- args[3]
+positiveClass <- args[2]
 mlMethod <- args[3]
 
 
