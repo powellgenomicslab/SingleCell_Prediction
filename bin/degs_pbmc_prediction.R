@@ -4,7 +4,7 @@ args <- commandArgs(trailingOnly = TRUE)
 seedPart <- args[1]
 positiveClass <- args[2]
 mlMethod <- args[3]
-
+positiveClassFormat <- gsub("\\+", "", positiveClass)
 
 
 # Load libraries ----------------------------------------------------------
@@ -32,8 +32,8 @@ dir.create(newDir)
 pbmc <- readRDS(here("data/pbmc3k_filtered_gene_bc_matrices/pbmc3k_final_list.Rda"))
 
 pbmc$meta.data %>% 
-  mutate(cellType = if_else(cell.type == positiveClass, positiveClass, "other")) %>% 
-  mutate(cellType = factor(cellType, levels = c(positiveClass, "other"))) -> expMetadata 
+  mutate(cellType = if_else(cell.type == positiveClass, positiveClassFormat, "other")) %>% 
+  mutate(cellType = factor(cellType, levels = c(positiveClassFormat, "other"))) -> expMetadata 
 rownames(expMetadata) <- rownames(pbmc$meta.data)
 
 # Set up general variables ------------------------------------------------
@@ -68,7 +68,7 @@ writeLines(file.path(newDir, "expData_summary.txt"), text = dataSummary, sep = "
 # Train model -------------------------------------------------------------
 
 trainedModel <- trainDEGModel(expTrain, expMetadata = expTrainMeta, method = mlMethod, features = features, pVar = phenoVar, 
-                              positiveClass = positiveClass, seed = 66)
+                              positiveClass = positiveClassFormat, seed = 66)
 saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 
 # Perform prediction in new dataset ---------------------------------------
@@ -78,6 +78,6 @@ saveRDS(predictions, file = file.path(newDir, "predictions.RDS"))
 
 
 rocRes <-  roc(response = expTestMeta[[phenoVar]],
-               predictor = predictions[[positiveClass]],
+               predictor = predictions[[positiveClassFormat]],
                levels = trainedModel$levels)
 saveRDS(rocRes, file = file.path(newDir, "roc.RDS"))
