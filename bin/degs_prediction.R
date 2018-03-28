@@ -8,6 +8,8 @@
 # fitType = 'local'
 # method = "per-condition"
 
+library("methods")
+
 getDE <- function(expData, expMetadata, pVar, positiveClass, pValFilter = 0.05, log2FCFilter = 2, pseudocount = TRUE,
                   fitType = 'local', method = "per-condition"){
   
