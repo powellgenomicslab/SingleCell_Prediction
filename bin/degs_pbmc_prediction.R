@@ -12,6 +12,7 @@ mlMethod <- args[3]
 library("here")
 library("dplyr")
 library("caret")
+library("pROC")
 source(here("bin/degs_prediction.R"))
 
 # Read data ---------------------------------------------------------------
