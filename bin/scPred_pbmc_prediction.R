@@ -20,6 +20,7 @@ eigenPred <- readRDS(here(file.path("results", "2018-03-27_pbmc_scPred_feature-s
 eigenPred@metadata %>% 
   mutate(cellType = gsub("\\+", "", cellType)) %>% 
   mutate(cellType = factor(cellType, levels = c(positiveClassFormat, "other"))) -> newMetadata
+rownames(newMetadata) <- rownames(eigenPred@metadata)
 
 metadata(eigenPred) <- newMetadata
 
