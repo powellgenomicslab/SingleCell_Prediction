@@ -41,7 +41,7 @@ rownames(expMetadata) <- rownames(pbmc$meta.data)
 # Set up general variables ------------------------------------------------
 
 probPart <- 0.5
-phenoVar <- "cell.type"
+phenoVar <- "cellType"
 
 
 # Get expression data and metadata ----------------------------------------
