@@ -1,0 +1,85 @@
+# Set up command-line arguments -------------------------------------------
+
+args <- commandArgs(trailingOnly = TRUE)
+seedPart <- args[1]
+positiveClass <- args[2]
+mlMethod <- args[3]
+
+
+
+# Load libraries ----------------------------------------------------------
+
+library("here")
+library("dplyr")
+library("caret")
+source(here("bin/degs_prediction.R"))
+
+# Read data ---------------------------------------------------------------
+
+dirData <- paste0("degs_", positiveClass, "_boot-seed_", seedPart)
+degsRes <- readRDS(here(file.path("results", "2018-03-27_pbmc_degs_feature-selection", dirData, "degsRes.RDS")))
+
+# Create results diretory -------------------------------------------------
+newDir <- here(file.path("results", "2018-03-27_pbmc_degs_prediction", paste0("degs_", positiveClass, "_boot-seed_", seedPart, "_", mlMethod)))
+dir.create(newDir)
+
+
+# Train prediction model --------------------------------------------------
+
+trainedModel <- trainModel(object = eigenPred, top = 10, method = mlMethod, number = 10, positiveClass = positiveClass, seed = 66)
+saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
+
+
+
+# Read data ---------------------------------------------------------------
+
+pbmc <- readRDS(here("data/pbmc3k_filtered_gene_bc_matrices/pbmc3k_final_list.Rda"))
+
+pbmc$meta.data %>% 
+  mutate(cellType = if_else(cell.type == positiveClass, positiveClass, "other")) %>% 
+  mutate(cellType = factor(cellType, levels = c(positiveClass, "other"))) -> expMetadata 
+rownames(expMetadata) <- rownames(pbmc$meta.data)
+
+# Set up general variables ------------------------------------------------
+
+probPart <- 0.5
+phenoVar <- "cellType"
+
+
+# Get expression data and metadata ----------------------------------------
+expData <- pbmc$scale.data %>% Matrix::t()
+
+if(!all(rownames(expData) == rownames(expMetadata))){
+  stop("Expression data and metadata are not ordered by cell id")
+}
+
+
+set.seed(seedPart)
+trainIndex <- createDataPartition(expMetadata[[phenoVar]], p = probPart,  list = FALSE, times = 1)
+
+expTest  <- expData[-trainIndex, ]
+expTestMeta <- expMetadata[-trainIndex, ]
+
+dataSummary <- capture.output(cat(sprintf("Number of genes: %i\nNumber of cells: %i\n", ncol(expData), nrow(expData))))
+
+
+writeLines(file.path(newDir, "expData_summary.txt"), text = dataSummary, sep = "\n")
+
+
+
+# Read DEGs data ----------------------------------------------------------
+
+dirRep <- paste0("degs_", positiveClass, "_boot-seed_", seedPart)
+features <- readRDS(here(file.path("results", "2018-03-27_pbmc_degs_feature-selection", dirRep, "degsRes.RDS")))
+
+
+# Perform prediction in new dataset ---------------------------------------
+
+predictions <- degPredict(features, expTest, trainedModel)
+saveRDS(predictions, file = file.path(newDir, "predictions.RDS"))
+
+
+rocRes <-  roc(response = expTestMeta$status,
+               predictor = predictions[[positiveClass]],
+               levels = trainedModel$levels)
+saveRDS(rocRes, file = file.path(newDir, "roc.RDS"))
