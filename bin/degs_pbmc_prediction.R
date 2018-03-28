@@ -17,17 +17,12 @@ source(here("bin/degs_prediction.R"))
 # Read data ---------------------------------------------------------------
 
 dirData <- paste0("degs_", positiveClass, "_boot-seed_", seedPart)
-degsRes <- readRDS(here(file.path("results", "2018-03-27_pbmc_degs_feature-selection", dirData, "degsRes.RDS")))
+features <- readRDS(here(file.path("results", "2018-03-27_pbmc_degs_feature-selection", dirData, "degsRes.RDS")))
+
 
 # Create results diretory -------------------------------------------------
 newDir <- here(file.path("results", "2018-03-27_pbmc_degs_prediction", paste0("degs_", positiveClass, "_boot-seed_", seedPart, "_", mlMethod)))
 dir.create(newDir)
-
-
-# Train prediction model --------------------------------------------------
-
-trainedModel <- trainModel(object = eigenPred, top = 10, method = mlMethod, number = 10, positiveClass = positiveClass, seed = 66)
-saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 
 
 
@@ -57,6 +52,9 @@ if(!all(rownames(expData) == rownames(expMetadata))){
 set.seed(seedPart)
 trainIndex <- createDataPartition(expMetadata[[phenoVar]], p = probPart,  list = FALSE, times = 1)
 
+expTrain  <- expData[trainIndex, ]
+expTrainMeta <- expMetadata[trainIndex, ]
+
 expTest  <- expData[-trainIndex, ]
 expTestMeta <- expMetadata[-trainIndex, ]
 
@@ -66,12 +64,11 @@ dataSummary <- capture.output(cat(sprintf("Number of genes: %i\nNumber of cells:
 writeLines(file.path(newDir, "expData_summary.txt"), text = dataSummary, sep = "\n")
 
 
+# Train model -------------------------------------------------------------
 
-# Read DEGs data ----------------------------------------------------------
-
-dirRep <- paste0("degs_", positiveClass, "_boot-seed_", seedPart)
-features <- readRDS(here(file.path("results", "2018-03-27_pbmc_degs_feature-selection", dirRep, "degsRes.RDS")))
-
+trainedModel <- trainDEGModel(expTrain, expMetadata = expTrainMeta, method = mlMethod, features = features, pVar = phenoVar, 
+                              positiveClass = positiveClass, seed = 66)
+saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 
 # Perform prediction in new dataset ---------------------------------------
 
@@ -79,7 +76,7 @@ predictions <- degPredict(features, expTest, trainedModel)
 saveRDS(predictions, file = file.path(newDir, "predictions.RDS"))
 
 
-rocRes <-  roc(response = expTestMeta$status,
+rocRes <-  roc(response = expTestMeta[[phenoVar]],
                predictor = predictions[[positiveClass]],
                levels = trainedModel$levels)
 saveRDS(rocRes, file = file.path(newDir, "roc.RDS"))
