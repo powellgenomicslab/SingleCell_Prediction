@@ -4,6 +4,7 @@ args <- commandArgs(trailingOnly = TRUE)
 seedPart <- args[1]
 positiveClass <- args[2]
 mlMethod <- args[3]
+positiveClassFormat <- gsub("\\+", "", positiveClass)
 
 
 
@@ -16,6 +17,11 @@ library("here")
 
 dirData <- paste0("scPred_", positiveClass, "_boot-seed_", seedPart)
 eigenPred <- readRDS(here(file.path("results", "2018-03-27_pbmc_scPred_feature-selection", dirData, "eigenPred_object.RDS")))
+eigenPred@metadata %>% 
+  mutate(cellType = gsub("\\+", "", cellType)) %>% 
+  mutate(cellType = factor(cellType, levels = c(positiveClassFormat, "other"))) -> newMetadata
+
+metadata(eigenPred) <- newMetadata
 
 # Create results diretory -------------------------------------------------
 newDir <- here(file.path("results", "2018-03-27_pbmc_scPred_prediction", paste0("scPred_", positiveClass, "_boot-seed_", seedPart, "_", mlMethod)))
@@ -24,7 +30,7 @@ dir.create(newDir)
 
 # Train prediction model --------------------------------------------------
 
-trainedModel <- trainModel(object = eigenPred, top = 10, method = mlMethod, number = 10, positiveClass = positiveClass, seed = 66)
+trainedModel <- trainModel(object = eigenPred, top = 10, method = mlMethod, number = 10, positiveClass = positiveClassFormat, seed = 66)
 saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 
 
@@ -34,8 +40,8 @@ saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 pbmc <- readRDS(here("data/pbmc3k_filtered_gene_bc_matrices/pbmc3k_final_list.Rda"))
 
 pbmc$meta.data %>% 
-  mutate(cellType = if_else(cell.type == positiveClass, positiveClass, "other")) %>% 
-  mutate(cellType = factor(cellType, levels = c(positiveClass, "other"))) -> expMetadata 
+  mutate(cellType = if_else(cell.type == positiveClass, positiveClassFormat, "other")) %>% 
+  mutate(cellType = factor(cellType, levels = c(positiveClassFormat, "other"))) -> expMetadata 
 rownames(expMetadata) <- rownames(pbmc$meta.data)
 
 # Set up general variables ------------------------------------------------
