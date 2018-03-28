@@ -11,7 +11,7 @@ library("DESeq")
 library("here")
 library("dplyr")
 library("caret")
-
+source(here("bin/degs_prediction.R"))
 
 # Read data ---------------------------------------------------------------
 
