@@ -66,7 +66,7 @@ if(length(i > 0)){
 }
 
 cat("Matrix decomposition...\n")
-expTrainEigenDec <- eigenDecompose(expTrain, pseudo = FALSE)
+expTrainEigenDec <- eigenDecompose(expTrain, pseudo = TRUE)
 cat("Done...\n")
 
 # Assign metadata to eigenPred object -------------------------------------
