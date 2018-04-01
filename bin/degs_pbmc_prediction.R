@@ -43,7 +43,8 @@ phenoVar <- "cellType"
 
 
 # Get expression data and metadata ----------------------------------------
-expData <- pbmc$scale.data %>% Matrix::t()
+expData <- pbmc$data %>% Matrix::t() %>% as.matrix()
+expData <- log2(expData + 1) 
 
 if(!all(rownames(expData) == rownames(expMetadata))){
   stop("Expression data and metadata are not ordered by cell id")
