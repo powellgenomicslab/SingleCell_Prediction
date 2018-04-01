@@ -22,7 +22,7 @@ rownames(expMetadata) <- rownames(pbmc$meta.data)
 
 
 # Create results diretory -------------------------------------------------
-newDir <- here(file.path("results", "2018-03-27_pbmc_scpred_feature-selection", paste0("scPred_", positiveClass, "_boot-seed_", seedPart)))
+newDir <- here(file.path("results", "2018-03-27_pbmc_scPred_feature-selection", paste0("scPred_", positiveClass, "_boot-seed_", seedPart)))
 dir.create(newDir)
 
 
