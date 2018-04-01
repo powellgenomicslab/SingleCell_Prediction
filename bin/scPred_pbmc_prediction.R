@@ -31,7 +31,7 @@ dir.create(newDir)
 
 # Train prediction model --------------------------------------------------
 
-trainedModel <- trainModel(object = eigenPred, top = 10, method = mlMethod, number = 10, positiveClass = positiveClassFormat, seed = 66)
+trainedModel <- trainModel(object = eigenPred, all = TRUE, method = mlMethod, number = 10, positiveClass = positiveClassFormat, seed = 66)
 saveRDS(trainedModel, file = file.path(newDir, "trained_model.RDS"))
 
 
