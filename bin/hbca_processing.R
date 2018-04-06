@@ -132,7 +132,7 @@ cat("\n# Gene removal", "\n", sep = " ", file = here(output, "data_summary.txt")
 cat("\nNumber of genes left:", nrow(cpm), "\n", sep = " ", file = here(output, "data_summary.txt"), append = TRUE)  
 
 
-newMetadata <- metadata[match(colnames(cpm), rownames(metadata)),]
+newMetadata <- metadata[match(colnames(cpm), rownames(metadata)), , drop = FALSE]
 
 if(!all(colnames(cpm) == rownames(newMetadata))){
   stop("Expression data and metadata cell ids do not match")
