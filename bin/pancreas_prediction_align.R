@@ -4,8 +4,9 @@ library("scPred")
 library("here")
 library("cowplot")
 library("Seurat")
+library("viridis")
 
-output <- file.path("results", "2018-05-19_pancreas_prediction")
+output <- file.path("results", "2018-05-19_pancreas_prediction_align")
 
 # Read datasets -----------------------------------------------------------
 
@@ -21,29 +22,31 @@ test <- readRDS(here("results", "2018-05-12_pancreas_processing",
 test_metadata <- readRDS(here("results", "2018-05-12_pancreas_processing",
                               "baron_metadata_test.RDS"))
 
-# Integrate training datasets ---------------------------------------------
 
-muraro <- CreateSeuratObject(raw.data = training$muraro, 
-                             meta.data = training_metadata$muraro)
-muraro <- NormalizeData(muraro)
-muraro <- FindVariableGenes(muraro, do.plot = F, display.progress = F)
-muraro@meta.data$batch <- "muraro"
-muraro@meta.data$cell_type1 <- muraro@meta.data$x.cell_type.i.
+# Pre-process training datasets -------------------------------------------
 
-segerstolpe <- CreateSeuratObject(raw.data = training$segerstolpe,
-                                  meta.data = training_metadata$segerstolpe)
-segerstolpe <- NormalizeData(segerstolpe)
-segerstolpe <- FindVariableGenes(segerstolpe, do.plot = F, display.progress = F)
-segerstolpe@meta.data$batch <- "segerstolpe"
-segerstolpe@meta.data$cell_type1 <- segerstolpe@meta.data$x.cell_type.i.
+normalize_data <- function(x, meta, label){
+  x <- CreateSeuratObject(raw.data = x, 
+                     meta.data = meta)
+  x <- NormalizeData(x)
+  x <- FindVariableGenes(x, do.plot = F, display.progress = F)
+  x@meta.data$batch <- label
+  x@meta.data$cell_type1 <- x@meta.data$x.cell_type.i.
+  x
+}
 
 
-xin <- CreateSeuratObject(raw.data = training$xin,
-                          meta.data = training_metadata$xin)
-xin <- NormalizeData(xin)
-xin <- FindVariableGenes(xin, do.plot = F, display.progress = F)
-xin@meta.data$batch <- "xin"
-xin@meta.data$cell_type1 <- xin@meta.data$x.cell_type.i.
+training_seurat <- mapply(normalize_data, training, training_metadata, names(training))
+
+assignData <- function(x){
+  ScaleData(x)
+}
+
+training_seurat %>% 
+  lapply(assignData) -> training_seurat
+
+
+# Pre-process test dataset ------------------------------------------------
 
 baron <- CreateSeuratObject(raw.data = test,
                           meta.data = test_metadata)
@@ -52,84 +55,37 @@ baron <- FindVariableGenes(baron, do.plot = F, display.progress = F)
 baron@meta.data$batch <- "baron"
 
 
-# Determine genes to use for CCA, must be highly variable in at least 2 datasets
-ob.list <- list(muraro = muraro, segerstolpe = segerstolpe, xin = xin)
-
-assignData <- function(x){
-  x@scale.data <- x@raw.data
-  x
-}
-
-ob.list %>% 
-  lapply(assignData) -> ob.list
+# Determine genes to use for PCA, must be highly variable in at least 2 datasets
 
 genes.use <- c()
-for (i in 1:length(ob.list)) {
-  genes.use <- c(genes.use, head(rownames(ob.list[[i]]@hvg.info), 1000))
+for (i in 1:length(training_seurat)) {
+  genes.use <- c(genes.use, head(rownames(training_seurat[[i]]@hvg.info), 1000))
 }
 genes.use <- names(which(table(genes.use) > 1))
-for (i in 1:length(ob.list)) {
-  genes.use <- genes.use[genes.use %in% rownames(ob.list[[i]]@scale.data)]
+for (i in 1:length(training_seurat)) {
+  genes.use <- genes.use[genes.use %in% rownames(training_seurat[[i]]@scale.data)]
 }
 
 
-# Run multi-set CCA
-# pancreas.integrated <- RunMultiCCA(ob.list, genes.use = genes.use, num.ccs = 15)
-pancreas.integrated <- MergeSeurat(muraro, segerstolpe)
-pancreas.integrated <- MergeSeurat(pancreas.integrated, xin)
+
+# Run PCA -----------------------------------------------------------------
+
+pancreas.integrated <- MergeSeurat(training_seurat$muraro, training_seurat$segerstolpe)
+pancreas.integrated <- MergeSeurat(pancreas.integrated, training_seurat$xin)
 pancreas.integrated <- ScaleData(pancreas.integrated)
 
-
-# CC Selection
-#MetageneBicorPlot(pancreas.integrated, grouping.var = "batch", dims.eval = 1:15)
-
-# Run rare non-overlapping filtering
-#pancreas.integrated <- CalcVarExpRatio(object = pancreas.integrated, reduction.type = "pca",
-#                                       grouping.var = "batch", dims.use = 1:10)
-#pancreas.integrated <- SubsetData(pancreas.integrated, subset.name = "var.ratio.pca",
-#                                  accept.low = 0.5)
-
-pancreas.integrated <- RunPCA(pancreas.integrated, pc.genes = genes.use, pcs.compute = 15)
-
-pancreas <- as.data.frame(pancreas.integrated@dr$pca@cell.embeddings)
-pancreas$cellType <- as.factor(pancreas.integrated@meta.data$cell_type1)
-pancreas$batch <- as.factor(pancreas.integrated@meta.data$batch)
-
-pancreas %>% 
-  ggplot(aes(x = PC1, y = PC2, col = cellType)) +
-  geom_point() -> train.pca.cellType
-
-pancreas %>% 
-  ggplot(aes(x = PC1, y = PC2, col = batch)) +
-  geom_point() -> train.pca.batch
+pancreas.integrated <- RunPCA(pancreas.integrated, 
+                              pc.genes = genes.use, 
+                              pcs.compute = 30)
 
 
-# Alignment
-pancreas.integrated <- AlignSubspace(pancreas.integrated,
-                                     reduction.type = "pca",
-                                     grouping.var = "batch",
-                                     dims.align = 1:10)
+# Test dataset projection -------------------------------------------------
 
-
-pancreas.aligned <- as.data.frame(pancreas.integrated@dr$pca.aligned@cell.embeddings)
-pancreas.aligned$cellType <- as.factor(pancreas.integrated@meta.data$cell_type1)
-pancreas.aligned$batch <- as.factor(pancreas.integrated@meta.data$batch)
-
-pancreas.aligned %>% 
-  ggplot(aes(x = APC1, y = APC2, col = cellType)) +
-  geom_point() -> train.pca.alig.cellType
-
-pancreas.aligned %>% 
-  ggplot(aes(x = APC1, y = APC2, col = batch)) +
-  geom_point() -> train.pca.alig.batch
-
-
-all_train_p<- cowplot::plot_grid(train.pca.cellType, train.pca.batch, 
-                   train.pca.alig.cellType, train.pca.alig.batch)
-
+# Get loadings gene expression values of variable genes in training dataset
 loadings <- pancreas.integrated@dr$pca@gene.loadings
 genes <- pancreas.integrated@scale.data[rownames(pancreas.integrated@scale.data) %in% genes.use, ]
 
+# Center and scale test dataset 
 new.center <- rowMeans(genes)
 new.scale <- apply(genes, 1, sd)
 
@@ -147,113 +103,167 @@ new.center <- new.center[rownames(loadings) %in% share_genes]
 new.scale <- new.scale[rownames(loadings) %in% share_genes]
 all(rownames(baron_sub) == rownames(loadings_sub))
 
-
-#projection <- scale(log1p(t(baron_sub)), center = new.center, scale = new.scale) %*% loadings_sub
+# Normalization and projection
 projection <- scale(t(baron_sub), center = new.center, scale = new.scale) %*% loadings_sub
 
-#projection <- t(baron_sub) %*% loadings_sub
 
-
-
+# Merge training eigenspace and projection
 test_projection <- rbind(pancreas.integrated@dr$pca@cell.embeddings, projection)
 
-pancreas.integrated_2 <- pancreas.integrated
+# Assign projection to training object
+pancreas.integrated@dr$pca@cell.embeddings <- as.matrix(test_projection)
 
-pancreas.integrated_2@dr$pca@cell.embeddings <- as.matrix(test_projection)
+# Add test metadata to training object
+trainInfo <- pancreas.integrated@meta.data[, c("batch", "cell_type1")]
+testInfo <- data.frame(batch = "baron", 
+                       cell_type1 = baron@meta.data$cell_type1, 
+                       row.names = rownames(baron@meta.data))
 
-trainInfo <- pancreas.integrated_2@meta.data[, c("batch", "cell_type1")]
+pancreas.integrated@meta.data <- rbind(trainInfo, testInfo)
 
-testInfo <- data.frame(batch = "baron", cell_type1 = baron@meta.data$cell_type1, row.names = rownames(baron@meta.data))
-
-pancreas.integrated_2@meta.data <- rbind(trainInfo, testInfo)
-
-pancreas.integrated_2@meta.data$batch <- as.factor(pancreas.integrated_2@meta.data$batch)
-pancreas.integrated_2@meta.data$cell_type1 <- as.factor(pancreas.integrated_2@meta.data$cell_type1)
-all(rownames(pancreas.integrated_2@meta.data)  == rownames(pancreas.integrated_2@dr$pca@cell.embeddings))
-
+pancreas.integrated@meta.data$batch <- as.factor(pancreas.integrated@meta.data$batch)
+all(rownames(pancreas.integrated@meta.data)  == rownames(pancreas.integrated@dr$pca@cell.embeddings))
 
 
-pancreas.integrated_2@cell.names <- rownames(pancreas.integrated_2@meta.data)
+unaligned_test_train <- as.data.frame(pancreas.integrated@dr$pca@cell.embeddings)
 
-pancreas <- as.data.frame(pancreas.integrated_2@dr$pca@cell.embeddings)
-pancreas$cellType <- as.factor(pancreas.integrated_2@meta.data$cell_type1)
-pancreas$batch <- as.factor(pancreas.integrated_2@meta.data$batch)
+var_exp <- (pancreas.integrated@dr$pca@sdev**2/sum(pancreas.integrated@dr$pca@sdev**2))*100
 
-pancreas %>% 
+
+cell_labels <- ifelse(pancreas.integrated@meta.data$cell_type1 %in% c("alpha", "beta", "delta", "gamma"),
+                      as.character(pancreas.integrated@meta.data$cell_type1),
+                      "other")
+
+unaligned_test_train$cellType <- factor(cell_labels, 
+                                        levels = c("alpha", "beta", "delta", "gamma", "other"),
+                                        labels = c("Alpha", "Beta", "Delta", "Gamma", "Other"))
+unaligned_test_train$batch <- factor(pancreas.integrated@meta.data$batch, 
+                                     levels = c("muraro", "segerstolpe", "xin", "baron"),
+                                     labels = c("Muraro", "Segerstolpe", "Xin", "Baron"))
+
+unaligned_test_train %>% 
   ggplot(aes(x = PC1, y = PC2, col = batch)) +
-  geom_point(alpha = 0.5) +
+  geom_point(size = 0.6, alpha = 0.8) +
+  scale_color_viridis(discrete = TRUE, direction = -1) +
   theme_bw() +
-  ggtitle("No transformation") 
+  theme(legend.title = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  xlab(paste0("PC1 ", "(", round(var_exp[1], 2), "% exp. var.)" ,collapse = "")) + 
+  ylab(paste0("PC2 ", "(", round(var_exp[2], 2), "% exp. var.)" ,collapse = "")) -> p1
 
-pancreas %>% 
+unaligned_test_train %>% 
   ggplot(aes(x = PC1, y = PC2, col = cellType)) +
-  geom_point() -> train_test.pca.cellType
+  geom_point(size = 0.6, alpha = 0.8) +
+  scale_color_brewer(palette = "Set2") +
+  theme_bw() +
+  theme(legend.title=element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  xlab(paste0("PC1 ", "(", round(var_exp[1], 2), "% exp. var.)" ,collapse = "")) + 
+  ylab(paste0("PC2 ", "(", round(var_exp[2], 2), "% exp. var.)" ,collapse = "")) -> p2
 
 
 
 
 
+# Merge training and test datasets in a single Seurat object --------------
 
-tmp <- MergeSeurat(pancreas.integrated, baron)
-tmp@meta.data <- pancreas.integrated_2@meta.data
-tmp@dr$pca <- pancreas.integrated_2@dr$pca
-
-
-pancreas <- as.data.frame(tmp@dr$pca@cell.embeddings)
-pancreas$cellType <- as.factor(tmp@meta.data$cell_type1)
-pancreas$batch <- as.factor(tmp@meta.data$batch)
-
-
-pancreas %>% 
-  ggplot(aes(x = PC1, y = PC2, col = cellType)) +
-  geom_point() -> train_test.pca.cellType
-
-pancreas %>% 
-  ggplot(aes(x = PC1, y = PC2, col = batch)) +
-  geom_point() -> train_test.pca.batch
+pancreas.train.test <- MergeSeurat(pancreas.integrated, baron)
+pancreas.train.test@meta.data <- pancreas.integrated@meta.data
+pancreas.train.test@dr$pca <- pancreas.integrated@dr$pca
 
 
 
-pancreas.integrated_2 <- AlignSubspace(tmp,
+pancreas.train.test <- AlignSubspace(pancreas.train.test,
                                      reduction.type = "pca",
                                      grouping.var = "batch",
-                                     dims.align = 1:10)
+                                     dims.align = 1:30)
 
 
+saveRDS(pancreas.train.test, file = here(output, "train_test_alignment_30pcs.RDS"))
+# pancreas.train.test <- readRDS(file = here(output, "train_test_alignment_30pcs.RDS"))
 
 
+pancreas.aligned <- as.data.frame(pancreas.train.test@dr$pca.aligned@cell.embeddings)
 
-pancreas.aligned_2 <- as.data.frame(pancreas.integrated_2@dr$pca.aligned@cell.embeddings)
-pancreas.aligned_2$cellType <- as.factor(pancreas.integrated_2@meta.data$cell_type1)
-pancreas.aligned_2$batch <- as.factor(pancreas.integrated_2@meta.data$batch)
+cell_labels <- ifelse(pancreas.train.test@meta.data$cell_type1 %in% c("alpha", "beta", "delta", "gamma"),
+                      as.character(pancreas.train.test@meta.data$cell_type1),
+                      "other")
+pancreas.aligned$cellType <- factor(cell_labels, levels = c("alpha", "beta", "delta", "gamma", "other"))
 
-pancreas.aligned_2 %>% 
-  ggplot(aes(x = APC1, y = APC2, col = cellType)) +
-  geom_point(alpha = 0.4) -> p
+pancreas.aligned$batch <- factor(pancreas.train.test@meta.data$batch, 
+       levels = c("muraro", "segerstolpe", "xin", "baron"),
+       labels = c("Muraro", "Segerstolpe", "Xin", "Baron"))
 
-pancreas.aligned_2 %>% 
+
+pancreas.aligned %>% 
   ggplot(aes(x = APC1, y = APC2, col = batch)) +
-  geom_point(alpha = 0.2) -> p2
+  geom_point(size = 0.6, alpha = 0.8) +
+  scale_color_viridis(discrete = TRUE, direction = -1) +
+  theme_bw() +
+  theme(legend.title = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 3))) -> p3
 
 
-all(pancreas.integrated_2@dr$pca@cell.embeddings == test_projection)
+pancreas.aligned %>% 
+  ggplot(aes(x = APC1, y = APC2, col = cellType)) +
+  geom_point(alpha = 0.2) +
+  geom_point(size = 0.6, alpha = 0.8) +
+  scale_color_brewer(palette = "Set2") +
+  theme_bw() +
+  theme(legend.title=element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 3))) -> p4
 
 
 
-i <- pancreas.integrated_2@meta.data$batch == "baron"
+# Get row 1
+batch_legend <- get_legend(p1)
+row1 <- plot_grid(p1 + theme(legend.position="none"),
+          p3 + theme(legend.position="none"))
+row1 <- plot_grid(row1, batch_legend,  rel_widths = c(2, .5))
 
-train_eigen <- pancreas.integrated_2@dr$pca.aligned@cell.embeddings[!i, ]
-test_eigen <- pancreas.integrated_2@dr$pca.aligned@cell.embeddings[i, ]
+
+# Get row 2
+
+cellType_legend <- get_legend(p2)
+row2 <- plot_grid(p2 + theme(legend.position="none"),
+                  p4 + theme(legend.position="none"))
+row2 <- plot_grid(row2, cellType_legend,  rel_widths = c(2, .5))
+
+# Bind rowa
+
+pca_results <- plot_grid(row1, row2, 
+                         nrow = 2, 
+                         align = "v", 
+                         labels = c("a", "b"), label_size = 14)
+
+ggsave(here(output, "pancreas_pca_results.png"), plot = pca_results, 
+       width = 7, height = 5, dpi = 250)
 
 
-train_metadata <- pancreas.integrated_2@meta.data[!i, ]
+
+all(pancreas.train.test@dr$pca@cell.embeddings == test_projection)
+
+
+
+# Make predictions --------------------------------------------------------
+
+# Create training and test datasets
+i <- pancreas.train.test@meta.data$batch == "baron"
+train_eigen <- pancreas.train.test@dr$pca.aligned@cell.embeddings[!i, ]
+test_eigen <- pancreas.train.test@dr$pca.aligned@cell.embeddings[i, ]
+
+
+train_metadata <- pancreas.train.test@meta.data[!i, ]
 train_metadata$cell_type1 <- factor(train_metadata$cell_type1, levels = unique(train_metadata$cell_type1))
 
-test_metadata <- pancreas.integrated_2@meta.data[i, ]
+test_metadata <- pancreas.train.test@meta.data[i, ]
 
 
 # Get informative principal components ------------------------------------
-inf_pcs <- getInformativePCs(as.data.frame(train_eigen), classes = train_metadata$cell_type1, "cell_type1", sig = 0.05)
+inf_pcs <- getInformativePCs(as.data.frame(train_eigen), 
+                             classes = train_metadata$cell_type1, 
+                             "cell_type1", 
+                             sig = 0.05)
 
 
 
@@ -265,10 +275,22 @@ scpred <- list(prcomp = train_eigen,
 
 
 # Train model -------------------------------------------------------------
-scpred <- trainModel(object = scpred, seed = 66, method = "svmRadial")
+scpred <- trainModel(object = scpred, seed = 66, method = "svmRadial", savePredictions = TRUE)
+predictions <- eigenPredict(scpred, train_eigen, threshold = 0.9)
+# predictions_train <- eigenPredict(scpred, train_eigen, threshold = 0.9)
+
+
+saveRDS(scpred, file = here(output, "trained_model_glm_30PCs.RDS"))
+# scpred <- readRDS(file = here(output, "trained_model_svmRadial_30PCs.RDS"))
+
 
 # Classify cells in new dataset -------------------------------------------
 predictions <- eigenPredict(scpred, test_eigen, threshold = 0.9)
+
+write.csv(predictions, 
+          file = here(output, "pancreas_predictions.csv"), 
+          quote = FALSE)
+
 
 
 # Get accuracy results ----------------------------------------------------
@@ -292,8 +314,41 @@ getAccuracy <- function(predictions, metadata){
 
 getAccuracy(predictions, test_metadata)
 
-getAccuracy(segerstolpe_predictions, segerstolpe_metadata)
-getAccuracy(xin_predictions, xin_metadata)
+
+predictions$true <- test_metadata$cell_type1
+# predictions_train$true <- train_metadata$cell_type1
+
+
+predictions %>% 
+  mutate(true = ifelse(true %in% c("alpha", "beta", "delta", "gamma"),
+                                    as.character(true), "other")) %>% 
+  mutate(true = factor(true, 
+                       levels = c("alpha", "beta", "delta", "gamma", "other"), 
+                       labels = c("Alpha", "Beta", "Delta", "Gamma", "Other") )) %>% 
+  mutate(class = factor(class, 
+                        levels = c("alpha", "beta", "delta", "gamma", "Unassigned"), 
+                        labels = c("Alpha", "Beta", "Delta", "Gamma", "Unassigned"))) %>% 
+  ggplot() +
+  aes(x = probability, fill = class) +
+  geom_histogram(color = "black", alpha = 0.8) +
+  facet_wrap(~true, scale = "free_y") +
+  scale_fill_brewer(palette = "Set2") +
+  xlab("Probability") +
+  ylab("Counts") +
+  theme_bw() +
+  theme(strip.text.x = element_text(size = 14), 
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 16),
+        axis.title = element_text(size = 16)) +
+  guides(fill = guide_legend(title = "Predicted class")) -> p_probs
+
+
+ggsave(here(output, "pancreas_probs.png"), 
+       plot = p_probs, width = 12, height = 5, dpi = 350)
+
+
+
+
 
 
 
@@ -310,7 +365,7 @@ getAccuracy <- function(predictions, metadata){
 
 
 
-x <- getAccuracy(muraro_predictions, muraro_metadata)
+getAccuracy(muraro_predictions, muraro_metadata)
 
 table(x[as.character(x$true) != as.character(x$pred),"pred"])
 
@@ -372,19 +427,19 @@ res %>%
 
 # Get number of pcs and variance explained -------------------------------
 
-pancreas@features %>% 
+scpred$features %>% 
   Reduce(rbind, .) %>% 
   pull(PC) %>% 
   unique() %>% 
   as.character() -> unique_pcs
 length(unique_pcs)
-sum(pancreas@expVar[names(pancreas@expVar) %in% unique_pcs])
+
 pancreas@features %>% 
   lapply(nrow)
 
 # Get number of support vectors -------------------------------------------
 
-pancreas@train %>% 
+scpred$train %>% 
   lapply("[", "finalModel") %>% 
   unlist() %>% 
   lapply("slot", "nSV")
