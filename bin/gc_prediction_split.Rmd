@@ -1,0 +1,403 @@
+---
+title: "Prediction of gastric tumor cells"
+subtitle: "Data split"
+author: "Jose Alquicira Hernandez"
+date: "16/08/2018"
+output: 
+  html_document: 
+    df_print: kable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r load_libraries, message=FALSE}
+library("tidyverse")
+library("here")
+library("scPred")
+library("DMwR")
+```
+
+```{r read_data_P5931}
+P5931_normal <- read.csv(here("data/2018-07-07_gastric_cancer/Garvan_collaboration/P5931/P5931_800B_n_epithelial.raw.data.csv"))
+P5931_tumor  <- read.csv(here("data/2018-07-07_gastric_cancer/Garvan_collaboration/P5931/P5931_801B_tumor_epithelial.raw.data.csv"))
+
+P5931_normal %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+P5931_tumor %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+
+shared_cells <- intersect(colnames(P5931_normal), colnames(P5931_tumor))
+
+
+P5931_normal_i <- match(shared_cells, colnames(P5931_normal))
+P5931_tumor_i <- match(shared_cells, colnames(P5931_tumor))
+
+
+colnames(P5931_normal)[P5931_normal_i] <- paste0(shared_cells, "_normal")
+colnames(P5931_tumor)[P5931_tumor_i] <- paste0(shared_cells, "_tumor")
+
+```
+
+```{r read_data_P5931}
+P6207_normal <- read.csv("data/2018-07-07_gastric_cancer/Garvan_collaboration/P6207/P6207_18522B_epithelial.raw.data.csv")
+P6207_tumor  <- read.csv("data/2018-07-07_gastric_cancer/Garvan_collaboration/P6207/P6207_18523B_epithelial.raw.data.csv")
+
+
+P6207_normal %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+P6207_tumor %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+# shared_cells <- intersect(colnames(P6207_normal), colnames(P6207_tumor))
+```
+
+
+```{r create_metadata}
+getMetadata <- function(x, status){
+  barcodes <- colnames(x)
+  
+  data.frame(barcodes, status) %>% 
+    column_to_rownames("barcodes")
+  
+}
+
+
+P5931_normal_info <- getMetadata(P5931_normal, "normal")
+P5931_tumor_info  <- getMetadata(P5931_tumor, "tumor")
+
+P6207_normal_info <- getMetadata(P6207_normal, "normal")
+P6207_tumor_info  <- getMetadata(P6207_tumor, "tumor")
+
+```
+
+
+```{r merge_datasets}
+mergeDatasets <- function(d1, d2, by = c("r", "c")){
+  
+  by <- match.arg(by)
+  
+  if(by == "r"){
+    d1_genes <- rownames(d1)
+    d2_genes <- rownames(d2)
+    
+    shared_genes <- intersect(d1_genes, d2_genes)
+    
+    i <- match(shared_genes, d1_genes)
+    d1 <- d1[i,]
+    
+    i <- match(shared_genes, d2_genes)
+    d2 <- d2[i,]
+    
+    #all(rownames(d1) == rownames(d2))
+    
+    d <- t(cbind(d1, d2))
+    d
+  }else if(by == "c"){
+    
+    d1_genes <- colnames(d1)
+    d2_genes <- colnames(d2)
+    
+    shared_genes <- intersect(d1_genes, d2_genes)
+    
+    i  <- match(shared_genes, d1_genes)
+    d1 <- d1[,i]
+    
+    i  <- match(shared_genes, d2_genes)
+    d2 <- d2[,i]
+    
+    #all(rownames(d1) == rownames(d2))
+    
+    d <- rbind(d1, d2)
+    d
+  }
+}
+
+
+
+
+P5931 <- mergeDatasets(d1 = P5931_normal, d2 = P5931_tumor)
+P5931_metadata <- rbind(P5931_normal_info, P5931_tumor_info)
+P5931_metadata$status <- factor(P5931_metadata$status, levels = c("tumor", "normal"))
+all(rownames(P5931) == rownames(P5931_metadata))
+
+
+P6207 <- mergeDatasets(d1 = P6207_normal, d2 = P6207_tumor)
+P6207_metadata <- rbind(P6207_normal_info, P6207_tumor_info)
+P6207_metadata$status <- factor(P6207_metadata$status, levels = c("tumor", "normal"))
+all(rownames(P6207) == rownames(P6207_metadata))
+
+```
+
+
+# Merge datasets
+
+```{r merge_datasets}
+gc <- mergeDatasets(P6207, P5931, by = "c")
+gc_metadata <- rbind(P6207_metadata, P5931_metadata)
+
+all(rownames(gc) == rownames(gc_metadata))
+```
+
+```{r}
+set.seed(66)
+seeds <- sample(seq_len(10e4), 10)
+```
+
+```{r split_data}
+bootRep <- function(seed){
+
+# seed = seeds[1]
+set.seed(seed)
+i <- createDataPartition(gc_metadata$status, list = FALSE)
+
+train_fold <- gc[i, ]
+test_fold <- gc[-i, ]
+
+train_meta <- gc_metadata[i, , drop = FALSE]
+test_meta <- gc_metadata[-i, , drop = FALSE]
+
+set.seed(1234)
+scGastric <- eigenDecompose(t(train_fold), n = 25)
+metadata(scGastric) <- train_meta
+
+
+scGastric <- getFeatureSpace(scGastric, pVar = "status")
+
+scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE)
+
+scGastric <- scPredict(scGastric, t(test_fold))
+scGastric@predMeta <-  test_meta
+
+scGastric  %>% 
+  getPredictions() %>% 
+  mutate(true = test_meta$status) %>% 
+  mutate(predClass = ifelse(predClass == "unassigned", "normal", predClass)) %>% 
+  mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
+  group_by(true, prediction) %>% 
+  summarise(n = n()) %>% 
+  mutate(accuracy = (n / sum(n))*100) %>% 
+  filter(prediction != "incorrect") %>% 
+  select(-prediction) 
+
+}
+```
+
+```{r}
+res <- sapply(seeds, bootRep, simplify = FALSE)
+```
+
+
+```{r}
+res %>% 
+  reduce(rbind) %>% group_by(true) %>% summarise(mean = mean(accuracy))
+```
+
+
+
+```{r}
+features <- scGastric@svd$x[, match(as.character(scGastric@features$tumor$PC), colnames(scGastric@svd$x))]
+
+
+# Fit the model
+set.seed(362)
+
+features <- cbind(features, status = scGastric@metadata$status)
+mod <- ksvm(status ~ PC1 + PC2, data = features, kernel = "rbfdot", kpar = list(3), C = .4, 
+    prob.model = .5)
+
+# make a grid of the predictors
+rng11 <- range(features[,1])
+rng29 <- range(features[,2])
+
+features
+
+
+n_points <- 100
+grid <- expand.grid(PC1 = seq(rng11[1], rng11[2], length = n_points),
+                    PC2 = seq(rng29[1], rng29[2], length = n_points))
+grid$decision <- predict(mod, grid, type = "decision")[, 1]
+
+
+features <- as.data.frame(features)
+
+features$status<- factor(features$status, labels = c("tumor", "normal"))
+
+# or fancier (but boundary colors not quite centered on zero)
+ggplot(as.data.frame(features), aes(x = PC1, y = PC2)) + 
+  geom_tile(data = grid, aes(fill = decision)) + 
+  geom_point(aes(col = status)) + 
+  scale_color_manual(values = c("blue", "red")) +
+  scale_fill_distiller(palette = "RdYlBu") +
+  theme_minimal()
+```
+
+
+
+
+
+```{r}
+dim(train_fold)
+dim(test_fold)
+
+
+(train_meta$status) %>% table + (test_meta$status %>% table)
+
+nrow(train_fold) + nrow(test_fold)
+```
+
+
+
+```{r}
+getPredictions(scGastric) -> preds
+preds$true <- test_meta$status
+preds <- split(preds, preds$predClass)
+
+
+
+# Plot tumor cells
+var <- preds$tumor$true
+
+nrows <- 23
+ncols <- 25
+
+diff <- (nrows * ncols) - length(var) - 1
+
+df <- expand.grid(x = 1:nrows, y = 1:ncols)
+df <- df[-seq(nrow(df) - diff, nrow(df)), ]
+
+categ_table <- table(var)
+categ_table <- categ_table[categ_table > 0]
+
+df$true<- factor(rep(names(categ_table), categ_table), levels = c("tumor", "normal"), labels = c("Tumor", "Normal"))  
+
+ggplot(df, aes(x = x, y = y, color = true)) + 
+      geom_point(size = 3.3, color = "black") + 
+  geom_point(size = 3)  + 
+  scale_x_continuous() +
+  scale_y_continuous(trans = 'reverse', limits = c(25, 0)) +
+  scale_color_manual(values = c("#c32e26", "#4f97ba")) +
+  theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  theme(plot.title = element_text(size = rel(1.2)),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(), 
+        legend.position = "none") -> tumor
+
+# Plot normal cells
+
+var <- preds$unassigned$true
+
+nrows <- 23
+ncols <- 25
+
+diff.cells <- (nrows * ncols) - length(var) - 1
+
+
+df <- expand.grid(x = 1:nrows, y = 1:ncols)
+df <- df[-seq(nrow(df) - diff.cells, nrow(df)), ]
+
+categ_table <- table(var)
+
+df$true <- factor(rep(names(categ_table), categ_table), levels = rev(c("normal", "tumor")), labels = rev(c("Normal", "Tumor")))  
+
+
+ggplot(df, aes(x = x, y = y, color = true)) + 
+    geom_point(size = 3.3, color = "black") + 
+  geom_point(size = 3) +
+  scale_x_continuous() +
+  scale_y_continuous(trans = 'reverse', limits = c(23, 0)) +
+  scale_color_manual(values = c("#c32e26", "#4f97ba")) +
+  theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  theme(plot.title = element_text(size = rel(1.2)),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),   
+        legend.position = "bottom", 
+        legend.text  = element_text(size = 16))  -> normal
+
+normal$labels$colour <- ""
+normal$labels$color <- ""
+
+legend <- cowplot::get_legend(normal)
+
+grid.plots  <- cowplot::plot_grid(tumor, normal + theme(legend.position = "none"), ncol = 2)
+grid_plot <- cowplot::plot_grid(grid.plots, legend, ncol = 1, rel_heights = c(1, 0.2))
+grid_plot
+cowplot::ggsave(filename  = here("results", "2018-08-16_gc_split", "grid.png"), grid_plot, width = 9.33, height = 6)
+```
+
+
+
+
+```{r diagnostic_plots}
+library(cowplot)
+plot_grid(plotExp(scGastric, "MLH1") + labs(color = 'CPM exp'), 
+          plotExp(scGastric, "PMS2") + labs(color = 'CPM exp'))
+
+plotLoadings(scGastric, n = 15)
+```
+
+
+```{r}
+predicted_tumor <- scGastric@predictions[scGastric@predictions$predClass == "tumor",]
+
+i <- rownames(predicted_tumor)
+
+j <- match(i, rownames(scGastric@predData))
+
+predicted_tumor_markers <- scGastric@predData[j, c("MLH1", "PMS2")]
+
+colMeans(predicted_tumor_markers) / colSums(predicted_tumor_markers)
+
+predicted_normal_markers <- scGastric@predData[-j, c("MLH1", "PMS2")]
+
+
+colSums(predicted_tumor_markers) / (colSums(predicted_tumor_markers) + colSums(predicted_normal_markers))
+colSums(predicted_normal_markers) / (colSums(predicted_tumor_markers) + colSums(predicted_normal_markers))
+
+
+
+```
+
+
+```{r}
+object = scGastric
+response = test_meta$status
+
+getAccuracy <- function(object, response){
+  
+  object  %>% 
+  getPredictions() %>% 
+  mutate(true = response) -> predictions
+  
+  if(length(unique(response)) == 2 ){
+    
+    
+    
+  }
+  
+  object  %>% 
+  getPredictions() %>% 
+  mutate(true = response) %>% 
+  #mutate(predClass = ifelse(predClass == "unassigned", "normal", predClass)) %>% 
+  mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
+  group_by(true, prediction) %>% 
+  summarise(n = n()) %>% 
+  mutate(accuracy = (n / sum(n))*100) %>% 
+#  filter(prediction != "incorrect") %>% 
+  select(-prediction) %>% 
+  knitr::kable()
+}
+```
+
