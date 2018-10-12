@@ -144,4 +144,4 @@ saveRDS(pred_data, file = here(output, "pred_data.RDS"))
 # Session info ------------------------------------------------------------
 
 options(width = 70)
-capture.output(devtools::session_info(), file =  here(output, "session_info"))
+capture.output(devtools::session_info(), file = here(output, "session_info.txt"))
