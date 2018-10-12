@@ -93,6 +93,21 @@ performance %>%
 saveRDS(predictions, file = here(output, "predictions.RDS"))
 saveRDS(sc_pred, file = here(output, "scpred.RDS"))
 
+predictions$true <- pred_data@meta.data$cellType2
+
+predictions %>% 
+  gather(key = "class", value = "prob", 1:3) %>% 
+ggplot(aes(x = prob, fill = class)) +
+  geom_histogram(color = "black") +
+  facet_wrap(~true, scales = "free") +
+  scale_fill_manual(values = set_names(jcolors::jcolors(), NULL)) +
+  theme_bw() +
+  xlab("Probability") +
+  ylab("Number of cells") -> p
+
+ggsave(p, filename = here(output, "prob_dist.png"), width = 9 , height = 2)
+
+
 # scPred version: d7661592
 
 # Session info ------------------------------------------------------------
