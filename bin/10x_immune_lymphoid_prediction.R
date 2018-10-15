@@ -103,7 +103,7 @@ rm(train_data)
 # Train models ------------------------------------------------------------
 
 library(doParallel)
-cl <- makePSOCKcluster(10)
+cl <- makePSOCKcluster(5)
 registerDoParallel(cl)
 sc_pred <- trainModel(sc_pred)
 stopCluster(cl)
