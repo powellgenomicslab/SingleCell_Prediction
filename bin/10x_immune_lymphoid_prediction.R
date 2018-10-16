@@ -73,7 +73,7 @@ pred_data@meta.data$pred1 <- factor(pred_data@meta.data$pred1)
 
 train_data@meta.data$cellType1 <- factor(train_data@meta.data$cellType1)
 
-
+gc()
 
 # Process data ------------------------------------------------------------
 
