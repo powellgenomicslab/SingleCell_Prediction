@@ -42,8 +42,7 @@ filename <- "counts.txt" # <------ Input file
 
 data <- fread(input = here(input, filename), header = FALSE, data.table = FALSE)
 data <- spread(data, key = "V3", 2, fill = 0) %>% column_to_rownames("V1")
-write_delim(data, path = here(output, "rogue_matrix.txt"), delim = "\t")
-
+saveRDS(data, here(output, "rogue_matrix.RDS"))
 
 
 # Session info ------------------------------------------------------------
