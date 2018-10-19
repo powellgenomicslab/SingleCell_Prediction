@@ -23,6 +23,8 @@ library("here")
 output_dir_name <- "rogue_matrix" # <------ Output directory
 
 date <- format(Sys.Date(), format = "%Y-%m-%d_")
+date <- "2018-10-18_"
+
 
 output <- file.path("results", paste0(date, output_dir_name))
 
