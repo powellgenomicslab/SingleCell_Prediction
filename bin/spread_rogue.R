@@ -40,8 +40,8 @@ filename <- "counts.txt" # <------ Input file
 
 # Read file
 
-data <- fread(input = here(input, filename), header = FALSE, data.table = FALSE)
-data <- spread(data, key = "V3", 2, fill = 0) %>% column_to_rownames("V1")
+data <- fread(input = here(input, filename), header = TRUE, data.table = FALSE)
+data <- spread(data, key = "CELL_ID", 2, fill = 0) %>% column_to_rownames("gene_id")
 saveRDS(data, here(output, "rogue_matrix.RDS"))
 
 
