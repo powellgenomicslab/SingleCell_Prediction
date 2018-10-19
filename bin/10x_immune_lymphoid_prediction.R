@@ -23,7 +23,7 @@ library("scPred")
 output_dir_name <- "10x_t-cells_b-cells_nk-cells" # <------ Output directory
 
 date <- format(Sys.Date(), format = "%Y-%m-%d_")
-
+date <- "2018-10-13"
 output <- file.path("results", paste0(date, output_dir_name))
 
 if(!dir.exists(output)){
