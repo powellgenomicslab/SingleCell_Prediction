@@ -38,37 +38,37 @@ input <- file.path("results", "2018-10-12_10x_immune_myeloid_vs_lymphoid_predict
 
 # Read files
 
-# filename <- "predictions.RDS" # <------ Input file
-# predictions <- readRDS(here(input, filename))
+filename <- "predictions.RDS" # <------ Input file
+predictions <- readRDS(here(input, filename))
 
 
 input <- file.path("results", "2018-10-12_10x_immune_tree") # <------ Input directory
 
 
-filename <- "train_data.RDS" # <------ Input file
+# filename <- "train_data.RDS" # <------ Input file
 # train_data <- readRDS(here(input, filename))
 
 
-# filename <- "pred_data.RDS" # <------ Input file
-# pred_data <- readRDS(here(input, filename))
+filename <- "pred_data.RDS" # <------ Input file
+pred_data <- readRDS(here(input, filename))
 
 # Subset cells
 
-# pred_data@meta.data$pred1 <- as.factor(predictions$predClass)
+pred_data@meta.data$pred1 <- as.factor(predictions$predClass)
 
 # train_data <- RunTSNE(train_data)
 # TSNEPlot(train_data, group = "cellType1")
 
 
 # i <- rownames(train_data@meta.data)[train_data@meta.data$cellType2 %in% c("Lymphoid_cell")]
-# j <- rownames(pred_data@meta.data)[pred_data@meta.data$pred1 %in% c("Lymphoid_cell")]
+j <- rownames(pred_data@meta.data)[pred_data@meta.data$pred1 %in% c("Lymphoid_cell")]
 
 
 # train_data <- SubsetData(train_data, cells.use = i, do.clean = TRUE)
 # train_data@meta.data$cellType2 <- factor(train_data@meta.data$cellType2)
 
-# pred_data <- SubsetData(pred_data, cells.use = j, do.clean = TRUE)
-# pred_data@meta.data$pred1 <- factor(pred_data@meta.data$pred1)
+pred_data <- SubsetData(pred_data, cells.use = j, do.clean = TRUE)
+pred_data@meta.data$pred1 <- factor(pred_data@meta.data$pred1)
 
 
 # train_data@meta.data$cellType1 <- factor(train_data@meta.data$cellType1)
@@ -105,20 +105,22 @@ filename <- "train_data.RDS" # <------ Input file
 # 
 
 # Train models ------------------------------------------------------------
-sc_pred <- readRDS(file = here(output, "scpred.RDS"))
+#sc_pred <- readRDS(file = here(output, "scpred.RDS"))
 
-library(doParallel)
-cl <- makePSOCKcluster(5)
-registerDoParallel(cl)
-sc_pred <- trainModel(sc_pred)
-stopCluster(cl)
+# library(doParallel)
+# cl <- makePSOCKcluster(5)
+# registerDoParallel(cl)
+# sc_pred <- trainModel(sc_pred)
+# stopCluster(cl)
 
-saveRDS(sc_pred, file = here(output, "scpred_train.RDS"))
+#saveRDS(sc_pred, file = here(output, "scpred_train.RDS"))
+sc_pred <- readRDS(file = here(output, "scpred_train.RDS"))
 
-# predictions$true <- pred_data@meta.data$cellType2
-# 
-# 
-# saveRDS(predictions, file = here(output, "predictions.RDS"))
+sc_pred <- scPredict(sc_pred, pred_data)
+
+predictions <- getPredictions(sc_pred)
+predictions$true <- factor(pred_data@meta.data$cellType1)
+saveRDS(predictions, file = here(output, "predictions.RDS"))
 
 
 # scPred version: d7661592
