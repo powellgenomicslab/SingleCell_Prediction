@@ -60,7 +60,7 @@ names(data) <- str_remove(filenames, "_train.RDS")
 
 combined <- data[[1]]
 for (i in 2:length(x = data)) {
-  combined <- MergeSeurat(object1 = combined, object2 = data[[i]], add.cell.id1 = "_2", "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = data[[i]], add.cell.id1 = "_2", add.cell.id2 = "_3")
 }
 
 # Normalize data ----------------------------------------------------------
@@ -143,13 +143,14 @@ sc_pred@predMeta <- combined@meta.data
 
 getPredictions(sc_pred) %>% 
   rownames_to_column("id") %>% 
-  mutate(predClass = if_else(cytotoxic < 0.9, "non_cytotoxic", predClass)) %>% 
+  mutate(predClass = if_else(cytotoxic < 0.25, "non_cytotoxic", 
+                             if_else(cytotoxic > 0.75, "cytotoxic", "unassigned"))) %>% 
   column_to_rownames("id") %>% 
   pull(predClass) %>% 
   as.factor() -> sc_pred@predMeta$pred
 
 
-
+plotTrainProbs(sc_pred)
 
 # Get accuracy ------------------------------------------------------------
 
