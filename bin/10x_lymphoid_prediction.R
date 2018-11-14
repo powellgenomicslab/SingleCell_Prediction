@@ -60,7 +60,7 @@ names(data) <- str_remove(filenames, "_train.RDS")
 
 combined <- data[[1]]
 for (i in 2:length(x = data)) {
-  combined <- MergeSeurat(object1 = combined, object2 = data[[i]], add.cell.id1 = "_2", "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = data[[i]])
 }
 
 # Normalize data ----------------------------------------------------------
@@ -112,7 +112,7 @@ names(testData) <- str_remove(filenames, "_test.RDS")
 
 combined <- testData[[1]]
 for (i in 2:length(x = testData)) {
-  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]], add.cell.id1 = "_2", "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]])
 }
 
 
