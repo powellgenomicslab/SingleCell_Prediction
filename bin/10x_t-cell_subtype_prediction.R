@@ -60,7 +60,7 @@ names(data) <- str_remove(filenames, "_train.RDS")
 
 combined <- data[[1]]
 for (i in 2:length(x = data)) {
-  combined <- MergeSeurat(object1 = combined, object2 = data[[i]], add.cell.id1 = "_2", add.cell.id2 = "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = data[[i]])
 }
 
 # Normalize data ----------------------------------------------------------
@@ -128,7 +128,7 @@ names(testData) <- str_remove(filenames, "_test.RDS")
 
 combined <- testData[[1]]
 for (i in 2:length(x = testData)) {
-  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]], add.cell.id1 = "_2", "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]])
 }
 
 
@@ -167,7 +167,7 @@ crossTab(sc_pred, "layer2.1", "pred", prop = FALSE) %>%
 # Save scPred object ------------------------------------------------------
 
 
-saveRDS(sc_pred, file = here(output, "scpred_cytotoxic_vs_no-cytotoxic.RDS"))
+saveRDS(sc_pred, file = here(output, "scpred.RDS"))
 
 
 # Session info ------------------------------------------------------------
