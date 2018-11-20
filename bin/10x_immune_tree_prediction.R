@@ -37,30 +37,16 @@ if(!dir.exists(output)){
 # Read first layer model
 
 
-input_dir_name <- "pbmc_myeloid_lymphoid_prediction" # <------ Output directory
-date <- "2018-11-12" # <------ Date
-input <- file.path("results", paste(date, input_dir_name, sep = "_"))
-layer1 <- readRDS(here(input, "scPred.RDS"))
+readModels <- function(input) {
+  readRDS(here("results", input, "scpred.RDS"))
+}
 
+dates <- c("2018-11-12", "2018-11-09", "2018-11-09")
+dirs <- c("pbmc_myeloid_lymphoid_prediction", "pbmc_lymphoid_prediction", "pbmc_t-cell_prediction")
+dirs <- paste(dates, dirs, sep = "_")
 
-
-# Read second layer
-
-input_dir_name <- "pbmc_lymphoid_prediction" # <------ Output directory
-
-date <- "2018-11-09" # <------ Date
-input <- file.path("results", paste(date, input_dir_name, sep = "_"))
-layer2 <- readRDS(here(input, "scpred.RDS"))
-
-
-
-# Read third layer model
-
-input_dir_name <- "pbmc_t-cell_prediction" # <------ Output directory
-date <- "2018-11-09" # <------ Date
-input <- file.path("results", paste(date, input_dir_name, sep = "_"))
-layer3 <- readRDS(here(input, "scpred_cytotoxic_vs_no-cytotoxic.RDS"))
-
+tree <- lapply(dirs, readModels)
+names(tree) <- paste0("layer", 1:3)
 
 
 # Read test data
@@ -84,27 +70,8 @@ names(testData) <- str_remove(filenames, "_test.RDS")
 
 combined <- testData[[1]]
 for (i in 2:length(x = testData)) {
-  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]], add.cell.id1 = "_2", "_3")
+  combined <- MergeSeurat(object1 = combined, object2 = testData[[i]])
 }
-
-
-# Create tree object ------------------------------------------------------
-
-setClass("scPred-tree", representation(models = "list"), prototype(models = list()))
-
-
-createPredTree <- function(...){
-  models <- list(...)
-  for(i in seq_len(length(models))){
-    if(class(models[[i]]) != "scPred"){
-      stop("Object ", i, " is not an scPred object")
-    }
-  }
-  models
-}
-
-
-tree <- createPredTree(layer1 = layer1, layer2 = layer2, layer3 = layer3)
 
 
 
