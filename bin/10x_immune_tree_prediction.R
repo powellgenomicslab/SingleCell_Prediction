@@ -187,8 +187,6 @@ res$true[k] <- "non_cytotoxic"
 
 crossTab <- function(tab, true, pred, fill = 0, prop = TRUE, digits = 2){
   
-
-  
   tab %>% 
     group_by_(pred, true) %>% 
     summarise(n = n()) %>% 
@@ -208,18 +206,74 @@ crossTab <- function(tab, true, pred, fill = 0, prop = TRUE, digits = 2){
   x
 }
 
-cellNames <- c("b_cells", "Myeloid_cell", "Progenitor_cell", 
-               "cd56_nk", "cytotoxic", "non_cytotoxic", "unassigned")
-
-crossTab(res, true = "true", pred = "layer3")[cellNames, ] %>% 
-  knitr::kable() %>% 
-  writeLines(here(output, "crosstab_prop.txt"))
-
-crossTab(res, true = "true", pred = "layer3", prop = FALSE)[cellNames, ] %>% 
-  knitr::kable() %>% 
-  writeLines(here(output, "crosstab_counts.txt"))
 
 
+# Assign true layers
+assignLayer1 <- function(x) switch(x,
+                                   "b_cells" = "Lymphoid",
+                                   "cd14_monocytes" = "Myeloid_cell",
+                                   "cd34" = "Progenitor_cell",
+                                   "cd56_nk" = "Lymphoid",
+                                   "cytotoxic" = "Lymphoid",
+                                   "non_cytotoxic" = "Lymphoid")
+
+assignLayer2 <- function(x) switch(x,
+                                   "cd14_monocytes" = "Myeloid_cell",
+                                   "cd34" = "Progenitor_cell",
+                                   "cytotoxic" = "T_cell",
+                                   "non_cytotoxic" = "T_cell", 
+                                   x)
+
+assignLayer3 <- function(x) switch(x,
+                                   "cd14_monocytes" = "Myeloid_cell",
+                                   "cd34" = "Progenitor_cell", 
+                                   x)
+
+
+list(f1 = assignLayer1, f2 = assignLayer2, f3 = assignLayer3) %>% 
+  lapply(Vectorize) %>% 
+  lapply(function(x) x(res$true)) %>% 
+  as.data.frame() %>% 
+  set_names(paste0("true", 1:3)) %>% 
+  cbind(res, .) -> res
+
+
+# Assign order for contingency tables
+order1 <- c("Myeloid_cell", "Lymphoid", "Progenitor_cell", "unassigned")
+order2 <- c("b_cells", "T_cell", "cd56_nk", "Myeloid_cell", "Progenitor_cell", "unassigned")
+order3 <- c("cytotoxic", "non_cytotoxic",  "b_cells", "cd56_nk", "Progenitor_cell", "unassigned")
+
+
+order <- list(order1, order2, order3) %>% set_names(1:3)
+
+
+
+getAccuracy <- function(i, level, prop){
+  i <- i[[level]]
+  true <- paste0("true", level)
+  layer <- paste0("layer", level)
+  crossTab(res, true = true, pred = layer, prop = prop) %>%
+    .[i, i[-length(i)]] %>% 
+    knitr::kable() 
+}
+
+
+
+# Save accuracy -----------------------------------------------------------
+
+
+saveAccuracy <- function(level){
+  level <- level %>% as.integer()
+  getAccuracy(order, level, FALSE) %>% 
+    writeLines(here(output, paste0("crosstab_counts_", level,".txt")))
+  
+  getAccuracy(order, level, TRUE) %>% 
+    writeLines(here(output, paste0("crosstab_props_", level,".txt")))
+  
+}
+
+
+lapply(names(order), saveAccuracy)
 
 
 # Save predictions --------------------------------------------------------
