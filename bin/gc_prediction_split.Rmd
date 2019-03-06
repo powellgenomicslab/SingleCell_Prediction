@@ -14,7 +14,6 @@ editor_options:
 library("tidyverse")
 library("here")
 library("scPred")
-library("DMwR")
 ```
 
 ```{r read_data_P5931}
@@ -193,211 +192,46 @@ scGastric  %>%
 res <- sapply(seeds, bootRep, simplify = FALSE)
 ```
 
-
 ```{r}
 res %>% 
-  reduce(rbind) %>% group_by(true) %>% summarise(mean = mean(accuracy))
+  lapply("[", "accuracy") %>% 
+  reduce(cbind) %>% 
+  t() %>% 
+  `colnames<-`(c("sensitivity", "specificity")) -> res
+```
+
+
+```{r}
+path <- file.path("results", paste("2019-03-05", "gc_degs_prediction", sep = "_"), "accuracy.txt")
+resDegs <- readRDS(path) %>% 
+  reduce(rbind) %>% 
+  `colnames<-`(c("sensitivity", "specificity"))
+```
+
+```{r}
+allRes <- rbind(res/100, resDegs) %>% as.data.frame() %>% `rownames<-`(NULL)
+allRes$method <- c(rep("scPred", 10), rep("DEGs", 10)) %>% factor(levels = c("scPred", "DEGs"))
+```
+
+```{r}
+allRes %>%
+  gather("metric", "value", 1:2) %>% 
+  group_by(method, metric) %>% 
+  summarise(mean = mean(value), sd = sd(value))
 ```
 
 
 
 ```{r}
-features <- scGastric@svd$x[, match(as.character(scGastric@features$tumor$PC), colnames(scGastric@svd$x))]
-
-
-# Fit the model
-set.seed(362)
-
-features <- cbind(features, status = scGastric@metadata$status)
-mod <- ksvm(status ~ PC1 + PC2, data = features, kernel = "rbfdot", kpar = list(3), C = .4, 
-    prob.model = .5)
-
-# make a grid of the predictors
-rng11 <- range(features[,1])
-rng29 <- range(features[,2])
-
-features
-
-
-n_points <- 100
-grid <- expand.grid(PC1 = seq(rng11[1], rng11[2], length = n_points),
-                    PC2 = seq(rng29[1], rng29[2], length = n_points))
-grid$decision <- predict(mod, grid, type = "decision")[, 1]
-
-
-features <- as.data.frame(features)
-
-features$status<- factor(features$status, labels = c("tumor", "normal"))
-
-# or fancier (but boundary colors not quite centered on zero)
-ggplot(as.data.frame(features), aes(x = PC1, y = PC2)) + 
-  geom_tile(data = grid, aes(fill = decision)) + 
-  geom_point(aes(col = status)) + 
-  scale_color_manual(values = c("blue", "red")) +
-  scale_fill_distiller(palette = "RdYlBu") +
-  theme_minimal()
+allRes %>%
+  gather("metric", "value", 1:2) %>% 
+  ggplot() +
+  aes(x = method, y = value, fill = method) +
+  geom_boxplot() + 
+  xlab("Method") +
+  ylab("Values") +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~metric) +
+  theme_classic() +
+  theme(legend.position = "none")
 ```
-
-
-
-
-
-```{r}
-dim(train_fold)
-dim(test_fold)
-
-
-(train_meta$status) %>% table + (test_meta$status %>% table)
-
-nrow(train_fold) + nrow(test_fold)
-```
-
-
-
-```{r}
-getPredictions(scGastric) -> preds
-preds$true <- test_meta$status
-preds <- split(preds, preds$predClass)
-
-
-
-# Plot tumor cells
-var <- preds$tumor$true
-
-nrows <- 23
-ncols <- 25
-
-diff <- (nrows * ncols) - length(var) - 1
-
-df <- expand.grid(x = 1:nrows, y = 1:ncols)
-df <- df[-seq(nrow(df) - diff, nrow(df)), ]
-
-categ_table <- table(var)
-categ_table <- categ_table[categ_table > 0]
-
-df$true<- factor(rep(names(categ_table), categ_table), levels = c("tumor", "normal"), labels = c("Tumor", "Normal"))  
-
-ggplot(df, aes(x = x, y = y, color = true)) + 
-      geom_point(size = 3.3, color = "black") + 
-  geom_point(size = 3)  + 
-  scale_x_continuous() +
-  scale_y_continuous(trans = 'reverse', limits = c(25, 0)) +
-  scale_color_manual(values = c("#c32e26", "#4f97ba")) +
-  theme_bw() + 
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  theme(plot.title = element_text(size = rel(1.2)),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank(), 
-        legend.position = "none") -> tumor
-
-# Plot normal cells
-
-var <- preds$unassigned$true
-
-nrows <- 23
-ncols <- 25
-
-diff.cells <- (nrows * ncols) - length(var) - 1
-
-
-df <- expand.grid(x = 1:nrows, y = 1:ncols)
-df <- df[-seq(nrow(df) - diff.cells, nrow(df)), ]
-
-categ_table <- table(var)
-
-df$true <- factor(rep(names(categ_table), categ_table), levels = rev(c("normal", "tumor")), labels = rev(c("Normal", "Tumor")))  
-
-
-ggplot(df, aes(x = x, y = y, color = true)) + 
-    geom_point(size = 3.3, color = "black") + 
-  geom_point(size = 3) +
-  scale_x_continuous() +
-  scale_y_continuous(trans = 'reverse', limits = c(23, 0)) +
-  scale_color_manual(values = c("#c32e26", "#4f97ba")) +
-  theme_bw() + 
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  theme(plot.title = element_text(size = rel(1.2)),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank(),   
-        legend.position = "bottom", 
-        legend.text  = element_text(size = 16))  -> normal
-
-normal$labels$colour <- ""
-normal$labels$color <- ""
-
-legend <- cowplot::get_legend(normal)
-
-grid.plots  <- cowplot::plot_grid(tumor, normal + theme(legend.position = "none"), ncol = 2)
-grid_plot <- cowplot::plot_grid(grid.plots, legend, ncol = 1, rel_heights = c(1, 0.2))
-grid_plot
-cowplot::ggsave(filename  = here("results", "2018-08-16_gc_split", "grid.png"), grid_plot, width = 9.33, height = 6)
-```
-
-
-
-
-```{r diagnostic_plots}
-library(cowplot)
-plot_grid(plotExp(scGastric, "MLH1") + labs(color = 'CPM exp'), 
-          plotExp(scGastric, "PMS2") + labs(color = 'CPM exp'))
-
-plotLoadings(scGastric, n = 15)
-```
-
-
-```{r}
-predicted_tumor <- scGastric@predictions[scGastric@predictions$predClass == "tumor",]
-
-i <- rownames(predicted_tumor)
-
-j <- match(i, rownames(scGastric@predData))
-
-predicted_tumor_markers <- scGastric@predData[j, c("MLH1", "PMS2")]
-
-colMeans(predicted_tumor_markers) / colSums(predicted_tumor_markers)
-
-predicted_normal_markers <- scGastric@predData[-j, c("MLH1", "PMS2")]
-
-
-colSums(predicted_tumor_markers) / (colSums(predicted_tumor_markers) + colSums(predicted_normal_markers))
-colSums(predicted_normal_markers) / (colSums(predicted_tumor_markers) + colSums(predicted_normal_markers))
-
-
-
-```
-
-
-```{r}
-object = scGastric
-response = test_meta$status
-
-getAccuracy <- function(object, response){
-  
-  object  %>% 
-  getPredictions() %>% 
-  mutate(true = response) -> predictions
-  
-  if(length(unique(response)) == 2 ){
-    
-    
-    
-  }
-  
-  object  %>% 
-  getPredictions() %>% 
-  mutate(true = response) %>% 
-  #mutate(predClass = ifelse(predClass == "unassigned", "normal", predClass)) %>% 
-  mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
-  group_by(true, prediction) %>% 
-  summarise(n = n()) %>% 
-  mutate(accuracy = (n / sum(n))*100) %>% 
-#  filter(prediction != "incorrect") %>% 
-  select(-prediction) %>% 
-  knitr::kable()
-}
-```
-
