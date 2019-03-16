@@ -38,7 +38,7 @@ data <- readRDS(file = here(input, filename))
 
 # Set bootstrap seeds
 set.seed(66)
-seed_part <- sample(seq_len(10e4), 2)
+seed_part <- sample(seq_len(10e4), 10)
 
 
 
