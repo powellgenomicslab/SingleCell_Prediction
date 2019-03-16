@@ -30,7 +30,7 @@ if(!dir.exists(output)){
 
 # Input
 input    <- file.path("results", "2018-03-13_pbmc_assign_layers") # <------ Input directory
-filename <- "pbmc_sub.RDS" # <------ Input file
+filename <- "pbmc.RDS" # <------ Input file
 
 
 # Read file
