@@ -29,7 +29,7 @@ if(!dir.exists(output)){
 # Read data ---------------------------------------------------------------
 
 # Input
-input    <- file.path("results", "2018-03-13_pbmc_assign_layers") # <------ Input directory
+input    <- file.path("results", "2019-03-13_pbmc_assign_layers") # <------ Input directory
 filename <- "pbmc.RDS" # <------ Input file
 
 
