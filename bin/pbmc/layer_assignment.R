@@ -155,6 +155,9 @@ for (i in 2:length(x = data)) {
   combined <- MergeSeurat(object1 = combined, object2 = data[[i]])
 }
 
+combined
+
+cat("Saving results...\n")
 
 saveRDS(combined, file = here(output, "pbmc.RDS"))
 
