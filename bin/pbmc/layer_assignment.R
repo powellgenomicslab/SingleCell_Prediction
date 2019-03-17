@@ -18,7 +18,7 @@ library("Seurat")
 # Set output --------------------------------------------------------------
 
 output_dir_name <- "pbmc_assign_layers" # <------ Output directory
-date <- "2018-03-13"  # <------ Date
+date <- "2019-03-13"  # <------ Date
 output <- file.path("results", paste(date, output_dir_name, sep = "_"))
 
 if(!dir.exists(output)){
