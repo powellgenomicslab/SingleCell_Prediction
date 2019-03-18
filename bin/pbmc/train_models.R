@@ -11,6 +11,7 @@
 # Primary
 library("tidyverse")
 library("here")
+library("BiocParallel")
 
 # Secondary
 library("scPred")
@@ -86,29 +87,23 @@ trainLayer <- function(seed, level){
   # Get feature space
   trainData@meta.data[[level]] <- as.factor(trainData@meta.data[[level]])
   scpred <- getFeatureSpace(trainData, pVar = layer)
+  rm(trainData)
+  scpred@trainData <- matrix()
   
   # Train model
-  scpred <- trainModel(scpred)
+  scpred <- trainModel(scpred, returnData = FALSE, savePredictions = FALSE)
   
   scpred
   
 }
 
+multicoreParam <- MulticoreParam(workers = 2)
 
-if(layer == 1){
-  res1 <- lapply(seed_part, trainLayer, 1)
-  names(res1) <- paste0("r", seed_part)
-  saveRDS(res, file = here(output, "models_layer1.RDS"))
-}else if(layer == 2){
-  res2 <- lapply(seed_part, trainLayer, 2)
-  names(res2) <- paste0("r", seed_part)
-  saveRDS(res, file = here(output, "models_layer2.RDS"))
-}else if(layer == 3){
-  res3 <- lapply(seed_part, trainLayer, 3)
-  names(res3) <- paste0("r", seed_part)
-  saveRDS(res, file = here(output, "models_layer3.RDS"))
-}
+res <- bplapply(seed_part, trainLayer, layer, BPPARAM = multicoreParam)
 
+names(res) <- paste0("r", seed_part)
+fileOutput <- paste0("models_layer_", layer ,".RDS")
+saveRDS(res, file = here(output, fileOutput))
 
 # Session info ------------------------------------------------------------
 
