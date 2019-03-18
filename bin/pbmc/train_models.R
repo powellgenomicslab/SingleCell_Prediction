@@ -17,6 +17,11 @@ library("scPred")
 source(here("bin", "quickSeurat.R"))
 
 
+# Manage parameters -------------------------------------------------------
+
+args <- commandArgs(trailingOnly = TRUE)
+layer <- as.integer(args[1])
+
 # Set output --------------------------------------------------------------
 
 output_dir_name <- "trained_models" # <------ Output directory
@@ -31,7 +36,6 @@ if(!dir.exists(output)){
 # Input
 input    <- file.path("results", "2019-03-13_pbmc_assign_layers") # <------ Input directory
 filename <- "pbmc.RDS" # <------ Input file
-
 
 # Read file
 data <- readRDS(file = here(input, filename))
@@ -91,17 +95,20 @@ trainLayer <- function(seed, level){
 }
 
 
-res1 <- lapply(seed_part, trainLayer, 1)
-res2 <- lapply(seed_part, trainLayer, 2)
-res3 <- lapply(seed_part, trainLayer, 3)
+if(layer == 1){
+  res1 <- lapply(seed_part, trainLayer, 1)
+  names(res1) <- paste0("r", seed_part)
+  saveRDS(res, file = here(output, "models_layer1.RDS"))
+}else if(layer == 2){
+  res2 <- lapply(seed_part, trainLayer, 2)
+  names(res2) <- paste0("r", seed_part)
+  saveRDS(res, file = here(output, "models_layer2.RDS"))
+}else if(layer == 3){
+  res3 <- lapply(seed_part, trainLayer, 3)
+  names(res3) <- paste0("r", seed_part)
+  saveRDS(res, file = here(output, "models_layer3.RDS"))
+}
 
-res <- list(level1 = res1, level2 = res2, level3 = res3) %>% 
-  lapply(function(x){names(x) <- paste0("r", seed_part); x})
-
-
-# Save results ------------------------------------------------------------
-
-saveRDS(res, file = here(output, "models.RDS"))
 
 # Session info ------------------------------------------------------------
 
