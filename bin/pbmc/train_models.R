@@ -97,7 +97,7 @@ trainLayer <- function(seed, level){
   
 }
 
-multicoreParam <- MulticoreParam(workers = 2)
+multicoreParam <- MulticoreParam(workers = 5)
 
 res <- bplapply(seed_part, trainLayer, layer, BPPARAM = multicoreParam)
 
