@@ -34,6 +34,8 @@ if(!dir.exists(output)){
 # Read data ---------------------------------------------------------------
 
 # Read prediction models
+
+cat("Reading data.....\n")
 input  <- file.path("results", "2019-03-15_trained_models") # <------ Input directory
 readData <- function(i) readRDS(here(input, paste0("models_layer_", i , ".RDS")))
 scTree <- lapply(1:3, readData)
@@ -41,12 +43,13 @@ names(scTree) <- paste0("layer", 1:3)
 
 # Read gene expression data
 pbmc <- readRDS(here("results", "2019-03-13_pbmc_assign_layers", "pbmc.RDS"))
-
+cat("DONE!\n")
 
 # Create tree prediction function -----------------------------------------
 
 predictTree <- function(br, newData){
   
+  newData <- as.matrix(newData)
   # Layer 1 .........................................................
   
   ## Perform predictions
@@ -163,6 +166,8 @@ predictTree <- function(br, newData){
 set.seed(66)
 seed_part <- sample(seq_len(10e4), 10)
 
+cat("Creating test datasets.....\n")
+
 # Get test folds
 createTestDatasets <- function(seed){
   set.seed(seed)
@@ -180,8 +185,7 @@ multicoreParam <- MulticoreParam(workers = 5)
 testFolds <- bplapply(seed_part, createTestDatasets, BPPARAM = multicoreParam)
 
 testFolds %>% 
-  bplapply(slot, "data", BPPARAM = multicoreParam) %>% 
-  bplapply(as.matrix, BPPARAM = multicoreParam) -> testData
+  bplapply(slot, "data", BPPARAM = multicoreParam) -> testData
 
 names(testFolds) <- paste0("r", seed_part)
 
@@ -189,10 +193,16 @@ applyTree <- function(br, newData){
   predictTree(br = br, newData = newData)
 }
 
+cat("DONE!\n")
+cat("Performing predictions.....\n")
+
 
 res <- bpmapply(applyTree, paste0("r", seed_part), testData, SIMPLIFY = FALSE, BPPARAM = multicoreParam)
-saveRDS(res, here(output, "predictions.RDS"))
+cat("DONE!\n")
 
+cat("Saving predictions.....\n")
+saveRDS(res, here(output, "predictions.RDS"))
+cat("DONE!\n")
 
 # Session info ------------------------------------------------------------
 
