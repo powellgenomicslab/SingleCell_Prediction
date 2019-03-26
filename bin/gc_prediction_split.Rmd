@@ -14,7 +14,19 @@ editor_options:
 library("tidyverse")
 library("here")
 library("scPred")
+library("BiocParallel")
 ```
+
+```{r}
+output_dir_name <- "gc" # <------ Output directory
+date <- "2019-03-26" # <------ Date
+output <- file.path("results", paste(date, output_dir_name, sep = "_"))
+if(!dir.exists(output)){
+  dir.create(here(output))
+}
+```
+
+
 
 ```{r read_data_P5931}
 P5931_normal <- read.csv(here("data/2018-07-07_gastric_cancer/Garvan_collaboration/P5931/P5931_800B_n_epithelial.raw.data.csv"))
@@ -144,25 +156,37 @@ gc_metadata <- rbind(P6207_metadata, P5931_metadata)
 all(rownames(gc) == rownames(gc_metadata))
 ```
 
+
+
+```{r}
+gc %>% 
+  colnames() %>% 
+  str_subset("^RP") -> riboProteins 
+
+gcNoRibo <- gc[,!colnames(gc) %in% riboProteins]
+```
+
+
+
 ```{r}
 set.seed(66)
 seeds <- sample(seq_len(10e4), 10)
 ```
 
 ```{r split_data}
-bootRep <- function(seed){
+bootRep <- function(seed, x, x_metadata){
 
 # seed = seeds[1]
 set.seed(seed)
 i <- createDataPartition(gc_metadata$status, list = FALSE)
 
-train_fold <- gc[i, ]
-test_fold <- gc[-i, ]
+train_fold <- x[i, ]
+test_fold <- x[-i, ]
 
-train_meta <- gc_metadata[i, , drop = FALSE]
-test_meta <- gc_metadata[-i, , drop = FALSE]
+train_meta <- x_metadata[i, , drop = FALSE]
+test_meta <- x_metadata[-i, , drop = FALSE]
 
-set.seed(1234)
+
 scGastric <- eigenDecompose(t(train_fold), n = 25)
 metadata(scGastric) <- train_meta
 
@@ -177,7 +201,7 @@ scGastric@predMeta <-  test_meta
 scGastric  %>% 
   getPredictions() %>% 
   mutate(true = test_meta$status) %>% 
-  mutate(predClass = ifelse(predClass == "unassigned", "normal", predClass)) %>% 
+  mutate(predClass = ifelse(predClass == "unassigned" & tumor < 0.1, "normal", predClass)) %>% 
   mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
   group_by(true, prediction) %>% 
   summarise(n = n()) %>% 
@@ -189,7 +213,8 @@ scGastric  %>%
 ```
 
 ```{r}
-res <- sapply(seeds, bootRep, simplify = FALSE)
+res <- bplapply(seeds, bootRep, gc, gc_metadata, BPPARAM = MulticoreParam(workers = 3))
+#resNoRibo <- bplapply(seeds, bootRep, gcNoRibo, gc_metadata, BPPARAM = MulticoreParam(workers = 3))
 ```
 
 ```{r}
@@ -198,19 +223,106 @@ res %>%
   reduce(cbind) %>% 
   t() %>% 
   `colnames<-`(c("sensitivity", "specificity")) -> res
+
+# resNoRibo %>% 
+#   lapply("[", "accuracy") %>% 
+#   reduce(cbind) %>% 
+#   t() %>% 
+#   `colnames<-`(c("sensitivity", "specificity")) -> resNoRibo
+
 ```
 
 
 ```{r}
-path <- file.path("results", paste("2019-03-05", "gc_degs_prediction", sep = "_"), "accuracy.txt")
+saveRDS(res, file = here(output, "res.RDS"))
+#saveRDS(resNoRibo, file = here(output, "res_no_ribo.RDS"))
+```
+
+
+
+```{r}
+bootRep <- function(seed){
+
+# seed = seeds[1]
+set.seed(seed)
+i <- createDataPartition(gc_metadata$status, list = FALSE)
+
+train_fold <- gc[i, ]
+test_fold <- gc[-i, ]
+
+train_meta <- gc_metadata[i, , drop = FALSE]
+test_meta <- gc_metadata[-i, , drop = FALSE]
+
+
+perCellMean <- rowMeans(train_fold)
+
+features <- data.frame(perCellMean, status = train_meta$status)
+
+
+
+trCtrl <- trainControl(classProbs = TRUE,
+                         method = "cv",
+                         number = 10,
+                         summaryFunction = twoClassSummary,
+                         returnData = FALSE,
+                         savePredictions = TRUE,
+                         allowParallel = FALSE)
+  
+  set.seed(66)
+  fit <- train(status ~ perCellMean, 
+               features,
+               method = "svmRadial",
+               metric = "ROC",
+               trControl = trCtrl)
+  
+  
+  preds <- predict(fit, newdata = data.frame(perCellMean = rowMeans(test_fold)))
+  
+  table(x = test_meta$status, y = preds) %>% 
+    as.data.frame() %>% 
+    spread(key = "y", value = "Freq", fill = 0) %>%
+    as.data.frame() %>% 
+    column_to_rownames("x") -> counts
+  
+  
+  labels <- rownames(counts)
+  
+  counts %>% 
+    mapply(function(x,d){x/d}, ., colSums(.)) %>% 
+    `rownames<-`(labels) -> props
+  
+  diag(props)
+
+}
+```
+
+
+
+```{r}
+resBaseline <- sapply(seeds, bootRep, simplify = FALSE)
+```
+
+```{r}
+resBaseline %>% 
+  reduce(rbind) -> resBaseline
+```
+
+
+```{r}
+path <- file.path("results", paste("2019-03-05", "gc_degs_prediction", sep = "_"), "accuracy.RDS")
 resDegs <- readRDS(path) %>% 
   reduce(rbind) %>% 
   `colnames<-`(c("sensitivity", "specificity"))
 ```
 
 ```{r}
-allRes <- rbind(res/100, resDegs) %>% as.data.frame() %>% `rownames<-`(NULL)
-allRes$method <- c(rep("scPred", 10), rep("DEGs", 10)) %>% factor(levels = c("scPred", "DEGs"))
+allRes <- rbind(res/100, resNoRibo/100, resDegs, resBaseline) %>% as.data.frame() %>% `rownames<-`(NULL)
+allRes$method <- c(rep("scPred", 10), rep("scPred-noRibo", 10), rep("DEGs", 10), rep("per-cell mean", 10)) %>% factor(levels = c("scPred", "scPred-noRibo", "DEGs", "per-cell mean"))
+```
+
+```{r}
+allRes <- rbind(res/100, resDegs, resBaseline) %>% as.data.frame() %>% `rownames<-`(NULL)
+allRes$method <- c(rep("scPred", 10), rep("DEGs", 10), rep("log(CPM + 1) mean", 10)) %>% factor(levels = c("scPred", "DEGs", "log(CPM + 1) mean"))
 ```
 
 ```{r}
@@ -221,17 +333,22 @@ allRes %>%
 ```
 
 
-
 ```{r}
 allRes %>%
   gather("metric", "value", 1:2) %>% 
   ggplot() +
   aes(x = method, y = value, fill = method) +
-  geom_boxplot() + 
+  geom_boxplot(alpha = 0.8) + 
   xlab("Method") +
   ylab("Values") +
   scale_fill_brewer(palette = "Set1") +
   facet_wrap(~metric) +
-  theme_classic() +
-  theme(legend.position = "none")
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> p
 ```
+
+```{r}
+ggsave(here("performance_comparison.png"), width = 5, height = 3, dpi = 320)
+```
+
