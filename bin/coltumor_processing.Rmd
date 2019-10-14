@@ -1,5 +1,5 @@
 ---
-title: "PCA of human colorectal tumors"
+title: "Data processing of human colorectal tumors"
 author: "Jose Alquicira Hernandez"
 date: "05/10/2017"
 output:
@@ -26,8 +26,8 @@ script_dir=bin
 
 # Input files --------------
 
-tumor=data/2017-10-95_colon/GSE81861_CRC_tumor_epithelial_cells_FPKM.csv
-normal=data/2017-10-95_colon/GSE81861_CRC_NM_epithelial_cells_FPKM.csv
+tumor=data/2017-10-95_colon/GSE81861_CRC_tumor_epithelial_cells_COUNT.csv
+normal=data/2017-10-95_colon/GSE81861_CRC_NM_epithelial_cells_COUNT.csv
 # Output file directory ----
 
 output_path=results/${PWD##*/}
@@ -63,8 +63,8 @@ output.path <- argv[3]
 
 
 ```{r include=FALSE}
-tumor.path="data/2017-10-95_colon/GSE81861_CRC_tumor_epithelial_cells_FPKM.csv"
-normal.path="data/2017-10-95_colon/GSE81861_CRC_NM_epithelial_cells_FPKM.csv"
+tumor.path="data/2017-10-95_colon/GSE81861_CRC_tumor_epithelial_cells_COUNT.csv"
+normal.path="data/2017-10-95_colon/GSE81861_CRC_NM_epithelial_cells_COUNT.csv"
 ```
 
 
@@ -142,7 +142,7 @@ description <- data.frame(labelDescription= c("Malignancy status",
                           row.names=c("status", "cellId", "cellType"))
 
 phenoData <- new("AnnotatedDataFrame", data = metadata, varMetadata = description)
-
+expData <- round(expData)
 expSet <- ExpressionSet(assayData = as.matrix(expData), phenoData = phenoData)
 ```
 
@@ -151,7 +151,7 @@ expSet <- ExpressionSet(assayData = as.matrix(expData), phenoData = phenoData)
 
 ## Filtering
 
-### Remove regions with zero RPKM values across all cells
+### Remove regions with zero counts across all cells
 
 
 ```{r remove_zero-count_genes}
@@ -196,9 +196,41 @@ expSet$status %>%
 ```
 
 
+```{r get_featureLength}
+expSet %>% 
+featureNames() %>% 
+  str_split(":") %>%
+  lapply("[", 2) %>%
+  unlist() %>%
+  str_split("_") %>% 
+  lapply("[", 1) %>% 
+  str_split("-") %>% 
+  lapply(function(feature){feature <- as.numeric(feature); feature[2] - feature[1]}) %>% 
+  unlist() -> featureLength
+```
+
+```{r}
+calculateTPM <- function(counts, lengths) {
+  rate <- counts / lengths
+  rate / sum(rate) * 1e6
+}
+
+
+tpm <- esApply(expSet, 2, function(x) calculateTPM(x, featureLength))
+expSetTPM <- expSet
+exprs(expSetTPM) <- tpm
+```
+
+
 ```{r save_results}
 saveRDS(expSet, 
-        file = file.path(here(output.path), "coltumor_exp_data_processed.RDS"))
+        file = file.path(here(output.path), "coltumor_exp_data_processed_counts.RDS"))
+```
+
+
+```{r}
+saveRDS(expSetTPM, 
+        file = file.path(here(output.path), "coltumor_exp_data_processed_tpm.RDS"))
 ```
 
 ```{r display_session_info}

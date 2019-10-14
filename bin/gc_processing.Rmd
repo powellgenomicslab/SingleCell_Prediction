@@ -1,0 +1,304 @@
+---
+title: "Analysis of gastric cancer"
+author: "Jose Alquicira Hernandez"
+date: "10/07/2018"
+output: html_document
+---
+
+```{r load_libraries}
+library(here)
+library(Seurat)
+library(tidyverse)
+library(cowplot)
+```
+
+
+```{r read_data}
+normal_raw <- as.matrix(Read10X(here("data/2018-07-07_gastric_cancer/gastric_cancer/Normal")))
+tumor_raw <- as.matrix(Read10X(here("data/2018-07-07_gastric_cancer/gastric_cancer/Tumor")))
+```
+
+
+```{r QC_frunction}
+getQCMetrics <- function(x){
+  x <- CreateSeuratObject(raw.data = x, min.cells = 3, min.genes = 200, 
+                               project = "10X_gastric_cancer")
+  
+  mito.genes <- grep(pattern = "^MT-", x = rownames(x = x@data), value = TRUE)
+  percent.mito <- Matrix::colSums(x@raw.data[mito.genes, ])/Matrix::colSums(x@raw.data)
+  x <- AddMetaData(object = x, metadata = percent.mito, col.name = "percent.mito")
+  x
+}
+```
+
+
+```{r process_data}
+normal <- getQCMetrics(normal_raw)
+tumor <- getQCMetrics(tumor_raw)
+```
+
+
+```{r plot_QC_features}
+VlnPlot(object = normal, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
+```
+
+
+```{r}
+VlnPlot(object = tumor, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
+```
+
+
+```{r}
+normal_mito_p <- GenePlot(object = normal, gene1 = "nUMI", gene2 = "percent.mito")
+normal_gene_p <- GenePlot(object = normal, gene1 = "nUMI", gene2 = "nGene")
+```
+
+
+```{r}
+tumor_mito_p <- GenePlot(object = tumor, gene1 = "nUMI", gene2 = "percent.mito")
+tumor_gene_p <- GenePlot(object = tumor, gene1 = "nUMI", gene2 = "nGene")
+```
+
+
+```{r}
+filterCells <- function(x, low.thresholds, high.thresholds){
+  FilterCells(object = x, subset.names = c("nGene", "percent.mito"), 
+                        low.thresholds = low.thresholds, high.thresholds = high.thresholds)
+}
+#low.thresholds = c(200, -Inf), high.thresholds = c(2500, 0.05))
+```
+
+```{r}
+normal <- filterCells(normal, low.thresholds = c(200, -Inf), high.thresholds = c(6000, 0.35))
+tumor <- filterCells(tumor, low.thresholds = c(200, -Inf), high.thresholds = c(6000, 0.35))
+```
+
+
+
+
+```{r}
+normData <- function(x){
+  x <- NormalizeData(object = x)
+  x <- FindVariableGenes(x, do.plot = FALSE, display.progress = FALSE)
+  x <- ScaleData(object = x, vars.to.regress = c("nUMI", "percent.mito"))
+  x
+}
+```
+
+```{r}
+normal <- normData(normal)
+tumor <- normData(tumor)
+```
+
+
+```{r}
+runPCA <- function(x){
+  RunPCA(object =x, pc.genes = x@var.genes, do.print = TRUE, pcs.print = 1:5, 
+    genes.print = 5)
+}
+```
+
+
+```{r}
+normal <- runPCA(normal)
+tumor <- runPCA(tumor)
+```
+
+
+```{r}
+VizPCA(object = normal, pcs.use = 1:2)
+VizPCA(object = tumor, pcs.use = 1:2)
+
+```
+
+```{r}
+PCAPlot(object = normal, dim.1 = 1, dim.2 = 2)
+PCAPlot(object = tumor, dim.1 = 1, dim.2 = 2)
+
+```
+
+```{r}
+normal <- ProjectPCA(object = normal, do.print = FALSE)
+tumor <- ProjectPCA(object = tumor, do.print = FALSE)
+```
+
+
+```{r}
+PCHeatmap(object = normal, pc.use = 1, cells.use = 500, do.balanced = TRUE, label.columns = FALSE)
+PCHeatmap(object = tumor, pc.use = 1, cells.use = 500, do.balanced = TRUE, label.columns = FALSE)
+```
+
+```{r}
+normal <- JackStraw(object = normal, num.replicate = 100, display.progress = FALSE)
+tumor <- JackStraw(object = tumor, num.replicate = 100, display.progress = FALSE)
+
+```
+
+
+```{r}
+JackStrawPlot(object = normal, PCs = 1:20)
+JackStrawPlot(object = tumor, PCs = 1:20)
+```
+
+```{r}
+PCElbowPlot(object = normal, num.pc = 20)
+PCElbowPlot(object = tumor, num.pc = 20)
+
+```
+
+```{r}
+normal <- FindClusters(object = normal, reduction.type = "pca", dims.use = 1:15, 
+    resolution = 0.6, print.output = 0, save.SNN = TRUE)
+
+tumor <- FindClusters(object = tumor, reduction.type = "pca", dims.use = 1:15, 
+    resolution = 0.6, print.output = 0, save.SNN = TRUE)
+```
+
+
+```{r}
+PrintFindClustersParams(object = normal)
+PrintFindClustersParams(object = tumor)
+
+```
+
+```{r}
+normal <- RunTSNE(object = normal, dims.use = 1:15, do.fast = TRUE)
+tumor <- RunTSNE(object = tumor, dims.use = 1:15, do.fast = TRUE)
+```
+
+```{r}
+TSNEPlot(object = normal)
+TSNEPlot(object = tumor)
+
+```
+
+
+```{r}
+PCAPlot(normal)
+PCAPlot(tumor)
+```
+
+```{r}
+normal.markers <- FindAllMarkers(object = normal, only.pos = TRUE, min.pct = 0.25, 
+    thresh.use = 0.25)
+tumor.markers <- FindAllMarkers(object = tumor, only.pos = TRUE, min.pct = 0.25, 
+    thresh.use = 0.25)
+```
+
+```{r}
+normal.markers %>% group_by(cluster) %>% top_n(5, avg_logFC)
+tumor.markers %>% group_by(cluster) %>% top_n(15, avg_logFC) 
+
+```
+
+
+```{r}
+normal.markers %>% group_by(cluster) %>% top_n(25, avg_logFC) %>% 
+  filter(cluster == 8) %>% pull(gene) -> normal_list
+
+
+normal_list %>% paste(collapse = "\n") %>% cat()
+
+
+tumor.markers %>% group_by(cluster) %>% top_n(50, avg_logFC) %>% 
+  filter(cluster == 1) %>% pull(gene) -> tumor_list
+
+tumor_list %>% paste(collapse = "\n") %>% cat()
+
+intersect(normal_list, tumor_list)
+
+```
+
+
+```{r}
+VlnPlot(object = normal, features.plot = c("MUC1"),  use.raw = TRUE, y.log = TRUE)
+VlnPlot(object = normal, features.plot = c("PGC"), use.raw = TRUE, y.log = TRUE)
+
+
+VlnPlot(object = normal, features.plot = c("LGR5"))
+
+VlnPlot(object = normal, features.plot = c("ENG"))
+VlnPlot(object = normal, features.plot = c("MS4A1"))
+VlnPlot(object = normal, features.plot = c("IL7R"))
+VlnPlot(object = normal, features.plot = c("DCN"))
+
+
+VlnPlot(object = tumor, features.plot = c("MUC1"), use.raw = TRUE, y.log = TRUE)
+VlnPlot(object = tumor, features.plot = c("PGC"), use.raw = TRUE, y.log = TRUE)
+
+VlnPlot(object = tumor, features.plot = c("ENG"))
+VlnPlot(object = tumor, features.plot = c("FCER1A"))
+
+
+
+VlnPlot(object = tumor, features.plot = c("MUC1"), use.raw = TRUE, y.log = TRUE)
+VlnPlot(object = tumor, features.plot = c("IL7R"))
+VlnPlot(object = tumor, features.plot = c("DCN"))
+
+
+
+
+
+#####
+
+VlnPlot(object = normal, features.plot = c("KRT18"))
+VlnPlot(object = normal, features.plot = c("CDH1"))
+
+VlnPlot(object = tumor, features.plot = c("KRT18"))
+VlnPlot(object = tumor, features.plot = c("CDH1"))
+
+```
+
+
+
+Cluster Pop Marker
+0 CD4 T cells IL7R
+1 Epithelial according to expression of KRT18 and CDH1
+2 B cells
+3 Fibroblasts 
+4 Endothelial
+5
+6 APC/platelets
+7 B cells MS4A1
+8
+
+
+Cluster Pop Marker
+0 Neutrophils
+1 Epithelial cells (cornification)
+2 
+3
+4 Fibroblasts
+5 CD4 T cells IL7R
+
+
+
+
+
+```{r}
+FeaturePlot(object = normal, features.plot = c("KRT18"), cols.use = c("grey", "blue"), 
+    reduction.use = "tsne")
+
+
+FeaturePlot(object = tumor, features.plot = c("KRT18"), cols.use = c("grey", "blue"), 
+    reduction.use = "tsne")
+```
+
+```{r}
+top10 <- normal.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+# setting slim.col.label to TRUE will print just the cluster IDS instead of
+# every cell name
+DoHeatmap(object = normal, genes.use = top10$gene, slim.col.label = TRUE, remove.key = TRUE)
+```
+
+
+
+
+
+```{r}
+FeaturePlot(object = normal, features.plot = c("KRT18"), cols.use = c("grey", "blue"), 
+    reduction.use = "pca")
+FeaturePlot(object = tumor, features.plot = c("KRT18"), cols.use = c("grey", "blue"), 
+    reduction.use = "pca")
+```
+

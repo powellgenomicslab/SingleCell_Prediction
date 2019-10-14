@@ -53,7 +53,7 @@ expDataDir <- argv[1]
 # Set output parameters
 
 outputDir <- argv[2]
-phenoVar <- argv[4]
+phenoVar <- argv[3]
 
 # Set extra parameters
 

@@ -46,9 +46,33 @@ filename <- "pred_data.RDS" # <------ Input file
 pred_data <- readRDS(here(input, filename))
 
 
+
+# Perform PCA -------------------------------------------------------------
+
+train_data <- train_data %>% 
+  NormalizeData(normalization.method = "LogNormalize", 
+                scale.factor = 10000) %>% 
+  # FindVariableGenes( mean.function = ExpMean, 
+  #                   dispersion.function = LogVMR, 
+  #                   x.low.cutoff = 0.0125, 
+  #                   x.high.cutoff = 3, 
+  #                   y.cutoff = 0.5) %>% 
+  ScaleData() %>% 
+  RunPCA(pc.genes = rownames(.@data),
+         do.print = TRUE, 
+         pcs.print = 1:5, 
+         genes.print = 5)
+
+
+# plotPCA(train_data, group = "cellType1")
+# plotPCA(train_data, 1, 3,group = "cellType1")
+# plotPCA(train_data, 2, 3,group = "cellType1")
+
+
+
 # Get feature space -------------------------------------------------------
 
-sc_pred <- getFeatureSpace(train_data, pVar = "cellType2")
+sc_pred <- getFeatureSpace(train_data, pVar = "cellType1")
 rm(train_data)
 
 
@@ -69,41 +93,17 @@ predictions <- getPredictions(sc_pred)
 # Get performance ---------------------------------------------------------
 
 sc_pred@predMeta <-  pred_data@meta.data
+ct <- crossTab(sc_pred, true = "cellType1")
 
-sc_pred %>% 
-  getPredictions() %>% 
-  mutate(true = pred_data@meta.data$cellType2) %>% 
-  mutate(predClass = ifelse(predClass == "unassigned", "normal", predClass)) %>% 
-  mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
-  group_by(true, prediction) %>% 
-  summarise(n = n()) %>% 
-  mutate(accuracy = (n / sum(n))*100) -> performance
 
-performance %>%   
-  filter(prediction == "incorrect") %>% 
-  select(-prediction) %>% 
-  write.table(file = here(output, "accuracy.txt"), quote = FALSE, row.names = FALSE)
-
-performance %>%   
-  filter(prediction == "correct") %>% 
-  select(-prediction) %>% 
-  set_colnames(c("true", "n", "misclassification")) %>% 
-  write.table(file = here(output, "misclassification.txt"), quote = FALSE, row.names = FALSE)
+writeLines(knitr::kable(ct), 
+            here(output, "cont_table.txt"))
 
 saveRDS(predictions, file = here(output, "predictions.RDS"))
 saveRDS(sc_pred, file = here(output, "scpred.RDS"))
 
-predictions$true <- pred_data@meta.data$cellType2
 
-predictions %>% 
-  gather(key = "class", value = "prob", 1:3) %>% 
-ggplot(aes(x = prob, fill = class)) +
-  geom_histogram(color = "black") +
-  facet_wrap(~true, scales = "free") +
-  scale_fill_manual(values = set_names(jcolors::jcolors(), NULL)) +
-  theme_bw() +
-  xlab("Probability") +
-  ylab("Number of cells") -> p
+p <- plotPredProbs(sc_pred, facet = "cellType1")
 
 ggsave(p, filename = here(output, "prob_dist.png"), width = 9 , height = 2)
 

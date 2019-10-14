@@ -1,0 +1,90 @@
+---
+title: "Breast cancer results"
+author: "Jose Alquicira Hernandez"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+# Training data
+
+
+```{r}
+input <- file.path("results", "2018-08-30_breast_cancer")
+filename <- "tmp_reference.RDS"
+data <- readRDS(file = here(input, filename))
+```
+
+
+```{r}
+data@meta.data %>% 
+  group_by(cellType) %>% 
+  summarize(n = n())
+```
+
+
+```{r}
+data@meta.data %>% 
+  group_by(batch) %>% 
+  summarize(n = n())
+```
+
+```{r}
+data@meta.data %>% 
+  group_by(cellType, batch) %>% 
+  summarize(n = n())
+```
+
+
+```{r}
+DimPlot(data, reduction.use = "pca", group.by = "batch")
+```
+
+
+```{r}
+DimPlot(data, reduction.use = "pca", group.by = "cellType")
+```
+
+
+```{r}
+DimPlot(data, reduction.use = "pca.aligned", group.by = "cellType")
+```
+
+# Prediction data
+
+
+```{r}
+filename <- "train_pred_aligned.RDS"
+sc_pred <- readRDS(file = here(input, filename))
+```
+
+
+```{r}
+sc_pred@meta.data %>% 
+  group_by(cellType) %>% 
+  summarize(n = n()) 
+```
+
+
+
+
+
+```{r}
+DimPlot(sc_pred, reduction.use = "pca", group.by = "cellType")
+```
+
+
+|cellType |subtype                          |pred  |   n|  accuracy| total|
+|:--------|:--------------------------------|:-----|---:|---------:|-----:|
+|Luminal  |Tumour_epithelial_luminal_1      |true  | 450|  80.21390|   561|
+|Luminal  |Tumour_epithelial_luminal_2      |true  |  14|  48.27586|    29|
+|Luminal  |Tumour_epithelial_luminal_prolif |true  |   4|  30.76923|    13|
+|other    |CAFs                             |false |  49| 100.00000|    49|
+|other    |Endothelial                      |false |  79| 100.00000|    79|
+|other    |Myeloid                          |false |  98| 100.00000|    98|
+|other    |T_cells                          |false | 132| 100.00000|   132|
+|other    |Tumour_epithelial_basal          |false |  13| 100.00000|    13|

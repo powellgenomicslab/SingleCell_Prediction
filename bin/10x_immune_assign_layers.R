@@ -37,7 +37,7 @@ if(!dir.exists(output)){
 # Input
 
 input    <- file.path("results", "2018-10-10_10x_immune_processed") # <------ Input directory
-filename <- "pbmc.RDS" # <------ Input file
+filename <- "pbmc_sub.RDS" # <------ Input file
 
 
 # Read file
@@ -49,7 +49,7 @@ data <- readRDS(here(input, filename))
 # Assign cell type tree levels --------------------------------------------
 
 
-assign_cell_level <- function(x){
+assign_cell_level_2 <- function(x){
   switch(x,
          "CD14+ Monocyte" = "Monocyte",
          "CD19+ B" = "B_cell",
@@ -64,13 +64,13 @@ assign_cell_level <- function(x){
          "Dendritic" = "Dendritic_cell")
 }
 
-data@meta.data$cellType1 <- data@meta.data$cellType %>% 
+data@meta.data$cellType2 <- data@meta.data$cellType %>% 
   as.character() %>% 
-  sapply(assign_cell_level) %>% 
+  sapply(assign_cell_level_2) %>% 
   as.factor()
 
 
-assign_cell_level_2 <- function(x){
+assign_cell_level_1 <- function(x){
   switch(x,
          "Dendritic_cell" = "Myeloid_cell",
          "Monocyte" = "Myeloid_cell",
@@ -79,21 +79,17 @@ assign_cell_level_2 <- function(x){
          "Natural_killer" = "Lymphoid_cell", x)
 }
 
-data@meta.data$cellType2 <- data@meta.data$cellType1 %>% 
+data@meta.data$cellType1 <- data@meta.data$cellType2 %>% 
   as.character() %>% 
-  sapply(assign_cell_level_2) %>% 
+  sapply(assign_cell_level_1) %>% 
   as.factor()
 
 
-# PCAPlot(data, group = "cellType2", cols.use = set_names(jcolors::jcolors(), NULL)) +
-#   theme_bw() +
-#   guides(color = guide_legend(title = "Cell type"))
 
-
-# Create partitions -------------------------------------------------------
+# Layer 1. Train and test -------------------------------------------------
 
 set.seed(66)
-i <- createDataPartition(data@meta.data$cellType2, p = 0.75, list = FALSE)
+i <- createDataPartition(data@meta.data$cellType1, p = 0.75, list = FALSE)
 j <- data@cell.names[i]
 k <- data@cell.names[-i]
 
@@ -102,42 +98,47 @@ train_data <- SubsetData(data, cells.use = j, do.clean = TRUE)
 pred_data  <- SubsetData(data, cells.use = k, do.clean = TRUE)
 
 # Train
-train_data <- train_data %>% 
-  NormalizeData(normalization.method = "LogNormalize", 
-                scale.factor = 10000) %>% 
-  FindVariableGenes(mean.function = ExpMean, 
-                    dispersion.function = LogVMR, 
-                    x.low.cutoff = 0.0125, 
-                    x.high.cutoff = 3, 
-                    y.cutoff = 0.5) %>% 
-  ScaleData() %>% 
-  RunPCA(pc.genes = .@var.genes, 
-         do.print = TRUE, 
-         pcs.print = 1:5, 
-         genes.print = 5)
-
-PCAPlot(train_data, group = "cellType2")
 saveRDS(train_data, file = here(output, "train_data.RDS"))
 
 
 # Prediction
-
-pred_data <- pred_data %>% 
-  NormalizeData(normalization.method = "LogNormalize", 
-                scale.factor = 10000) %>% 
-  FindVariableGenes(mean.function = ExpMean, 
-                    dispersion.function = LogVMR, 
-                    x.low.cutoff = 0.0125, 
-                    x.high.cutoff = 3, 
-                    y.cutoff = 0.5) %>% 
-  ScaleData() %>% 
-  RunPCA(pc.genes = .@var.genes, 
-         do.print = TRUE, 
-         pcs.print = 1:5, 
-         genes.print = 5)
-
-PCAPlot(pred_data, group = "cellType2")
 saveRDS(pred_data, file = here(output, "pred_data.RDS"))
+
+
+# Layer 2. Train ----------------------------------------------------------
+
+# Myeloid
+targetCells <- c("Dendritic_cell", "Monocyte")
+cells <- rownames(train_data@meta.data[train_data@meta.data$cellType2 %in% 
+                             targetCells,])
+train_myeloid <- SubsetData(train_data, cells.use = cells, do.clean = TRUE)
+train_myeloid@meta.data$cellType2 <- factor(train_myeloid@meta.data$cellType2, 
+                                            levels = targetCells)
+saveRDS(train_myeloid, file = here(output, "train_myeloid.RDS"))
+
+# Lymphoid
+
+targetCells <- c("B_cell", "T_cell", "Natural_killer")
+cells <- rownames(train_data@meta.data[train_data@meta.data$cellType2 %in% 
+                             targetCells,])
+train_lymphoid <- SubsetData(train_data, cells.use = cells, do.clean = TRUE)
+train_lymphoid@meta.data$cellType2 <- factor(train_lymphoid@meta.data$cellType2, 
+                                            levels = targetCells)
+saveRDS(train_lymphoid, file = here(output, "train_lymphoid.RDS"))
+
+
+# Layer 3. Train ----------------------------------------------------------
+
+targetCells <- c("CD4+ T Helper2", "CD4+/CD25 T Reg", 
+                "CD4+/CD45RA+/CD25- Naive T", "CD4+/CD45RO+ Memory",
+                "CD8+ Cytotoxic T", "CD8+/CD45RA+ Naive Cytotoxic")
+
+cells <- rownames(train_data@meta.data[train_data@meta.data$cellType %in% 
+                                         targetCells,])
+train_tcells<- SubsetData(train_data, cells.use = cells, do.clean = TRUE)
+train_tcells@meta.data$cellType2 <- factor(train_tcells@meta.data$cellType2, 
+                                             levels = targetCells)
+saveRDS(train_lymphoid, file = here(output, "train_tcells.RDS"))
 
 
 

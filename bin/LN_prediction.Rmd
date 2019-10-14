@@ -1,0 +1,198 @@
+---
+title: "Prediction of T-cell and B-cell subtypes"
+author: "Jose Alquicira Hernandez"
+output: html_notebook
+---
+
+# Import libraries
+
+```{r import_libraries}
+library(plotly)
+library(tidyverse)
+library(scPred)
+```
+
+```{r read_data}
+load("../../SingleCell_Prediction/data/2018-09-13_LN_cc/4404-LN_cc.Robj")
+```
+
+```{r plot_original_PCA}
+PCAPlot(LN) %>% ggplotly()
+```
+
+```{r print_original_tsne}
+TSNEPlot(LN) %>% ggplotly()
+```
+
+
+```{r}
+data <- as.matrix(LN@raw.data)
+metaData <- LN@meta.data
+```
+
+
+```{r filter_cells}
+t_cells_i <- str_detect(metaData$CellType2, "T-Cell")
+
+t_cells_metadata <- metaData[t_cells_i, ]
+i <- rownames(t_cells_metadata)
+
+t_cells <- data[,match(i, colnames(data))]
+all(colnames(t_cells) == rownames(t_cells_metadata))
+```
+
+
+```{r}
+b_cells_i <- str_detect(metaData$CellType2, "B-Cell")
+
+b_cells_metadata <- metaData[b_cells_i, ]
+i <- rownames(b_cells_metadata)
+
+b_cells <- data[,match(i, colnames(data))]
+all(colnames(b_cells) == rownames(b_cells_metadata))
+```
+
+
+
+```{r}
+t_cells_metadata$CellType2 %>% table() %>% as.data.frame()
+```
+
+
+```{r remove_cell_subtype}
+i <- str_detect(t_cells_metadata$CellType2, "CD4 T-Cell 1 \\(CM\\)")
+t_cells  <- t_cells[, !i]
+t_cells_metadata <- t_cells_metadata[!i, ]
+all(colnames(t_cells) == rownames(t_cells_metadata))
+```
+
+
+
+```{r}
+t_cells_metadata$CellType2 %>% table() %>% as.data.frame()
+```
+
+
+```{r create_seurat_object}
+t_cells <- CreateSeuratObject(raw.data = t_cells, meta.data = t_cells_metadata)
+```
+
+
+```{r process_data}
+t_cells <- t_cells %>% NormalizeData() %>% ScaleData() %>% FindVariableGenes(dispersion.function = LogVMR, do.plot = FALSE) %>% RunPCA()
+```
+
+
+```{r plotPCA}
+PCAPlot(t_cells, group = "CellType2") %>% ggplotly()
+```
+
+
+
+
+```{r}
+case <- function(if_stat, then) {
+  if_stat <- lazyeval::expr_text(if_stat)
+  then    <- lazyeval::expr_text(then)
+  sprintf("ifelse(%s, %s, ", if_stat, then)
+}
+
+null_case <- function(else_ret) {
+  else_ret <- lazyeval::expr_text(else_ret)
+  else_ret
+}
+
+switch_case <- function(...) {
+  args <- list(...)
+  
+  for (i in 1:(length(args) - 1) ) {
+    if (substr(args[[i]], 1, 6) != "ifelse") {
+      stop("All but the last argument, need to be i functions.", call. = FALSE)
+    }
+  }
+  if (substr(args[[length(args)]], 1, 6) == "ifelse"){
+    stop("Last argument needs to be an e function.", call. = FALSE)
+  }
+  args$final <- paste(rep(')', length(args) - 1), collapse = '')
+  eval_string <- do.call('paste', args)
+  eval(parse(text = eval_string))
+}
+```
+
+
+# Perform predictions
+
+
+Create dataset partitions 
+
+
+```{r}
+set.seed(66)
+i <- createDataPartition(t_cells@meta.data$CellType2, times = 1, p = 0.5, list = FALSE)
+```
+
+```{r}
+training <- SubsetData(object = t_cells, cells.use = t_cells@cell.names[i], do.clean = TRUE, subset.raw = TRUE)
+test <- SubsetData(object = t_cells, cells.use = t_cells@cell.names[-i], do.clean = TRUE, subset.raw = TRUE)
+```
+
+
+```{r}
+training <-  training %>% NormalizeData() %>% ScaleData() %>% FindVariableGenes(do.plot = FALSE) %>% RunPCA()
+test <-  test %>% NormalizeData() %>% ScaleData()
+```
+
+
+```{r}
+t_cells_pred <- getFeatureSpace(training, pVar = "CellType2")
+```
+
+```{r}
+t_cells_pred <- trainModel(t_cells_pred, number = 15)
+```
+
+```{r}
+t_cells_pred
+```
+
+```{r}
+t_cells_pred <- scPredict(t_cells_pred, test, threshold = 0.75)
+```
+
+
+```{r}
+t_cells_pred@predMeta <- test@meta.data
+```
+
+# Get accuracy
+
+```{r}
+getAccuracy(t_cells_pred, var = "CellType2")
+```
+
+```{r}
+plotEigen(t_cells_pred, group = "CellType2")
+plotEigen(t_cells_pred, group = "CellType2.valid", predGroup = test@meta.data$CellType2)
+plotEigen(t_cells_pred)
+plotEigen(t_cells_pred, group = "CellType2", predGroup = "nGene")
+```
+
+```{r}
+
+
+predictions <- t_cells_pred@predictions
+predictions$predClass <- NULL
+predictions$true <- as.factor(make.names(test@meta.data$CellType2))
+
+x <- gather(predictions, key = "cellType", value = "probability", 1:4)
+
+ggplot(x, aes(x = probability)) +
+  geom_density(aes(fill = true)) +
+  facet_wrap(~cellType)
+```
+
+
+```{r}
+t_cells_pred@train
+```
+

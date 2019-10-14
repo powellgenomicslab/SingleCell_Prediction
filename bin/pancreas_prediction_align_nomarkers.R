@@ -5,6 +5,7 @@ library("here")
 library("cowplot")
 library("Seurat")
 library("viridis")
+library("ggridges")
 
 output <- file.path("results", "2018-05-19_pancreas_prediction_align")
 
@@ -25,9 +26,20 @@ test_metadata <- readRDS(here("results", "2018-05-12_pancreas_processing",
 
 # Pre-process training datasets -------------------------------------------
 
+marker_genes <- c("INS", "GCG", "SST" ,"PPY")
+
+removeMarkers <- function(x){
+i <- which(row.names(x) %in% marker_genes)
+x[-i,]
+}
+
+training <- lapply(training, removeMarkers)
+
+
+
 normalize_data <- function(x, meta, label){
   x <- CreateSeuratObject(raw.data = x, 
-                     meta.data = meta)
+                          meta.data = meta)
   x <- NormalizeData(x)
   x <- FindVariableGenes(x, do.plot = F, display.progress = F)
   x@meta.data$batch <- label
@@ -49,7 +61,7 @@ training_seurat %>%
 # Pre-process test dataset ------------------------------------------------
 
 baron <- CreateSeuratObject(raw.data = test,
-                          meta.data = test_metadata)
+                            meta.data = test_metadata)
 baron <- NormalizeData(baron)
 baron <- FindVariableGenes(baron, do.plot = F, display.progress = F)
 baron@meta.data$batch <- "baron"
@@ -179,8 +191,8 @@ pancreas.train.test <- AlignSubspace(pancreas.train.test,
                                      dims.align = 1:30)
 
 
-saveRDS(pancreas.train.test, file = here(output, "train_test_alignment_30pcs.RDS"))
-# pancreas.train.test <- readRDS(file = here(output, "train_test_alignment_30pcs.RDS"))
+saveRDS(pancreas.train.test, file = here(output, "train_test_alignment_30pcs_nomarkers.RDS"))
+# pancreas.train.test <- readRDS(file = here("train_test_alignment.RDS"))
 
 
 pancreas.aligned <- as.data.frame(pancreas.train.test@dr$pca.aligned@cell.embeddings)
@@ -191,8 +203,8 @@ cell_labels <- ifelse(pancreas.train.test@meta.data$cell_type1 %in% c("alpha", "
 pancreas.aligned$cellType <- factor(cell_labels, levels = c("alpha", "beta", "delta", "gamma", "other"))
 
 pancreas.aligned$batch <- factor(pancreas.train.test@meta.data$batch, 
-       levels = c("muraro", "segerstolpe", "xin", "baron"),
-       labels = c("Muraro", "Segerstolpe", "Xin", "Baron"))
+                                 levels = c("muraro", "segerstolpe", "xin", "baron"),
+                                 labels = c("Muraro", "Segerstolpe", "Xin", "Baron"))
 
 
 pancreas.aligned %>% 
@@ -218,7 +230,7 @@ pancreas.aligned %>%
 # Get row 1
 batch_legend <- get_legend(p1)
 row1 <- plot_grid(p1 + theme(legend.position="none"),
-          p3 + theme(legend.position="none"))
+                  p3 + theme(legend.position="none"))
 row1 <- plot_grid(row1, batch_legend,  rel_widths = c(2, .5))
 
 
@@ -242,6 +254,11 @@ ggsave(here(output, "pancreas_pca_results.png"), plot = pca_results,
 
 
 all(pancreas.train.test@dr$pca@cell.embeddings == test_projection)
+
+
+
+
+
 
 
 
@@ -275,41 +292,13 @@ scpred <- list(prcomp = train_eigen,
 
 
 # Train model -------------------------------------------------------------
-scpred <- trainModel(object = scpred, seed = 66, method = "svmRadial", savePredictions = TRUE)
-predictions <- eigenPredict(scpred, train_eigen, threshold = 0.9)
-# predictions_train <- eigenPredict(scpred, train_eigen, threshold = 0.9)
+scpred <- trainModel(object = scpred, seed = 66, method = "svmRadial")
 
-
-saveRDS(scpred, file = here(output, "trained_model_glm_30PCs.RDS"))
-# scpred <- readRDS(file = here(output, "trained_model_svmRadial_30PCs.RDS"))
+saveRDS(scpred, file = here(output, "trained_model_svmRadial_30PCs_nomarkers.RDS"))
 
 
 # Classify cells in new dataset -------------------------------------------
 predictions <- eigenPredict(scpred, test_eigen, threshold = 0.9)
-
-write.csv(predictions, 
-          file = here(output, "pancreas_predictions.csv"), 
-          quote = FALSE)
-
-
-predictions$true <- test_metadata$cell_type1
-
-
-getMisClass <- function(x){
-predictions %>% 
-  filter(true == x, class != x) %>% 
-  pull(class) %>% 
-  table()
-}
-
-lapply(c("alpha", "beta", "delta", "gamma"), getMisClass)
-
-
-predictions %>% 
-  filter(!true %in% c("alpha", "beta", "delta", "gamma")) %>% 
-  pull(class) %>% 
-  table()
-
 
 
 # Get accuracy results ----------------------------------------------------
@@ -332,89 +321,221 @@ getAccuracy <- function(predictions, metadata){
 
 
 getAccuracy(predictions, test_metadata)
+y <- predictions
+y$true <- test_metadata$cell_type1
 
+library(tidyverse)
 
-predictions$true <- test_metadata$cell_type1
-# predictions_train$true <- train_metadata$cell_type1
-
-
-predictions %>% 
-  mutate(true = ifelse(true %in% c("alpha", "beta", "delta", "gamma"),
-                                    as.character(true), "other")) %>% 
-  mutate(true = factor(true, 
-                       levels = c("alpha", "beta", "delta", "gamma", "other"), 
-                       labels = c("Alpha", "Beta", "Delta", "Gamma", "Other") )) %>% 
-  mutate(class = factor(class, 
-                        levels = c("alpha", "beta", "delta", "gamma", "Unassigned"), 
-                        labels = c("Alpha", "Beta", "Delta", "Gamma", "Unassigned"))) %>% 
-  ggplot() +
-  aes(x = probability, fill = class) +
-  geom_histogram(color = "black", alpha = 0.8) +
-  facet_wrap(~true, scale = "free_y") +
-  scale_fill_brewer(palette = "Set2") +
-  xlab("Probability") +
-  ylab("Counts") +
-  theme_bw() +
-  theme(strip.text.x = element_text(size = 14), 
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        axis.title = element_text(size = 16), 
-        strip.background = element_rect(fill = "grey95")) +
-  guides(fill = guide_legend(title = "Predicted class")) -> p_probs
-
-
-ggsave(here(output, "pancreas_probs.png"), 
-       plot = p_probs, width = 10, height = 4.5, dpi = 350)
-
-
-## Plot roc curves for training dataset
-
-devtools::install_github("sachsmc/plotROC")
-library(plotROC)
-
-scpred_beta <- scpred
-scpred_beta$features[c("alpha", "delta", "gamma")] <- NULL
-scpred_beta$train[c("alpha", "delta", "gamma")] <- NULL
-scpred_beta$metadata$cell_type1 <- factor(ifelse(scpred_beta$metadata$cell_type1 == "beta", "beta", "other"),
-                                          levels = c("beta", "other"))
-predictions_train <- eigenPredict(scpred_beta, train_eigen, threshold = 0.9)
-predictions_train$true <- scpred_beta$metadata$cell_type1
-
-predictions_train %>% 
-  filter(true == "beta") %>% 
-  ggplot() +
-  aes(x = probability, fill = true) +
-  geom_histogram() +
-  theme_bw() +
-  geom_vline(xintercept = 0.9)
-
-predictions_train %>% 
-  mutate(true = ifelse(true == "beta", 1, 0)) %>% 
- ggplot(aes(d = true, m = probability, fill = true)) + 
-  geom_roc() +
-   style_roc()
+y %>% 
+  filter(probability > 0.9) %>% 
+  ggplot(aes(y = class, x = probability, fill = true)) +
+  geom_density_ridges()
 
 
 
-plot(roc(predictions_train$true, 
-         predictions_train$probability), 
-     col = predictions_train$true, print.thres = c(1.4))
+  geom_boxplot()
+
+getAccuracy <- function(predictions, metadata){
+  res <- data.frame(pred = predictions$class, true = metadata$cell_type1, 
+                    row.names = rownames(predictions))
+  
+  res %>% 
+    mutate(label = if_else(pred == as.character(true), as.character(true),
+                           if_else(pred ==  "Unassigned" & true == "other", 
+                                   "other", "Misclassified")))
+  
+}
+
+
+table(x[, c("true", "pred")])
 
 
 
-plot.roc(scpred$train$beta$pred$obs,
-         scpred$train$beta$pred$pred)
+getAccuracy(muraro_predictions, muraro_metadata)
+
+table(x[as.character(x$true) != as.character(x$pred),"pred"])
+
+table(x$label)
 
 
-library(precrec)
 
-# Load a test dataset
-data(P10N10)
-
-# Calculate ROC and Precision-Recall curves
-sscurves <- evalmod(scores = P10N10$scores, labels = P10N10$labels)
+res <- data.frame(pred = muraro_predictions$class, true = muraro_metadata$cell_type1, 
+                  row.names = rownames(muraro_predictions))
 
 
-sscurves <- evalmod(scores = predictions_train$probability, labels = predictions_train$true)
+res %>% 
+  mutate(true = if_else(as.character(true) %in% c("alpha", "beta", "delta", "gamma"), 
+                        as.character(true), "other")) %>% 
+  mutate(label = if_else(pred == as.character(true), as.character(true),
+                         if_else(pred ==  "Unassigned" & true == "other", 
+                                 "other", "Misclassified"))) -> x
+group_by(true, label) %>% 
+  summarise(n = n()) %>% 
+  mutate(accuracy = (n / sum(n))*100)
 
-plot(sscurves)
+
+table(x[x$true == "other","pred"])
+
+
+
+
+
+
+
+
+
+res %>% 
+  mutate(true = if_else(as.character(true) %in% c("alpha", "beta", "delta", "gamma"), 
+                        as.character(true), "other" )) %>% 
+  mutate(label = if_else(pred == as.character(true), as.character(true),
+                         if_else(pred ==  "Unassigned" & true == "other", 
+                                 "other", "Misclassified"))) %>% 
+  group_by(true, label) %>% 
+  summarise(n = n()) %>% 
+  mutate(accuracy = (n / sum(n))*100) %>% 
+  filter(label != "Misclassified") %>% # accuracy per group
+  pull(n) %>% 
+  sum() -> x
+
+
+x / nrow(res) # overall accuracy
+
+
+
+res %>% 
+  mutate(true = if_else(as.character(true) %in% c("alpha", "beta", "delta", "gamma"), 
+                        as.character(true), "other" )) %>% 
+  group_by(true, pred) %>% 
+  summarise(n = n()) %>% 
+  mutate(accuracy = (n / sum(n))*100)
+
+
+
+# Get number of pcs and variance explained -------------------------------
+
+pancreas@features %>% 
+  Reduce(rbind, .) %>% 
+  pull(PC) %>% 
+  unique() %>% 
+  as.character() -> unique_pcs
+length(unique_pcs)
+sum(pancreas@expVar[names(pancreas@expVar) %in% unique_pcs])
+pancreas@features %>% 
+  lapply(nrow)
+
+# Get number of support vectors -------------------------------------------
+
+pancreas@train %>% 
+  lapply("[", "finalModel") %>% 
+  unlist() %>% 
+  lapply("slot", "nSV")
+
+
+# Intersection of support cells
+pancreas@train %>% 
+  lapply("[", "finalModel") %>% 
+  unlist() %>% 
+  lapply("slot", "SVindex") %>% 
+  unlist() %>% 
+  unique() %>% 
+  length()
+
+
+
+
+
+
+
+res$human <- as.factor(baron_metadata$human)
+
+res$human %>% table()
+res %>% 
+  filter(true %in% c("alpha", "beta", "delta", "gamma")) %>% 
+  group_by(true, human) %>% 
+  summarise(n = n())
+
+
+res %>% 
+  filter(true %in% c("alpha", "beta", "delta", "gamma")) %>% 
+  group_by(pred, human) %>% 
+  summarise(n = n())
+
+
+res$lib <- baron_metadata$lib
+
+res %>% 
+  mutate(label = if_else(pred == as.character(true), as.character(true), "Misclassified")) %>% 
+  filter(true %in% c("alpha", "beta", "delta", "gamma")) %>% 
+  group_by(true, label, human, lib) %>% 
+  summarise(prediction = n()) %>% 
+  ungroup() %>% 
+  group_by(true, human, lib) %>% 
+  mutate(total = sum(prediction)) %>% 
+  mutate(accuracy = prediction/total) %>% 
+  filter(label != "Misclassified") %>% 
+  ungroup() %>% 
+  select(-true) %>% 
+  View()
+
+
+
+
+x <- cbind(res, baron_predictions)
+
+
+x %>% 
+  filter(true %in% c("alpha", "beta", "delta", "gamma")) %>% 
+  ggplot(aes(y = probability, x = true, fill = human)) +
+  geom_boxplot(alpha = 0.3) + 
+  geom_hline(yintercept = 0.70) +
+  facet_wrap(~lib)
+
+x %>% 
+  filter(true %in% c("alpha", "beta", "delta", "gamma")) %>% 
+  ggplot(aes(y = probability, x = true, fill = lib)) +
+  geom_boxplot(alpha = 0.3) + 
+  geom_hline(yintercept = 0.70) +
+  facet_wrap(~human)
+
+
+
+#########
+
+# Get gamma cells from reference
+i <- reference_metadata$cellType == "gamma"
+ref_gamma_metadata <- reference_metadata[i,,drop = FALSE]
+ref_gamma <- reference[,i]
+all(colnames(ref_gamma) == rownames(ref_gamma_metadata))
+
+# Get gamma cells from test
+i <- baron_metadata$cell_type1 == "gamma"
+test_gamma_metadata <- as.data.frame(baron_metadata[i,])
+test_gamma <- baron_cpm[,i]
+all(colnames(test_gamma) == rownames(test_gamma_metadata))
+
+ref_gamma <- ref_gamma[apply(ref_gamma, 1, var) != 0, ]
+ref_gamma_cor <- cor(t(ref_gamma))
+ref_gamma_cor <- abs(ref_gamma_cor)
+
+
+test_gamma <- test_gamma[apply(test_gamma, 1, var) != 0, ]
+test_gamma_cor <- cor(t(test_gamma))
+test_gamma_cor <- abs(test_gamma_cor)
+
+
+x <- apply(ref_gamma_cor, 1, 
+           function(x){ 
+             unlist(lapply(x, function(y){if(y >= 0.8){ 1}else{0}}))
+           }
+)
+
+y <- apply(test_gamma_cor, 1, 
+           function(x){ 
+             unlist(lapply(x, function(y){if(y >= 0.8){ 1}else{0}}))
+           }
+)
+
+
+
+<- x %*% diag(0,  nrow(x), ncol(x))
+

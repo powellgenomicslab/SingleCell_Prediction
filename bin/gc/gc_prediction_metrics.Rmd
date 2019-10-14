@@ -1,0 +1,433 @@
+---
+title: "Prediction of gastric tumor cells"
+subtitle: "Data split"
+author: "Jose Alquicira Hernandez"
+date: "16/08/2018"
+output: 
+  html_document: 
+    df_print: kable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r load_libraries, message=FALSE}
+library("tidyverse")
+library("here")
+library("scPred")
+library("BiocParallel")
+```
+
+```{r}
+output_dir_name <- "gc" # <------ Output directory
+date <- "2019-06-26" # <------ Date
+output <- file.path("results", paste(date, output_dir_name, sep = "_"))
+if(!dir.exists(output)){
+  dir.create(here(output))
+}
+```
+
+```{r read_data_P5931}
+P5931_normal <- read.csv(here("data/2018-07-07_gastric_cancer/Garvan_collaboration/P5931/P5931_800B_n_epithelial.raw.data.csv"))
+P5931_tumor  <- read.csv(here("data/2018-07-07_gastric_cancer/Garvan_collaboration/P5931/P5931_801B_tumor_epithelial.raw.data.csv"))
+
+P5931_normal %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+P5931_tumor %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+
+shared_cells <- intersect(colnames(P5931_normal), colnames(P5931_tumor))
+
+
+P5931_normal_i <- match(shared_cells, colnames(P5931_normal))
+P5931_tumor_i <- match(shared_cells, colnames(P5931_tumor))
+
+
+colnames(P5931_normal)[P5931_normal_i] <- paste0(shared_cells, "_normal")
+colnames(P5931_tumor)[P5931_tumor_i] <- paste0(shared_cells, "_tumor")
+
+```
+
+```{r read_data_P5931}
+P6207_normal <- read.csv("data/2018-07-07_gastric_cancer/Garvan_collaboration/P6207/P6207_18522B_epithelial.raw.data.csv")
+P6207_tumor  <- read.csv("data/2018-07-07_gastric_cancer/Garvan_collaboration/P6207/P6207_18523B_epithelial.raw.data.csv")
+
+
+P6207_normal %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+P6207_tumor %<>% 
+  column_to_rownames("X") %>% 
+  apply(2, function(x) (x/sum(x))*1000000)
+
+# shared_cells <- intersect(colnames(P6207_normal), colnames(P6207_tumor))
+```
+
+```{r create_metadata}
+getMetadata <- function(x, status){
+  barcodes <- colnames(x)
+  
+  data.frame(barcodes, status) %>% 
+    column_to_rownames("barcodes")
+  
+}
+
+
+P5931_normal_info <- getMetadata(P5931_normal, "normal")
+P5931_tumor_info  <- getMetadata(P5931_tumor, "tumor")
+
+P6207_normal_info <- getMetadata(P6207_normal, "normal")
+P6207_tumor_info  <- getMetadata(P6207_tumor, "tumor")
+
+```
+
+```{r merge_datasets}
+mergeDatasets <- function(d1, d2, by = c("r", "c")){
+  
+  by <- match.arg(by)
+  
+  if(by == "r"){
+    d1_genes <- rownames(d1)
+    d2_genes <- rownames(d2)
+    
+    shared_genes <- intersect(d1_genes, d2_genes)
+    
+    i <- match(shared_genes, d1_genes)
+    d1 <- d1[i,]
+    
+    i <- match(shared_genes, d2_genes)
+    d2 <- d2[i,]
+    
+    #all(rownames(d1) == rownames(d2))
+    
+    d <- t(cbind(d1, d2))
+    d
+  }else if(by == "c"){
+    
+    d1_genes <- colnames(d1)
+    d2_genes <- colnames(d2)
+    
+    shared_genes <- intersect(d1_genes, d2_genes)
+    
+    i  <- match(shared_genes, d1_genes)
+    d1 <- d1[,i]
+    
+    i  <- match(shared_genes, d2_genes)
+    d2 <- d2[,i]
+    
+    #all(rownames(d1) == rownames(d2))
+    
+    d <- rbind(d1, d2)
+    d
+  }
+}
+
+
+
+
+P5931 <- mergeDatasets(d1 = P5931_normal, d2 = P5931_tumor)
+P5931_metadata <- rbind(P5931_normal_info, P5931_tumor_info)
+P5931_metadata$status <- factor(P5931_metadata$status, levels = c("tumor", "normal"))
+all(rownames(P5931) == rownames(P5931_metadata))
+
+
+P6207 <- mergeDatasets(d1 = P6207_normal, d2 = P6207_tumor)
+P6207_metadata <- rbind(P6207_normal_info, P6207_tumor_info)
+P6207_metadata$status <- factor(P6207_metadata$status, levels = c("tumor", "normal"))
+all(rownames(P6207) == rownames(P6207_metadata))
+
+```
+
+
+# Merge datasets
+
+```{r merge_datasets}
+gc <- mergeDatasets(P6207, P5931, by = "c")
+gc_metadata <- rbind(P6207_metadata, P5931_metadata)
+
+all(rownames(gc) == rownames(gc_metadata))
+```
+
+```{r}
+gc %>% 
+  colnames() %>% 
+  str_subset("^RP") -> riboProteins 
+
+gcNoRibo <- gc[,!colnames(gc) %in% riboProteins]
+```
+
+```{r}
+set.seed(66)
+seeds <- sample(seq_len(10e4), 10)
+```
+
+```{r split_data}
+bootRep <- function(seed, x, x_metadata){
+  
+  # seed = seeds[1]
+  set.seed(seed)
+  i <- createDataPartition(gc_metadata$status, list = FALSE)
+  
+  train_fold <- x[i, ]
+  test_fold <- x[-i, ]
+  
+  train_meta <- x_metadata[i, , drop = FALSE]
+  test_meta <- x_metadata[-i, , drop = FALSE]
+  
+  
+  scGastric <- eigenDecompose(t(train_fold), n = 25)
+  metadata(scGastric) <- train_meta
+  
+  
+  scGastric <- getFeatureSpace(scGastric, pVar = "status")
+  
+  scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE, metric = "ROC")
+  
+  scGastric <- scPredict(scGastric, t(test_fold))
+  scGastric@predMeta <-  test_meta
+  
+  # scGastric  %>% 
+  #   getPredictions() %>% 
+  #   mutate(true = test_meta$status) %>% 
+  #   mutate(predClass = ifelse(predClass == "unassigned" & tumor < 0.1, "normal", predClass)) %>% 
+  #   mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
+  #   group_by(true, prediction) %>% 
+  #   summarise(n = n()) %>% 
+  #   mutate(accuracy = (n / sum(n))*100) %>% 
+  #   filter(prediction != "incorrect") %>% 
+  #   select(-prediction) 
+  
+  scGastric  %>% 
+    getPredictions() %>% 
+    mutate(true = test_meta$status) 
+  
+}
+```
+
+```{r}
+res <- bplapply(seeds, bootRep, gc, gc_metadata, BPPARAM = MulticoreParam(workers = 3))
+#resNoRibo <- bplapply(seeds, bootRep, gcNoRibo, gc_metadata, BPPARAM = MulticoreParam(workers = 3))
+```
+
+
+```{r}
+getSummary <- function(x){
+  x %>% 
+    mutate(predClass = ifelse(predClass == "unassigned" & tumor < 0.1, "normal", as.character(predClass))) %>% 
+    mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) %>% 
+    group_by(true, prediction) %>% 
+    summarise(n = n()) %>% 
+    mutate(accuracy = n / sum(n)) %>% 
+    filter(prediction != "incorrect") %>% 
+    select(-prediction) 
+}
+
+
+res %>% 
+  map(getSummary) %>%
+  bind_rows() %>%
+  ungroup() %>% 
+  select(-n) %>% 
+  split(.$true) %>% 
+  map(select, -true) %>% 
+  bind_cols() %>% 
+  set_names(c("sensitivity", "specificity")) -> scpred
+
+
+
+
+
+```
+
+
+
+```{r}
+library(MLmetrics)
+getAUCs <- function(x){
+  auroc <- AUC(x$tumor, ifelse(x$true == "tumor", 1, 0))
+  auprc <- PRAUC(x$tumor, ifelse(x$true == "tumor", 1, 0))
+  
+    x %>% 
+    mutate(predClass = ifelse(predClass == "unassigned" & tumor < 0.1, "normal", as.character(predClass))) %>% 
+    mutate(prediction = ifelse(predClass == true, "correct", "incorrect")) -> x
+    
+    f1_score <- F1_Score(x$true, x$predClass)
+  
+  c(auroc = auroc, auprc = auprc, f1_score = f1_score)
+}
+
+map(res, getAUCs) %>% reduce(rbind) %>% cbind(scpred) %>% `rownames<-`(1:10) %>% mutate(method = "scPred") -> res
+```
+
+
+```{r}
+bootRep <- function(seed){
+  
+  # seed = seeds[1]
+  set.seed(seed)
+  i <- createDataPartition(gc_metadata$status, list = FALSE)
+  
+  train_fold <- gc[i, ]
+  test_fold <- gc[-i, ]
+  
+  train_meta <- gc_metadata[i, , drop = FALSE]
+  test_meta <- gc_metadata[-i, , drop = FALSE]
+  
+  
+  perCellMean <- rowMeans(train_fold)
+  
+  features <- data.frame(perCellMean, status = train_meta$status)
+  
+  
+  
+  trCtrl <- trainControl(classProbs = TRUE,
+                         method = "cv",
+                         number = 10,
+                         summaryFunction = twoClassSummary,
+                         returnData = FALSE,
+                         savePredictions = TRUE,
+                         allowParallel = FALSE)
+  
+  set.seed(66)
+  fit <- train(status ~ perCellMean, 
+               features,
+               method = "svmRadial",
+               metric = "ROC",
+               trControl = trCtrl)
+  
+  
+  preds <- predict(fit, newdata = data.frame(perCellMean = rowMeans(test_fold)))
+  f1_score <-  F1_Score(test_meta$status, preds)
+  
+  table(x = test_meta$status, y = preds) %>% 
+    as.data.frame() %>% 
+    spread(key = "y", value = "Freq", fill = 0) %>%
+    as.data.frame() %>% 
+    column_to_rownames("x") -> counts
+  
+  
+  labels <- rownames(counts)
+  
+  counts %>% 
+    mapply(function(x,d){x/d}, ., colSums(.)) %>% 
+    `rownames<-`(labels) -> props
+  
+  
+  
+  preds <- predict(fit, newdata = data.frame(perCellMean = rowMeans(test_fold)), type = "prob")
+  
+  auroc <- AUC(preds$tumor, ifelse(test_meta$status == "tumor", 1, 0))
+  auprc <- PRAUC(preds$tumor, ifelse(test_meta$status == "tumor", 1, 0))
+
+
+  list(auroc = auroc, auprc = auprc, f1_score = f1_score,
+       res = data.frame(prob = preds$tumor, true = test_meta$status),
+       props = diag(props))
+}
+```
+
+```{r}
+resBaseline <- bplapply(seeds, bootRep, BPPARAM = MulticoreParam(workers = 3))
+```
+
+```{r}
+resBaseline %>% 
+  map("props") %>% 
+  reduce(rbind) %>% 
+  as.data.frame() %>% 
+  rename(sensitivity = tumor, specificity = normal) %>% 
+  mutate(method = "baseline") -> baseline
+
+resBaseline %>% 
+  lapply("[", c("auroc", "auprc", "f1_score")) %>% 
+  map(reduce, c) %>% 
+  reduce(rbind) %>% 
+  `colnames<-`(c("auroc", "auprc", "f1_score")) %>% 
+  cbind(baseline) %>% 
+  `rownames<-`(1:10) -> baseline
+
+
+```
+
+
+```{r}
+path <- file.path("results", paste("2019-03-05", "gc_degs_prediction", sep = "_"), "metrics.RDS")
+resDegs <- readRDS(path)
+```
+
+
+
+```{r}
+allRes <- rbind(res, baseline, resDegs)
+allRes$methodL <- c(rep("scPred", 10), rep("log(CPM + 1) mean", 10), rep("DEGs", 10)) %>% 
+  factor(levels = c("scPred", "DEGs", "log(CPM + 1) mean"))
+```
+
+```{r}
+allRes %>%
+  gather("metric", "value", 1:4) %>% 
+  group_by(method, metric) %>% 
+  summarise(mean = mean(value), sd = round(sd(value), 3)) %>% 
+  as.data.frame()
+```
+
+
+```{r}
+allRes %>%
+  gather("metric", "value", 1:5) %>% 
+  mutate(metric = factor(metric, c("auprc", "auroc", "sensitivity", "specificity", "f1_score"))) %>% 
+  ggplot() +
+  aes(x = methodL, y = value, fill = methodL, color = methodL) +
+  geom_boxplot(alpha = 0.5) + 
+  geom_jitter(alpha = 0.5) + 
+  xlab("Method") +
+  ylab("Performance value") +
+  facet_wrap(~metric, labeller = labeller(metric = c(auprc = "AUPRC", 
+                                                     auroc = "AUROC", 
+                                                     f1_score = "F1 score",
+                                                     sensitivity = "Sensitivity", 
+                                                     specificity = "Specificity"))) +
+  scale_fill_manual(values = c("#3B3561", "#DD7373", "#EAD94C")) +
+  scale_color_manual(values = c("#3B3561", "#DD7373", "#EAD94C")) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> p
+```
+
+```{r}
+ggsave(here(output, "performance_comparison_metrics.png"), width = 5.5, height = 5, dpi = 350)
+```
+
+
+```{r}
+allRes %>% 
+  select(-methodL) %>%
+  gather(key = "metric", value = "value", 1:4) %>% 
+  group_by(method, metric) %>%
+  summarize(mean = round(mean(value), 3), sd = round(sd(value), 3)) %>% 
+  as.data.frame() %>% 
+  print(digits = 20)
+```
+
+
+
+```{r}
+saveRDS(allRes, file = here(output, "allRes.RDS"))
+allRes <- readRDS(file = here(output, "allRes.RDS"))
+```
+
+
+# Bootrstrap confidence intervals
+
+```{r}
+apply(res, 2, quantile, prob = c(0.025, 0.975)) %>% round(2)
+
+allRes %>% 
+  split(.$method) %>%
+  lapply(function(x) {x<- x[,1:2]; apply(x, 2, quantile, prob = c(0.025, 0.975))} %>% round(3))
+
+```

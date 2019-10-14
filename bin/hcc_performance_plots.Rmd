@@ -28,7 +28,7 @@ eigenPred <- readRDS(here("results/2017-11-22_colon_cancer_prediction/performanc
 ## DEG predictions
 
 ```{r read_degPred}
-degPred <- readRDS(here(paste0("results/2017-11-22_colon_cancer_prediction/performance_DEG_tumor_vs_normal.RDS")))
+degPred <- readRDS(here(paste0("results/2018-03-13_hcc_DEGs_pred/performance_DEG_tumor_vs_normal.RDS")))
 ```
 
 
@@ -58,20 +58,22 @@ Based on the diagnostic plots, the number of eigenvectors selected was `13`.
 
 ```{r plotMetrics}
 n <- 13
-accPlot <- plotMetrics(pred = eigenPred, predDEG = degPred, n = n, metric = "accuracy")  + coord_cartesian(xlim  = c(1, 13))
 rocPlot <- plotMetrics(pred = eigenPred, predDEG = degPred,  n = n, metric = "roc")
-diagnosticsPlots <- plotDiagnostics(pred = eigenPred, n = n, metric = "roc")  + scale_x_continuous(c(1,13))
+diagnosticsPlots <- plotDiagnostics(pred = eigenPred, n = n, metric = "roc")
 ```
 
 
 
 ```{r}
-cancerControl <- plot_grid(rocPlot + xlab("") + theme(axis.text.x = element_text(angle = 90, hjust = 1)),
-          diagnosticsPlots$plotVarPval + xlab("") + theme(axis.text.x = element_text(angle = 90, hjust = 1)), 
-          diagnosticsPlots$plotDeltaPerformance +  theme(axis.text.x = element_text(angle = 90, hjust = 1)),
-          ncol = 1,
-          align = "v",
-          labels = LETTERS[1:3])
+cancerControl <- plot_grid(diagnosticsPlots$plotVarPval + xlab("") + 
+                             theme(axis.text.x = element_text(angle = 90, hjust = 1)),
+                           rocPlot + xlab("") +  ylab("AUROC") +
+                             theme(axis.text.x = element_text(angle = 90, hjust = 1)),
+                           diagnosticsPlots$plotDeltaPerformance + ylab("Delta AUROC") +
+                             theme(axis.text.x = element_text(angle = 90, hjust = 1)),
+                           ncol = 1,
+                           align = "v",
+                           labels = LETTERS[1:3])
 ```
 
 
@@ -87,9 +89,36 @@ ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
 
 ```{r}
 rocNumEigen <-  lapply(eigenPred, function(x){
-    x$predictions[[n]]$roc.auc 
-  }) %>% unlist()
+  x$predictions[[n]]$roc.auc 
+}) %>% unlist()
 ```
+
+
+```{r}
+ lapply(eigenPred, function(x){
+  x$expTrainRedSig$topEigenvectors$EV}) %>%
+  unlist() %>%
+  table() %>%
+  as.data.frame() %>%
+  set_names(c("PC", "Freq")) -> pcInfo
+  
+  pcInfo$PC <- factor(pcInfo$PC, levels = as.character(pcInfo[order(pcInfo$Freq, decreasing = TRUE), "PC"]))
+
+ggplot(pcInfo, aes(PC, Freq)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ggtitle("Frequency of PCs selection for human colorectal cancer along 50 replicates", subtitle = "13 principal components")
+
+```
+
+## Get best model
+
+
+```{r}
+eigenPred[[which.max(rocNumEigen)]]$expTrainRedSig$topEigenvectors$variance %>% 
+  sum()
+```
+
 
 ## DE genes
 
@@ -135,6 +164,28 @@ ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
        plot = p, width = 6, height = 5,
        dpi = 350)
 ```
+
+
+
+## Paper figures
+
+```{r}
+performanceAll %>% 
+  mutate(method = factor(method, levels = c("eigen","deg"))) %>% 
+  ggplot(aes(x = method, y = Roc)) +
+  geom_boxplot() +
+  geom_jitter() + 
+  scale_x_discrete(labels = c("scPred", "DEGs")) +
+  xlab("") +
+  ylab("") -> p
+
+ggsave(filename = here(paste0("results/2017-11-22_colon_cancer_prediction/",
+                              "results_hcc", ".png")),
+       plot = p, width = 5, height = 6,
+       dpi = 350)
+
+```
+
 
 
 

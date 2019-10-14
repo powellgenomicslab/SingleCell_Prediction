@@ -31,8 +31,7 @@ negative_class=tumor
 
 # Input files --------------
 
-exp_data=results/2017-10-05_colon_cancer_pca/coltumor_exp_data_processed.RDS
-red_data=results/2017-10-05_colon_cancer_pca/pca_all_nm_vs_all_tumor.RDS
+exp_data=results/2017-10-12_colon_cancer_processing/coltumor_exp_data_processed.RDS
 
 # Output file directory ----
 
@@ -41,7 +40,7 @@ output_path=results/${PWD##*/}
 
 # Main ---------------------
 
-Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'coltumor_pca_prediction.Rmd'), output_file = paste0('${positive_class}', '-', '${negative_class}', '.html'), output_dir = here('${output_path}'))" ${red_data} ${exp_data} ${output_path} ${positive_class} ${negative_class}
+Rscript -e "library('here'); rmarkdown::render(here('${script_dir}', 'coltumor_pca_prediction.Rmd'), output_file = paste0('${positive_class}', '-', '${negative_class}', '.html'), output_dir = here('${output_path}'))" ${exp_data} ${output_path} ${positive_class} ${negative_class}
 ```
 
 ```{r import_primary_libraries}
@@ -56,21 +55,26 @@ argv <- commandArgs(TRUE)
 
 # Set input parameters
 
-red.data <- argv[1]
-exp.data <- argv[2]
+expDataPath <- argv[1]
 
 # Set output parameters
 
-output.path<- argv[3]
+output.path<- argv[2]
 
 # Set extra parameters
 
-positive.class <- argv[4]
-negative.class <- argv[5]
+positive.class <- argv[3]
+negative.class <- argv[4]
 
 # positive.class <- "normal"
 # negative.class <- "tumor"
 ```
+
+```{r include=FALSE}
+expDataPath = "results/2017-10-14_colon_cancer_processing/coltumor_exp_data_processed_tpm.RDS"
+```
+
+
 
 # Groups prediction {.tabset}
 
@@ -79,26 +83,43 @@ negative.class <- argv[5]
 ### Read and process input data
 
 ```{r read_pca_data}
-red <- readRDS(here(red.data))
-eigenvectors <- red$x
-groups <- red$status
+expSet <- readRDS(here(expDataPath))
 ```
 
 ### Get significant eigenvectors
 
 ```{r get_significant_eigen}
-red.features <- getSignificantEigen(dim.red = red, groups = groups)
+red.features <- getInformativeEigen(dim.red = red, groups = groups)
 ```
 
 ### Make predictions
 
 ```{r make_predictions_eigen, results='hide', warning=FALSE, message=FALSE, cache=TRUE}
-performance <- predictEigen(eigenvectors = eigenvectors,
-                            groups = groups,
-                            positive.class = positive.class,
-                            significant.eigenvectors = red.features, 
-                            n.rep = 10,
-                            n.cores = 10)
+
+predictClass <- function(seed, prob){predictClassEigen(expData = expSet, 
+                               phenoVar = "status", 
+                               positiveClass = "normal", 
+                               seedPart = seed,
+                               probPart = prob,
+                               redMethod = "pca",
+                               mlMethod = "svmPoly")
+ }
+
+
+res <- mapply(predictClass, 1:2, c(0.5, 0.5), SIMPLIFY = FALSE)
+
+
+
+res %>% 
+  lapply(function(x) x$conf.mat$overall["Accuracy"]) %>% unlist() -> accuracyTest
+
+res %>% 
+  lapply(function(x) mean(x$fit$results$Accuracy)) %>% unlist() -> accuracyTrain
+
+
+plot(accuracyTrain, accuracyTest, pch = 16)
+
+
 ```
 
 ### Save results

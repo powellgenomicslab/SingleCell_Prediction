@@ -173,6 +173,7 @@ set.seed(66)
 seeds <- sample(seq_len(10e4), 10)
 ```
 
+
 ```{r split_data}
 bootRep <- function(seed, x, x_metadata){
 
@@ -193,7 +194,7 @@ metadata(scGastric) <- train_meta
 
 scGastric <- getFeatureSpace(scGastric, pVar = "status")
 
-scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE)
+scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE, metric = "ROC")
 
 scGastric <- scPredict(scGastric, t(test_fold))
 scGastric@predMeta <-  test_meta
@@ -329,7 +330,7 @@ allRes$method <- c(rep("scPred", 10), rep("DEGs", 10), rep("log(CPM + 1) mean", 
 allRes %>%
   gather("metric", "value", 1:2) %>% 
   group_by(method, metric) %>% 
-  summarise(mean = mean(value), sd = sd(value))
+  summarise(mean = mean(value), sd = round(sd(value), 3))
 ```
 
 
@@ -351,4 +352,99 @@ allRes %>%
 ```{r}
 ggsave(here("performance_comparison.png"), width = 5, height = 3, dpi = 320)
 ```
+
+# Bootrstrap confidence intervals
+
+```{r}
+apply(res, 2, quantile, prob = c(0.025, 0.975)) %>% round(2)
+
+allRes %>% 
+  split(.$method) %>%
+  lapply(function(x) {x<- x[,1:2]; apply(x, 2, quantile, prob = c(0.025, 0.975))} %>% round(3))
+
+```
+
+
+
+---
+
+
+```{r split_data}
+bootRep <- function(seed, x, x_metadata){
+
+# seed = seeds[1]
+set.seed(seed)
+i <- createDataPartition(gc_metadata$status, list = FALSE)
+
+train_fold <- x[i, ]
+test_fold <- x[-i, ]
+
+train_meta <- x_metadata[i, , drop = FALSE]
+test_meta <- x_metadata[-i, , drop = FALSE]
+
+
+scGastric <- eigenDecompose(t(train_fold), n = 25)
+metadata(scGastric) <- train_meta
+
+
+scGastric <- getFeatureSpace(scGastric, pVar = "status")
+
+scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE)
+
+scGastric <- scPredict(scGastric, t(test_fold))
+scGastric@predMeta <-  test_meta
+
+
+library(pROC)
+
+scGastric %>% 
+  getPredictions() %>% 
+  pull(tumor) -> prediction
+
+
+roc_obj <- roc(test_meta$status, prediction)
+roc_obj
+}
+```
+
+
+```{r}
+res <- bplapply(seeds, bootRep, gc, gc_metadata, BPPARAM = MulticoreParam(workers = 3))
+```
+
+```{r}
+res %>% 
+  lapply("[", c("sensitivities", "specificities")) %>% 
+  lapply(reduce, cbind) -> resFormat 
+
+resFormat %>% 
+  lapply(function(x) x[,1]) %>% 
+  reduce(rbind) -> sensitivities
+
+
+resFormat %>% 
+  lapply(function(x) x[,2]) %>% 
+  reduce(rbind) -> specificities
+
+auroc <- data.frame(
+  TPR = rev(sensitivities), 
+  FPR = rev(1 - specificities)
+)
+
+
+res %>% 
+  lapply("[", "auc") %>% 
+  lapply(as.numeric) %>% 
+  unlist() %>% 
+  mean()
+
+
+```
+
+
+```{r}
+saveRDS(res, file = here(output, "res_aucroc.RDS"))
+```
+
+
 

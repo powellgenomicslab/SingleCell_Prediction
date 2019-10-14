@@ -19,6 +19,7 @@ library("caret")
 library("limma")
 library("edgeR")
 library("kernlab")
+library("MLmetrics")
 
 # Set output --------------------------------------------------------------
 
@@ -155,11 +156,14 @@ gc_metadata %>%
   theme_classic() +
   scale_fill_brewer(palette = "Set1") +
   facet_grid(~sample)
-  
+
 
 status <- factor(gc_metadata$status, levels = c("normal", "tumor"))
 
-dge <- DGEList(gc2, group = status)
+
+# Differential expression analysis ----------------------------------------
+
+dge <- DGEList(gc, group = status)
 dge <- calcNormFactors(dge)
 design <- model.matrix(~status + gc_metadata$propRp + gc_metadata$sample)
 y <- new("EList")
@@ -172,7 +176,7 @@ tt %>%
   rownames_to_column("gene") %>% 
   filter(abs(statustumor) > 2, adj.P.Val < 0.05) -> tt
 degs <- tt$gene
-  
+
 
 
 ####
@@ -211,6 +215,10 @@ runPredictions <- function(seed){
   
   
   preds <- predict(fit, newdata = t(test_fold[degs,]))
+  prob <- predict(fit, newdata = t(test_fold[degs,]), type = "prob")[["tumor"]]
+  
+  f1_score <-  F1_Score(preds, test_meta$status)
+  
   
   table(x = test_meta$status, y= preds) %>% 
     as.data.frame() %>% 
@@ -225,96 +233,35 @@ runPredictions <- function(seed){
     mapply(function(x,d){x/d}, ., colSums(.)) %>% 
     `rownames<-`(labels) -> props
   
-  diag(props)
+  
+  auroc <- AUC(prob, ifelse(test_meta$status == "tumor", 1, 0))
+  auprc <- PRAUC(prob, ifelse(test_meta$status == "tumor", 1, 0))
+  
+  list(auroc = auroc, auprc = auprc, f1_score = f1_score,
+       props = diag(props))
   
 }
 
-
 res <- lapply(seeds, runPredictions)
 
+
 res %>% 
+  map("props") %>% 
   reduce(rbind) %>% 
   as.data.frame() %>% 
-  ggplot(aes(x = tumor, y = normal)) +
-  geom_point()
-
-
-saveRDS(res, here(output, "accuracy.RDS"))
-
-
-
-##############
-
-library(pROC)
-
-
-runPredictions <- function(seed){ 
-  # Create partitions
-  set.seed(seed)
-  i <- createDataPartition(gc_metadata$status, list = FALSE)
-  
-  train_fold <- gc2[, i]
-  test_fold <- gc2[, -i]
-  
-  train_meta <- gc_metadata[i, , drop = FALSE]
-  test_meta <- gc_metadata[-i, , drop = FALSE]
-  
-  trCtrl <- trainControl(classProbs = TRUE,
-                         method = "cv",
-                         number = 10,
-                         summaryFunction = twoClassSummary,
-                         returnData = FALSE,
-                         savePredictions = TRUE,
-                         allowParallel = FALSE)
-  
-  
-  fit <- train(t(train_fold[degs,]), 
-               train_meta$status,
-               method = "svmRadial",
-               metric = "ROC",
-               preProcess = c("center", "scale"),
-               trControl = trCtrl)
-  
-  
-  prediction <- predict(fit, newdata = t(test_fold[degs,]), type = "prob")[["tumor"]]
-  
-  
-  roc_obj <- roc(test_meta$status, prediction)
-  roc_obj
-  
-}
-
-
-res <- lapply(seeds, runPredictions)
+  rename(sensitivity = tumor, specificity = normal) %>% 
+  mutate(method = "degs") -> resDegs
 
 res %>% 
-  lapply("[", c("sensitivities", "specificities")) %>% 
-  lapply(reduce, cbind) -> resFormat 
-
-resFormat %>% 
-  lapply(function(x) x[,1]) %>% 
-  reduce(rbind) -> sensitivities
-
-
-resFormat %>% 
-  lapply(function(x) x[,2]) %>% 
-  reduce(rbind) -> specificities
-
-auroc <- data.frame(
-  TPR = rev(sensitivities), 
-  FPR = rev(1 - specificities)
-)
+  lapply("[", c("auroc", "auprc", "f1_score")) %>% 
+  map(reduce, c) %>% 
+  reduce(rbind) %>% 
+  `colnames<-`(c("auroc", "auprc", "f1_score")) %>% 
+  cbind(resDegs) %>% 
+  `rownames<-`(1:10) -> resDegs
 
 
-res %>% 
-  lapply("[", "auc") %>% 
-  lapply(as.numeric) %>% 
-  unlist() %>% 
-  mean()
-
-saveRDS(res, here(output, "accuracy.RDS"))
-
-
+saveRDS(resDegs, here(output, "metrics.RDS"))
 
 
 

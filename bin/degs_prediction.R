@@ -13,13 +13,13 @@ library("methods")
 getDE <- function(expData, expMetadata, pVar, positiveClass, pValFilter = 0.05, log2FCFilter = 2, pseudocount = TRUE,
                   fitType = 'local', method = "per-condition"){
   
-
+  
   if(!all(rownames(expData) == rownames(expMetadata))){
     stop("Cell ids in expression matrix and metadata do not match")
   }
   
   
-    if(!pVar %in% names(expMetadata)){
+  if(!pVar %in% names(expMetadata)){
     stop("phenoVar must be included in 'expData' variable metadata")
   }  
   
@@ -46,7 +46,7 @@ getDE <- function(expData, expMetadata, pVar, positiveClass, pValFilter = 0.05, 
   
   exp %>% 
     t() %>% 
-    newCountDataSet(conditions = expTrainMeta[[phenoVar]]) %>% 
+    newCountDataSet(conditions = expMetadata[[phenoVar]]) %>% 
     estimateSizeFactors() %>% 
     estimateDispersions(fitType = fitType, method = method) %>% 
     nbinomTest(condA = positiveClass, condB = negativeClass) %>% 

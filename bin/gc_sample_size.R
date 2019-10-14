@@ -10,7 +10,8 @@ library("MLmetrics")
 
 # Set output --------------------------------------------------------------
 
-output <- setOutput("2019-07-06", "gc_seq_depth")
+output <- setOutput( "2019-07-06", "gc_sample_size")
+
 
 # Read data ---------------------------------------------------------------
 
@@ -113,42 +114,38 @@ gc <- mergeDatasets(P6207, P5931, by = "c")
 gc_metadata <- rbind(P6207_metadata, P5931_metadata)
 
 all(rownames(gc) == rownames(gc_metadata))
+gc %<>% apply(1, function(x) (x/sum(x))*1000000)
 
 
 # Simulate sequencing depth -----------------------------------------------
 
-# Create bootstrap prediction function
-bootSubSamp <- function(seed, thr){
-  set.seed(seed)
+bootProp <- function(seed_part, prop){
+  
+  set.seed(seed_part)
   i <- createDataPartition(gc_metadata$status, list = FALSE)
   
-  train_fold <- gc[i, ]
-  test_fold <- gc[-i, ] 
+  train_fold <- gc[, i]
+  test_fold <- gc[, -i]
+  
+  
+  nCells <- ncol(train_fold)
+  set.seed(66)
+  j <- sample(seq_len(nCells), prop)
+  train_fold <- train_fold[, j]
+  
   
   train_meta <- gc_metadata[i, , drop = FALSE]
   test_meta <- gc_metadata[-i, , drop = FALSE]
-  
-  seqDepth <- rowSums(train_fold)
-  cellMax <- max(seqDepth)
-  scaleFactor <- thr / cellMax
-  
-  train_fold <- round(train_fold * scaleFactor)
-  
-  zeroDrop <- rowSums(train_fold) == 0
-  
-  if(any(zeroDrop)){
-    train_fold <- train_fold[!zeroDrop,]
-    train_meta <- train_meta[!zeroDrop, , drop = FALSE]
-  }
-  
-  
-  train_fold <- t(train_fold/rowSums(train_fold) * 1e6)
-  test_fold <- t(test_fold/rowSums(test_fold) * 1e6)
+  train_meta <- train_meta[j, , drop = FALSE]
   
   scGastric <- eigenDecompose(train_fold, n = 25)
   metadata(scGastric) <- train_meta
+  
+  
   scGastric <- getFeatureSpace(scGastric, pVar = "status")
+  
   scGastric <- trainModel(scGastric, seed = 66, returnData = TRUE, savePredictions = TRUE)
+  
   scGastric <- scPredict(scGastric, test_fold)
   scGastric@predMeta <-  test_meta
   
@@ -161,6 +158,8 @@ bootSubSamp <- function(seed, thr){
     summarise(n = n()) %>% 
     mutate(proportion = (n / sum(n))) -> props
   
+  
+  
   auroc <- AUC(scGastric@predictions$tumor, ifelse(test_meta$status == "tumor", 1, 0))
   auprc <- PRAUC(scGastric@predictions$tumor, ifelse(test_meta$status == "tumor", 1, 0))
   
@@ -168,36 +167,29 @@ bootSubSamp <- function(seed, thr){
     getPredictions() %>% 
     mutate(true = test_meta$status) %>% 
     mutate(predClass = ifelse(predClass == "unassigned" & tumor < 0.1, "normal", as.character(predClass))) %>% 
-    pull(predClass) -> tmp
-  
-  if(length(unique(tmp)) == 1){
-    f1_score <- NA
-  }else{
-    F1_Score(test_meta$status, tmp) -> f1_score
-  }
-  
+    pull(predClass) %>% 
+    F1_Score(test_meta$status, .) -> f1_score
   
   list(auroc = auroc, auprc = auprc, f1_score = f1_score,
        props = props)
-  
-  
 }
 
-# Get series of sequencing depth proportions
-thrs <- seq(5000, 40000, 5000)
+set.seed(66)
+seed_part <- sample(seq_len(10e4), 10)
 
-# Generate seeds
-set.seed(60)
-seeds <- sample(seq_len(10e4), 10)
+props <- seq(100, 900, 100)
 
 runBoot <- function(i){
-  lapply(seeds, bootSubSamp, thrs[i])
+  lapply(seed_part, bootProp, props[i])
 }
 
-multicoreParam <- MulticoreParam(workers = 3)
-res <- bplapply(seq_len(length(thrs)), runBoot, BPPARAM = multicoreParam)
-saveRDS(res, here(output, "all_replicates_seq-depth.RDS"))
-res <- readRDS(here(output, "all_replicates_seq-depth.RDS"))
+
+
+
+res <- bplapply(seq_len(length(props)), runBoot, BPPARAM = MulticoreParam(workers = 3))
+saveRDS(res, here(output, "all_replicates.RDS"))
+# res <- readRDS(here(output, "all_replicates.RDS"))
+
 
 getCorrect <- function(x){
   
@@ -225,97 +217,97 @@ getCorrect <- function(x){
   
 }
 
-names(res) <- thrs
-
+names(res) <- props
 
 res %>% 
   lapply(map, "props") %>% 
   lapply(function(x) reduce(x, rbind)) %>% 
   lapply(getCorrect) %>% 
-  mapply(function(x, label){ x$thr <- label; x}, ., thrs, SIMPLIFY = FALSE) %>% 
+  mapply(function(x, label){ x$prop <- label; x}, .,  props, SIMPLIFY = FALSE) %>% 
   reduce(rbind) %>% 
-  as.data.frame() %>% 
-  filter(thr > 5000) %>% 
-  mutate(thr = factor(thr, levels = unique(thr))) -> resFormat
+  mutate(prop = as.factor(prop)) %>% 
+  mutate(Metric = factor(true, levels = c("tumor", "normal"), 
+                         labels = c("Sensitivity", "Specificity"))) -> resFormat
 
 
 res %>% 
   lapply(map, "auroc") %>% 
   lapply(function(x) reduce(x, rbind)) %>% 
   map(as.data.frame) %>% 
-  mapply(function(x, label){ x$thr <- label; x}, ., thrs, SIMPLIFY = FALSE) %>% 
+  mapply(function(x, label){ x$prop <- label; x}, ., props, SIMPLIFY = FALSE) %>% 
   reduce(rbind) %>% 
   as.data.frame() %>% 
-  filter(thr > 5000) %>% 
-  mutate(thr = factor(thr, levels = unique(thr))) %>% 
-  set_names(c("auroc", "thr")) -> auroc
+  mutate(prop = factor(prop, levels = unique(prop))) %>% 
+  set_names(c("auroc", "prop")) -> auroc
 
 res %>% 
   lapply(map, "auprc") %>% 
   lapply(function(x) reduce(x, rbind)) %>% 
   map(as.data.frame) %>% 
-  mapply(function(x, label){ x$thr <- label; x}, ., thrs, SIMPLIFY = FALSE) %>% 
+  mapply(function(x, label){ x$prop <- label; x}, ., props, SIMPLIFY = FALSE) %>% 
   reduce(rbind) %>% 
   as.data.frame() %>% 
-  filter(thr > 5000) %>% 
-  mutate(thr = factor(thr, levels = unique(thr))) %>% 
-  set_names(c("auprc", "thr")) -> auprc
+  mutate(prop = factor(prop, levels = unique(prop))) %>% 
+  set_names(c("auprc", "prop")) -> auprc
 
 res %>% 
   lapply(map, "f1_score") %>% 
   lapply(function(x) reduce(x, rbind)) %>% 
   map(as.data.frame) %>% 
-  mapply(function(x, label){ x$thr <- label; x}, ., thrs, SIMPLIFY = FALSE) %>% 
+  mapply(function(x, label){ x$prop <- label; x}, ., props, SIMPLIFY = FALSE) %>% 
   reduce(rbind) %>% 
   as.data.frame() %>% 
-  filter(thr > 5000) %>% 
-  mutate(thr = factor(thr, levels = unique(thr))) %>% 
-  set_names(c("proportion", "thr")) %>% 
-  mutate(true = "F1 Score") -> f1_score
+  mutate(prop = factor(prop, levels = unique(prop))) %>% 
+  set_names(c("f1_score", "prop")) -> f1_score
 
+metrics_long <- pivot_longer(metrics, 
+                             names_to = "Metric", 
+                             values_to = "proportion", 
+                             cols = c("auroc", "auprc", "f1_score"))
 
 resFormat %>% 
-  select(proportion, thr, true) %>% 
-  rbind(f1_score) %>% 
-ggplot(aes(x = thr, y = proportion, fill = true)) +
-  geom_boxplot() +
-  xlab("") +
+  ungroup() %>% 
+  select(prop, Metric, proportion) %>% 
+  rbind(metrics_long) -> metrics_long
+
+metrics <- cbind(auroc, auprc %>% select(-prop), f1_score %>% select(-prop))
+
+metrics_long %>% 
+  filter(Metric %in% c("Sensitivity", "Specificity", "f1_score")) %>% 
+  mutate(Metric = if_else(Metric == "f1_score", "F1 Score", as.character(Metric))) %>% 
+  mutate(Metric = factor(Metric, c("Sensitivity", "Specificity", "F1 Score"))) %>% 
+ggplot(aes(x = prop, y = proportion, fill = Metric)) +
+  geom_boxplot(alpha = 0.7) +
+  xlab("Number of cells in training dataset") +
   ylab("Value") +
-  labs(fill = "Metric") +
-  scale_fill_manual(labels = c("Sensitivity", "Specificity", "F1 Score"), values = c("red", "steelblue", "darkgreen")) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> p
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() -> p 
 
 
-
-metrics <- cbind(auroc, auprc %>% select(-thr))
 
 metrics %>% 
   gather(key = "Metric", value = "value", c(1,3)) %>% 
-  ggplot(aes(x = thr, y = value, fill = Metric)) +
+ggplot(aes(x = prop, y = value, fill = Metric)) +
   geom_boxplot() +
-  xlab("Maximum cell sequencing depth in training data") +
+  xlab("Number of cells in training dataset") +
   ylab("Value") +
-  labs(fill = "Metric") +
-  scale_fill_manual(labels = c("AUROC", "AUPRC"), values = c("#985277", "#FF8C61")) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> p2
-
-
+  scale_fill_manual(labels = c("AUROC", "AUPRC"), values = c("#985277", "#FF8C61", "#F0C808")) +
+  theme_bw() -> p2 
 
 p3 <- cowplot::plot_grid(p, p2, ncol = 1)
-ggsave(filename = here(output, "seq_depth.png"), p3, width = 6, height = 6)
+ggsave(filename = here(output, "sample_size.png"), p3, width = 6, height = 6)
 
-
-
-resFormat %>% 
-  mutate(accuracy = proportion) %>% 
-  group_by(thr, true) %>% 
-  summarise(mean = mean(proportion), sd = sd(proportion)) %>% 
+metrics_long %>% 
+  group_by(Metric, prop) %>% 
+  summarize(mean = mean(proportion), sd = sd(proportion)) %>% 
+  mutate(mean = round(mean, 3), sd = round(sd, 3)) %>% 
+  as.data.frame()
   write_csv(path = here(output, "results.csv"))
 
-
-
-
-
-
+metrics %>% 
+  gather(key = "Metric", value = "value", c(1,3)) %>% 
+  group_by(Metric, prop) %>% 
+  summarize(mean = mean(value), sd = sd(value)) %>% 
+  mutate(mean = round(mean, 3), sd = round(sd, 3)) %>% 
+  as.data.frame() %>% 
+  write_csv(path = here(output, "results_metrics.csv"))

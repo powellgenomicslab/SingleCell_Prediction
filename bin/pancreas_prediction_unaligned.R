@@ -94,6 +94,7 @@ model <- getFeatureSpace(pancreas.integrated, pVar = "cell_type1")
 model <- trainModel(object = model)
 
 saveRDS(model, file = here(output, "model.RDS"))
+model <- readRDS(file = here(output, "model.RDS"))
 
 
 # Classify cells in new dataset -------------------------------------------
@@ -104,6 +105,8 @@ model %>% getPredictions()
 orderLab <- c("alpha", "beta",  "delta", "gamma",  "acinar", "activated_stellate",  "ductal", "endothelial",  "epsilon", "macrophage",  "mast", "quiescent_stellate",  "schwann", "t_cell")
 
 accuracy <- crossTab(model, true = "cell_type1")[,orderLab]
+
+write.table(accuracy, file = here(output, "performance.txt"), quote = FALSE, sep = "\t")
 
 
 ## Overall sensitivity
